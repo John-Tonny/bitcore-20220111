@@ -36,7 +36,6 @@ const deprecatedServerMessage = require('../deprecated-serverMessages');
 const serverMessages = require('../serverMessages');
 const BCHAddressTranslator = require('./bchaddresstranslator');
 
-
 const EmailValidator = require('email-validator');
 
 import { Validation } from 'crypto-wallet-core';
@@ -2816,7 +2815,7 @@ export class WalletService {
                     replaceTxByFee: opts.replaceTxByFee,
                     atomicswap: opts.atomicswap, // john 20210409
                     atomicswapAddr: opts.atomicswapAddr,
-                    atomicswapSecretHash: opts.atomicswapSecretHash		    
+                    atomicswapSecretHash: opts.atomicswapSecretHash
                   };
                   txp = TxProposal.create(txOpts);
                   next();
@@ -2887,7 +2886,7 @@ export class WalletService {
       10 * 1000
     );
   }
-// john 20211228
+  // john 20211228
   /**
    * Creates a new transaction proposal.
    * @param {Object} opts
@@ -3095,7 +3094,7 @@ export class WalletService {
                     replaceTxByFee: opts.replaceTxByFee,
                     atomicswap: opts.atomicswap, // john 20210409
                     atomicswapAddr: opts.atomicswapAddr,
-                    atomicswapSecretHash: opts.atomicswapSecretHash		    
+                    atomicswapSecretHash: opts.atomicswapSecretHash
                   };
                   txp = TxProposal.create(txOpts);
                   next();
@@ -3150,7 +3149,6 @@ export class WalletService {
     );
   }
 
-  
   /**
    * Publish an already created tx proposal so inputs are locked and other copayers in the wallet can see it.
    * @param {Object} opts
@@ -3198,7 +3196,7 @@ export class WalletService {
           try {
             if (txp.coin.toLowerCase() == 'vcl') {
               raw = txp.getRawTx1();
-            }else{
+            } else {
               raw = txp.getRawTx();
             }
           } catch (ex) {
@@ -3217,7 +3215,7 @@ export class WalletService {
           }
 
           if (txp.atomicswap && txp.atomicswap.isAtomicSwap) {
-            this.getUtxos({addresses: [txp.atomicswapAddr]}, (err, utxos) => {
+            this.getUtxos({ addresses: [txp.atomicswapAddr] }, (err, utxos) => {
               if (err || !utxos) return cb(new Error('atomicswap contract  has been spent'));
               txp.status = 'pending';
               this.storage.storeTx(this.walletId, txp, err => {
@@ -3772,7 +3770,7 @@ export class WalletService {
       return cb(null, txp);
     });
   }
-  
+
   /**
    * Broadcast a transaction proposal.
    * @param {Object} opts
@@ -4012,7 +4010,7 @@ export class WalletService {
       });
     }
   }
-  
+
   // john 20211228
   /**
    * Retrieves pending transaction proposals.
@@ -4038,33 +4036,36 @@ export class WalletService {
       this.storage.fetchPendingTxs(this.walletId, (err, txps) => {
         if (err) return cb(err);
 
-      _.each(txps, txp => {
-        txp.deleteLockTime = this.getRemainingDeleteLockTime(txp);
-        if(txp.atomicswap) {
-          let cnt = new Bitcore.atomicswap.AuditContract(txp.atomicswap.contract);
-          txp.atomicswap.isAtomicSwap = cnt.isAtomicSwap;
-        }
-      });
+        _.each(txps, txp => {
+          txp.deleteLockTime = this.getRemainingDeleteLockTime(txp);
+          if (txp.atomicswap) {
+            let cnt = new Bitcore.atomicswap.AuditContract(txp.atomicswap.contract);
+            txp.atomicswap.isAtomicSwap = cnt.isAtomicSwap;
+          }
+        });
 
-      txps = _.reject(txps, txp => {
-        return txp.atomicswap && ( !txp.atomicswap.isAtomicSwap || txp.atomicswap.redeem != undefined || txp.status != 'broadcasted' );
-      });
+        txps = _.reject(txps, txp => {
+          return (
+            txp.atomicswap &&
+            (!txp.atomicswap.isAtomicSwap || txp.atomicswap.redeem != undefined || txp.status != 'broadcasted')
+          );
+        });
 
-      async.each(
-        txps,
-        (txp: ITxProposal, next) => {
-          this._checkTxInBlockchain(txp, (err, isInBlockchain) => {
-            if (err || !isInBlockchain) {
-              txp.atomicswapAddr = null;
-              return next(err);
-            }
-            this._checkTxFromAddress(txp, next);
-          });
-        },
-        err => {
-          txps = _.reject(txps, txp => {
-            return txp.atomicswapAddr == null;
-          });
+        async.each(
+          txps,
+          (txp: ITxProposal, next) => {
+            this._checkTxInBlockchain(txp, (err, isInBlockchain) => {
+              if (err || !isInBlockchain) {
+                txp.atomicswapAddr = null;
+                return next(err);
+              }
+              this._checkTxFromAddress(txp, next);
+            });
+          },
+          err => {
+            txps = _.reject(txps, txp => {
+              return txp.atomicswapAddr == null;
+            });
 
             if (txps[0] && txps[0].coin == 'bch') {
               const format = opts.noCashAddr ? 'copay' : 'cashaddr';
@@ -4084,7 +4085,7 @@ export class WalletService {
         );
       });
     }
-  }  
+  }
 
   /**
    * Retrieves all transaction proposals in the range (maxTs-minTs)
@@ -4849,7 +4850,7 @@ export class WalletService {
     }
     return cb(null, { finalTxs, res });
   }
-  
+
   tagLowFeeTxs(wallet: IWallet, txs: any[], cb) {
     const unconfirmed = txs.filter(tx => tx.confirmations === 0);
     if (_.isEmpty(unconfirmed)) return cb();

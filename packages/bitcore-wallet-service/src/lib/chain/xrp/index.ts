@@ -283,5 +283,4 @@ export class XrpChain implements IChain {
   getRedeemSendMaxInfo(server, wallet, opts, cb) {
     return cb(null, null);
   }
-
 }

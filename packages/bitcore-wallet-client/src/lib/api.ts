@@ -898,7 +898,8 @@ export class API extends EventEmitter {
     opts = opts || {};
 
     var coin = opts.coin || 'vcl';
-    if (!_.includes(Constants.COINS, coin)) return cb(new Error('Invalid coin'));
+    if (!_.includes(Constants.COINS, coin))
+      return cb(new Error('Invalid coin'));
 
     var network = opts.network || 'livenet';
     if (!_.includes(['testnet', 'livenet'], network))
@@ -990,7 +991,8 @@ export class API extends EventEmitter {
     opts = opts || {};
 
     var coin = opts.coin || 'vcl';
-    if (!_.includes(Constants.COINS, coin)) return cb(new Error('Invalid coin'));
+    if (!_.includes(Constants.COINS, coin))
+      return cb(new Error('Invalid coin'));
 
     try {
       var secretData = API.parseSecret(secret);
@@ -1482,7 +1484,6 @@ export class API extends EventEmitter {
     });
   }
 
-
   // john 20210409
   // /**
   // * Create a atomicswap redeem transaction proposal
@@ -1527,12 +1528,19 @@ export class API extends EventEmitter {
     }
 
     $.checkArgument(opts.atomicswap.secret);
-    if (!JSUtil.isHexa(opts.atomicswap.secret) && opts.atomicswap.secret.length != 64) {
+    if (
+      !JSUtil.isHexa(opts.atomicswap.secret) &&
+      opts.atomicswap.secret.length != 64
+    ) {
       cb(new Errors('atomicswap secret is invalid'));
     }
     opts.atomicswap.redeem = true;
     // BCH schnorr deployment
-    if (!opts.signingMethod && this.credentials.coin == 'bch' && this.credentials.network == 'testnet') {
+    if (
+      !opts.signingMethod &&
+      this.credentials.coin == 'bch' &&
+      this.credentials.network == 'testnet'
+    ) {
       opts.signingMethod = 'schnorr';
     }
 
@@ -1544,7 +1552,13 @@ export class API extends EventEmitter {
       if (err) return cb(err);
 
       this._processTxps(txp);
-      if (!Verifier.checkProposalCreation(args, txp, this.credentials.sharedEncryptingKey)) {
+      if (
+        !Verifier.checkProposalCreation(
+          args,
+          txp,
+          this.credentials.sharedEncryptingKey
+        )
+      ) {
         return cb(new Errors.SERVER_COMPROMISED());
       }
 
@@ -1596,7 +1610,11 @@ export class API extends EventEmitter {
     }
 
     // BCH schnorr deployment
-    if (!opts.signingMethod && this.credentials.coin == 'bch' && this.credentials.network == 'testnet') {
+    if (
+      !opts.signingMethod &&
+      this.credentials.coin == 'bch' &&
+      this.credentials.network == 'testnet'
+    ) {
       opts.signingMethod = 'schnorr';
     }
 
@@ -1608,7 +1626,13 @@ export class API extends EventEmitter {
       if (err) return cb(err);
 
       this._processTxps(txp);
-      if (!Verifier.checkProposalCreation(args, txp, this.credentials.sharedEncryptingKey)) {
+      if (
+        !Verifier.checkProposalCreation(
+          args,
+          txp,
+          this.credentials.sharedEncryptingKey
+        )
+      ) {
         return cb(new Errors.SERVER_COMPROMISED());
       }
 
@@ -1647,7 +1671,10 @@ export class API extends EventEmitter {
     $.checkArgument(opts);
 
     $.checkArgument(opts.atomicswap.secretHash);
-    if (!JSUtil.isHexa(opts.atomicswap.secretHash) && opts.atomicswap.secretHash.length != 64) {
+    if (
+      !JSUtil.isHexa(opts.atomicswap.secretHash) &&
+      opts.atomicswap.secretHash.length != 64
+    ) {
       cb(new Errors('atomicswap secretHash is invalid'));
     }
     opts.atomicswap.initiate = true;
@@ -1656,7 +1683,11 @@ export class API extends EventEmitter {
     }
 
     // BCH schnorr deployment
-    if (!opts.signingMethod && this.credentials.coin == 'bch' && this.credentials.network == 'testnet') {
+    if (
+      !opts.signingMethod &&
+      this.credentials.coin == 'bch' &&
+      this.credentials.network == 'testnet'
+    ) {
       opts.signingMethod = 'schnorr';
     }
 
@@ -1668,7 +1699,13 @@ export class API extends EventEmitter {
       if (err) return cb(err);
 
       this._processTxps(txp);
-      if (!Verifier.checkProposalCreation(args, txp, this.credentials.sharedEncryptingKey)) {
+      if (
+        !Verifier.checkProposalCreation(
+          args,
+          txp,
+          this.credentials.sharedEncryptingKey
+        )
+      ) {
         return cb(new Errors.SERVER_COMPROMISED());
       }
 
@@ -1707,7 +1744,10 @@ export class API extends EventEmitter {
     $.checkArgument(opts);
 
     $.checkArgument(opts.atomicswap.secretHash);
-    if (!JSUtil.isHexa(opts.atomicswap.secretHash) && opts.atomicswap.secretHash.length != 64) {
+    if (
+      !JSUtil.isHexa(opts.atomicswap.secretHash) &&
+      opts.atomicswap.secretHash.length != 64
+    ) {
       cb(new Errors('atomicswap secretHash is invalid'));
     }
     opts.atomicswap.initiate = false;
@@ -1716,7 +1756,11 @@ export class API extends EventEmitter {
     }
 
     // BCH schnorr deployment
-    if (!opts.signingMethod && this.credentials.coin == 'bch' && this.credentials.network == 'testnet') {
+    if (
+      !opts.signingMethod &&
+      this.credentials.coin == 'bch' &&
+      this.credentials.network == 'testnet'
+    ) {
       opts.signingMethod = 'schnorr';
     }
 
@@ -1728,7 +1772,13 @@ export class API extends EventEmitter {
       if (err) return cb(err);
 
       this._processTxps(txp);
-      if (!Verifier.checkProposalCreation(args, txp, this.credentials.sharedEncryptingKey)) {
+      if (
+        !Verifier.checkProposalCreation(
+          args,
+          txp,
+          this.credentials.sharedEncryptingKey
+        )
+      ) {
         return cb(new Errors.SERVER_COMPROMISED());
       }
 
@@ -1754,7 +1804,11 @@ export class API extends EventEmitter {
 
     var t = Utils.buildTx(opts.txp);
     // john
-    if (opts.txp.atomicswap && opts.txp.atomicswap.isAtomicSwap && opts.txp.atomicswap.redeem != undefined) {
+    if (
+      opts.txp.atomicswap &&
+      opts.txp.atomicswap.isAtomicSwap &&
+      opts.txp.atomicswap.redeem != undefined
+    ) {
       t.inputs[0].output.setScript(opts.txp.atomicswap.contract);
       if (!opts.txp.atomicswap.redeem) {
         t.lockUntilDate(opts.txp.atomicswap.lockTime);
@@ -1763,9 +1817,9 @@ export class API extends EventEmitter {
       }
     }
     var hash;
-    if(opts.txp.coin.toLowerCase() == 'vcl'){
+    if (opts.txp.coin.toLowerCase() == 'vcl') {
       hash = t.uncheckedSerialize1();
-    }else{
+    } else {
       hash = t.uncheckedSerialize();
     }
     var args = {
@@ -2007,7 +2061,9 @@ export class API extends EventEmitter {
                     JSON.stringify(this.credentials.publicKeyRing),
                     this.credentials.personalEncryptingKey
                   ),
-              unencryptedPkr: opts.doNotEncryptPkr ? JSON.stringify(this.credentials.publicKeyRing) : null,
+              unencryptedPkr: opts.doNotEncryptPkr
+                ? JSON.stringify(this.credentials.publicKeyRing)
+                : null,
               m: this.credentials.m,
               n: this.credentials.n
             };
@@ -2019,7 +2075,6 @@ export class API extends EventEmitter {
       );
     });
   }
-
 
   // private?
   getPayPro(txp, cb) {
@@ -2082,7 +2137,7 @@ export class API extends EventEmitter {
     if (_.isEmpty(signatures)) {
       return cb('No signatures to push. Sign the transaction with Key first');
     }
-    
+
     // john
     if (
       txp.atomicswap &&
@@ -2090,7 +2145,9 @@ export class API extends EventEmitter {
       (!JSUtil.isHexa(txp.atomicswap.secret) ||
         txp.atomicswap.secret.length != 64 ||
         txp.atomicswapSecretHash !=
-          Bitcore.crypto.Hash.sha256(Buffer.from(txp.atomicswap.secret, 'hex')).toString('hex'))
+          Bitcore.crypto.Hash.sha256(
+            Buffer.from(txp.atomicswap.secret, 'hex')
+          ).toString('hex'))
     ) {
       return cb('Invalid atomicswap secret');
     }
@@ -2108,8 +2165,8 @@ export class API extends EventEmitter {
         //        base = base || '/v2/txproposals/'; // DISABLED 2020-04-07
 
         let url = base + txp.id + '/signatures/';
-	
-	// john
+
+        // john
         let atomicswapSecret;
         if (txp.atomicswap && txp.atomicswap.secret) {
           atomicswapSecret = txp.atomicswap.secret;
@@ -3289,7 +3346,7 @@ export class API extends EventEmitter {
         ['ltc', 'testnet'],
         ['ltc', 'livenet'],
         ['vcl', 'testnet'],
-        ['vcl', 'livenet'],	
+        ['vcl', 'livenet'],
         ['btc', 'livenet', true],
         ['bch', 'livenet', true],
         ['doge', 'livenet', true],
@@ -3587,7 +3644,9 @@ export class API extends EventEmitter {
     if (!cb) {
       cb = opts;
       opts = {};
-      log.warn('DEPRECATED WARN: getMasternodeCollateral should receive 2 parameters.');
+      log.warn(
+        'DEPRECATED WARN: getMasternodeCollateral should receive 2 parameters.'
+      );
     }
 
     opts = opts || {};
@@ -3596,7 +3655,8 @@ export class API extends EventEmitter {
 
     var args = [];
     if (opts.coin) {
-      if (!_.includes(Constants.COINS, opts.coin)) return cb(new Error('Invalid coin'));
+      if (!_.includes(Constants.COINS, opts.coin))
+        return cb(new Error('Invalid coin'));
       args.push('coin=' + opts.coin);
     }
 
@@ -3618,7 +3678,9 @@ export class API extends EventEmitter {
     if (!cb) {
       cb = opts;
       opts = {};
-      log.warn('DEPRECATED WARN: removeMasternodes should receive 2 parameters.');
+      log.warn(
+        'DEPRECATED WARN: removeMasternodes should receive 2 parameters.'
+      );
     }
 
     opts = opts || {};
@@ -3627,7 +3689,8 @@ export class API extends EventEmitter {
 
     var args = [];
     if (opts.coin) {
-      if (!_.includes(Constants.COINS, opts.coin)) return cb(new Error('Invalid coin'));
+      if (!_.includes(Constants.COINS, opts.coin))
+        return cb(new Error('Invalid coin'));
       if (opts.coin != 'vcl') {
         return cb(new Error('coin is not supported'));
       }
@@ -3665,7 +3728,8 @@ export class API extends EventEmitter {
 
     var args = [];
     if (opts.coin) {
-      if (!_.includes(Constants.COINS, opts.coin)) return cb(new Error('Invalid coin'));
+      if (!_.includes(Constants.COINS, opts.coin))
+        return cb(new Error('Invalid coin'));
       if (opts.coin != 'vcl') {
         return cb(new Error('coin is not supported'));
       }
@@ -3694,7 +3758,9 @@ export class API extends EventEmitter {
     if (!cb) {
       cb = opts;
       opts = {};
-      log.warn('DEPRECATED WARN: getMasternodeStatus should receive 2 parameters.');
+      log.warn(
+        'DEPRECATED WARN: getMasternodeStatus should receive 2 parameters.'
+      );
     }
 
     opts = opts || {};
@@ -3703,7 +3769,8 @@ export class API extends EventEmitter {
 
     var args = [];
     if (opts.coin) {
-      if (!_.includes(Constants.COINS, opts.coin)) return cb(new Error('Invalid coin'));
+      if (!_.includes(Constants.COINS, opts.coin))
+        return cb(new Error('Invalid coin'));
       if (opts.coin != 'vcl') {
         return cb(new Error('coin is not supported'));
       }
@@ -3737,7 +3804,9 @@ export class API extends EventEmitter {
     if (!cb) {
       cb = opts;
       opts = {};
-      log.warn('DEPRECATED WARN: broadcastMasternode should receive 2 parameters.');
+      log.warn(
+        'DEPRECATED WARN: broadcastMasternode should receive 2 parameters.'
+      );
     }
 
     opts = opts || {};
@@ -3748,7 +3817,8 @@ export class API extends EventEmitter {
     };
 
     if (opts.coin) {
-      if (!_.includes(Constants.COINS, opts.coin)) return cb(new Error('Invalid coin'));
+      if (!_.includes(Constants.COINS, opts.coin))
+        return cb(new Error('Invalid coin'));
       if (opts.coin != 'vcl') {
         return cb(new Error('coin is not supported'));
       }
@@ -3781,14 +3851,17 @@ export class API extends EventEmitter {
     if (!cb) {
       cb = opts;
       opts = {};
-      log.warn('DEPRECATED WARN: broadcastMasternode should receive 2 parameters.');
+      log.warn(
+        'DEPRECATED WARN: broadcastMasternode should receive 2 parameters.'
+      );
     }
 
     opts = opts || {};
 
     var args = [];
     if (opts.coin) {
-      if (!_.includes(Constants.COINS, opts.coin)) return cb(new Error('Invalid coin'));
+      if (!_.includes(Constants.COINS, opts.coin))
+        return cb(new Error('Invalid coin'));
       if (opts.coin != 'vcl') {
         return cb(new Error('coin is not supported'));
       }
@@ -3846,7 +3919,15 @@ export class API extends EventEmitter {
     if (!opts.ip) return cb(new Error('Not masternode ip'));
     var ip = opts.ip.split(':');
 
-    var masternode = new Masternode(opts.txid, opts.vout, opts.signPrivKey, opts.pingHash, opts.privKey, ip[0], ip[1]);
+    var masternode = new Masternode(
+      opts.txid,
+      opts.vout,
+      opts.signPrivKey,
+      opts.pingHash,
+      opts.privKey,
+      ip[0],
+      ip[1]
+    );
 
     return cb(null, masternode.singMasternode());
   }
@@ -3894,12 +3975,15 @@ export class API extends EventEmitter {
       cb(new Error('atomicswap contract invalid'));
     }
 
-    this.getMainAddresses({ coin, network, address: cnt.recipientAddr }, (err, addresses) => {
-      if (err) cb(err);
-      if (addresses && addresses.length > 0) {
-        cb(null, cnt);
+    this.getMainAddresses(
+      { coin, network, address: cnt.recipientAddr },
+      (err, addresses) => {
+        if (err) cb(err);
+        if (addresses && addresses.length > 0) {
+          cb(null, cnt);
+        }
       }
-    });
+    );
   }
 
   createReward(opts, cb) {
@@ -3919,7 +4003,7 @@ export class API extends EventEmitter {
           }
           this.createTxProposal(
             opts,
-            function(err, createTxp) {
+            function (err, createTxp) {
               if (err) {
                 return next(new Error('create TxProposal error!'), err);
               }
@@ -3941,7 +4025,7 @@ export class API extends EventEmitter {
           this.pushSignatures(
             publishTxp,
             signatures,
-            function(err, rawHex, paypro) {
+            function (err, rawHex, paypro) {
               if (err) {
                 return next(new Error('push Signatures error!'), err);
               }
@@ -3959,7 +4043,7 @@ export class API extends EventEmitter {
           });
         }
       ],
-      function(err, errMsg) {
+      function (err, errMsg) {
         cb(errMsg, null);
       }
     );

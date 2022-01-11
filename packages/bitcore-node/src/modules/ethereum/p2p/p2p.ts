@@ -76,7 +76,7 @@ export class EthP2pWorker extends BaseP2PWorker<IEthBlock> {
       this.txSubscription.subscribe(async (_err, txid) => {
         if (!this.isCachedInv('TX', txid)) {
           // john 20211228
-          if(!txid) return;
+          if (!txid) return;
           this.cacheInv('TX', txid);
           const tx = (await this.web3!.eth.getTransaction(txid)) as ParityTransaction;
           if (tx) {

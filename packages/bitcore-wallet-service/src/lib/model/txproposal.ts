@@ -146,7 +146,6 @@ export class TxProposal {
   atomicswapAddr?: string;
   atomicswapSecretHash?: string;
 
-
   static create(opts) {
     opts = opts || {};
 
@@ -376,7 +375,6 @@ export class TxProposal {
     const t = ChainService.getBitcoreTx(this);
     return t.uncheckedAtomicSwapSerialize();
   }
-
 
   /**
    * getTotalAmount

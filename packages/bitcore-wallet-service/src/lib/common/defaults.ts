@@ -270,7 +270,7 @@ module.exports = {
     xrp: 1000000000000,
     doge: 100000000 * 100,
     ltc: 10000 * 1000, // 10k sat/b
-    vcl: 10000 * 1000, // 10k sat/b
+    vcl: 10000 * 1000 // 10k sat/b
   },
 
   MIN_TX_FEE: {
@@ -290,7 +290,7 @@ module.exports = {
     xrp: 1 * 1e6, // 1 xrp
     doge: 400 * 1e8,
     ltc: 0.05 * 1e8,
-    vcl: 1 * 1e8, // 1 vcl john
+    vcl: 1 * 1e8 // 1 vcl john
   },
 
   // ETH
@@ -321,7 +321,7 @@ module.exports = {
     { code: 'JPY', name: 'Japanese Yen' },
     { code: 'NZD', name: 'New Zealand Dollar' }
   ],
-  
+
   // john
   //  Coinbase transaction outputs can only be spent after this number of new blocks (network rule)
   COINBASE_MATURITY_VCL: 100,
@@ -329,6 +329,4 @@ module.exports = {
   MAX_POST_SIZE: '1000mb',
 
   DATA_OUTPUT_LEN: 80
-
-  
 };

@@ -317,9 +317,10 @@ export class Credentials {
         this.coin === 'bch' ||
         this.coin === 'doge' ||
         this.coin === 'ltc' ||
-	    this.coin === 'vcl') &&
+        this.coin === 'vcl') &&
       (!this.publicKeyRing || this.publicKeyRing.length != this.n)
-    ) return false;
+    )
+      return false;
     return true;
   }
 }

@@ -90,7 +90,7 @@ export class Client {
       json: true
     });
   }
-  
+
   // john
   async getRawTx(params) {
     const { txid } = params;
@@ -99,7 +99,7 @@ export class Client {
     return request.get(url, {
       json: true
     });
-  }  
+  }
 
   async getCoins(params) {
     const { payload, pubKey, includeSpent } = params;

@@ -19,7 +19,7 @@ const Bitcore = {
   xrp: require('bitcore-lib'),
   doge: require('bitcore-lib-doge'),
   ltc: require('bitcore-lib-ltc'),
-  vcl: require('bitcore-lib-vcl'),
+  vcl: require('bitcore-lib-vcl')
 };
 
 export interface IWallet {

@@ -1663,7 +1663,6 @@ export class ExpressApp {
       });
     });
 
-
     // Set no-cache by default
     this.app.use((req, res, next) => {
       res.setHeader('Cache-Control', 'no-store');

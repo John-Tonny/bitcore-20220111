@@ -253,12 +253,12 @@ export class Utils {
             new Bitcore_['ltc'].Address(address);
             return 'ltc';
           } catch (e) {
-	    try {
+            try {
               new Bitcore_['vcl'].Address(address);
               return 'vcl';
-            } catch (e) {	  
+            } catch (e) {
               return;
-	    }
+            }
           }
         }
       }

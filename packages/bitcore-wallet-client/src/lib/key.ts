@@ -100,7 +100,7 @@ export class Key {
     this.use0forBCH = opts.useLegacyCoinType;
     this.useforElectrum = false;
     this.useSegwit = false;
-    this.useMulti = false;    
+    this.useMulti = false;
     this.use44forMultisig = opts.useLegacyPurpose;
     this.compliantDerivation = !opts.nonCompliantDerivation;
 
@@ -274,7 +274,7 @@ export class Key {
   };
 
   // john
-  getPrivateKey = function(password, rootPath, path, coin) {
+  getPrivateKey = function (password, rootPath, path, coin) {
     var derived: any = {};
     coin = coin || 'vcl';
 
@@ -288,7 +288,7 @@ export class Key {
   };
 
   // john
-  getPrivateKeyofWif = function(password, rootPath, path, coin, network) {
+  getPrivateKeyofWif = function (password, rootPath, path, coin, network) {
     var derived: any = {};
     coin = coin || 'vcl';
     network = network || NETWORK;
@@ -310,8 +310,15 @@ export class Key {
     return null;
   };
 
-// john
-  isValidAddress = function(password, rootPath, coin, queryAddress, start, stop) {
+  // john
+  isValidAddress = function (
+    password,
+    rootPath,
+    coin,
+    queryAddress,
+    start,
+    stop
+  ) {
     var privs = [];
     var derived: any = {};
     coin = coin || 'vcl';
@@ -334,7 +341,7 @@ export class Key {
     }
     return false;
   };
-  
+
   isPrivKeyEncrypted = function () {
     return !!this.xPrivKeyEncrypted && !this.xPrivKey;
   };
@@ -518,7 +525,10 @@ export class Key {
         requestKey = Constants.PATHS.REQUEST_SEGWIT_ELECTRUM_KEY;
       }
     }
-    let requestPrivKey = this.derive(password, requestKey).privateKey.toString();
+    let requestPrivKey = this.derive(
+      password,
+      requestKey
+    ).privateKey.toString();
 
     if (opts.network == 'testnet') {
       // Hacky: BTC/BCH xPriv depends on network: This code is to
@@ -580,7 +590,11 @@ export class Key {
     var xpriv = new Bitcore.HDPrivateKey(derived);
 
     var t = Utils.buildTx(txp);
-    if (txp.atomicswap && txp.atomicswap.isAtomicSwap && txp.atomicswap.redeem != undefined) {
+    if (
+      txp.atomicswap &&
+      txp.atomicswap.isAtomicSwap &&
+      txp.atomicswap.redeem != undefined
+    ) {
       t.inputs[0].output.setScript(txp.atomicswap.contract);
       if (!txp.atomicswap.redeem) {
         t.lockUntilDate(txp.atomicswap.lockTime);
@@ -643,7 +657,7 @@ export class Key {
   };
 
   // john 20210409
-  signAtomicSwap = function(privKey, txp, cb) {
+  signAtomicSwap = function (privKey, txp, cb) {
     var t = Utils.buildTx(txp);
 
     t.inputs[0].output.setScript(txp.contract);
@@ -653,13 +667,16 @@ export class Key {
     if (Constants.UTXO_COINS.includes(txp.coin)) {
       privs.push(new Bitcore.PrivateKey(privKey));
 
-      var signatures = _.map(privs, function(priv, i) {
+      var signatures = _.map(privs, function (priv, i) {
         return t.getSignatures(priv, undefined, txp.signingMethod);
       });
 
-      signatures = _.map(_.sortBy(_.flatten(signatures), 'inputIndex'), function(s) {
-        return s.signature.toDER(txp.signingMethod).toString('hex');
-      });
+      signatures = _.map(
+        _.sortBy(_.flatten(signatures), 'inputIndex'),
+        function (s) {
+          return s.signature.toDER(txp.signingMethod).toString('hex');
+        }
+      );
 
       return signatures;
     }

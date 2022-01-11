@@ -11,5 +11,5 @@ module.exports = {
   VCL: {
     lib: require('bitcore-lib-vcl'),
     p2p: require('bitcore-p2p-vcl')
-  }  
+  }
 };

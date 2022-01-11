@@ -146,7 +146,7 @@ export class Masternode {
     return buf.toString('hex');
   }
 
-  singMasternode = function() {
+  singMasternode = function () {
     var presult = '';
     presult += this.serialize_input();
     presult += this.hash_decode();

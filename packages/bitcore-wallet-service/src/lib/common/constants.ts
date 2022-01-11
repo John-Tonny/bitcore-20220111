@@ -66,7 +66,7 @@ module.exports = {
   BIP45_SHARED_INDEX: 0x80000000 - 1,
 
   TOKEN_OPTS: CWC.Constants.TOKEN_OPTS,
-  
+
   // john
   COLLATERAL_COIN: parseInt(process.env.COLLATERAL_COIN) || 100000000000,
   MASTERNODE_MIN_CONFIRMATIONS: 15

@@ -69,7 +69,7 @@ const Config = function(): ConfigType {
     chains: {},
     modules: ['./bitcoin', './bitcoin-cash', './ethereum', './vircle'],
     services: {
-        api: {
+      api: {
         rateLimiter: {
           disabled: false,
           whitelist: ['::ffff:127.0.0.1', '::1']

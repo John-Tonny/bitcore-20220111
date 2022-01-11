@@ -173,8 +173,8 @@ export class V8 {
 
     return ret;
   }
-  
-   // john 20210409
+
+  // john 20210409
   _transformTx(txs, bcheight) {
     $.checkState(bcheight > 0, 'No BC height passed to _transformTx');
     const ret = _.map(txs, x => {

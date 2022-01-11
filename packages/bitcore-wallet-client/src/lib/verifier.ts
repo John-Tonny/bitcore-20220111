@@ -201,7 +201,11 @@ export class Verifier {
     if (parseInt(txp.version) >= 3) {
       var t = Utils.buildTx(txp);
       // john
-      if (txp.atomicswap && txp.atomicswap.isAtomicSwap && txp.atomicswap.redeem != undefined) {
+      if (
+        txp.atomicswap &&
+        txp.atomicswap.isAtomicSwap &&
+        txp.atomicswap.redeem != undefined
+      ) {
         t.inputs[0].output.setScript(txp.atomicswap.contract);
         if (!txp.atomicswap.redeem) {
           t.lockUntilDate(txp.atomicswap.lockTime);
@@ -209,9 +213,9 @@ export class Verifier {
           t.nLockTime = txp.atomicswap.lockTime;
         }
       }
-      if(txp.coin.toLowerCase() == 'vcl') {
+      if (txp.coin.toLowerCase() == 'vcl') {
         hash = t.uncheckedSerialize1();
-      }else{
+      } else {
         hash = t.uncheckedSerialize();
       }
     } else {
@@ -229,8 +233,12 @@ export class Verifier {
 
     if (Constants.UTXO_COINS.includes(txp.coin)) {
       // john 20210409
-      if ((!txp.atomicswap || txp.atomicswap.isAtomicSwap) && (txp.changeAddress && !this.checkAddress(credentials, txp.changeAddress))) {
-  	    return false;
+      if (
+        (!txp.atomicswap || txp.atomicswap.isAtomicSwap) &&
+        txp.changeAddress &&
+        !this.checkAddress(credentials, txp.changeAddress)
+      ) {
+        return false;
       }
 
       if (
@@ -260,7 +268,10 @@ export class Verifier {
 
     if (amount != _.sumBy(payproOpts.instructions, 'amount')) return false;
 
-    if ((txp.coin == 'btc' || txp.coin == 'vcl') && toAddress != payproOpts.instructions[0].toAddress)
+    if (
+      (txp.coin == 'btc' || txp.coin == 'vcl') &&
+      toAddress != payproOpts.instructions[0].toAddress
+    )
       return false;
 
     // Workaround for cashaddr/legacy address problems...

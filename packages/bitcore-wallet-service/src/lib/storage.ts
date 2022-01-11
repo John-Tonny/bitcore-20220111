@@ -493,7 +493,7 @@ export class Storage {
         return this._completeTxData(walletId, txs, cb);
       });
   }
-  
+
   /**
    * fetchTxs. Times are in UNIX EPOCH (seconds)
    *
@@ -1956,5 +1956,4 @@ export class Storage {
       cb
     );
   }
-
 }

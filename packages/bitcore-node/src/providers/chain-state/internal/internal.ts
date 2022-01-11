@@ -56,10 +56,10 @@ export class InternalStateProvider implements IChainStateService {
 
   getRPC(chain: string, network: string) {
     let RPC_PEER;
-    if(chain.toLowerCase() == 'vcl') {
+    if (chain.toLowerCase() == 'vcl') {
       const index = app.get('rpcIndex') || 0;
       RPC_PEER = Config.get().chains[chain][network].rpc[index];
-    }else{
+    } else {
       RPC_PEER = Config.get().chains[chain][network].rpc;
     }
     if (!RPC_PEER) {

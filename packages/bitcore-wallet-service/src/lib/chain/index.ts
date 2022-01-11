@@ -5,8 +5,8 @@ import { BtcChain } from './btc';
 import { DogeChain } from './doge';
 import { EthChain } from './eth';
 import { LtcChain } from './ltc';
-import { XrpChain } from './xrp';
 import { VclChain } from './vcl';
+import { XrpChain } from './xrp';
 
 const Common = require('../common');
 const Constants = Common.Constants;
@@ -47,7 +47,7 @@ export interface IChain {
     } & any,
     cb
   );
-  
+
   getInputSizeSafetyMargin(opts: any): number;
   getSizeSafetyMargin(opts: any): number;
   getDustAmountValue();

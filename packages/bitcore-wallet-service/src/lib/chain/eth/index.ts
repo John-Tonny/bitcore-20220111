@@ -479,5 +479,4 @@ export class EthChain implements IChain {
   getRedeemSendMaxInfo(server, wallet, opts, cb) {
     return cb(null, null);
   }
-
 }

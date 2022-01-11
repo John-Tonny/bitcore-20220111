@@ -45,6 +45,6 @@ export interface ConfigType {
     };
     rpc: {
       disabled?: boolean;
-    };    
+    };
   };
 }
