@@ -82,6 +82,19 @@ export class TransactionDetailsComponent implements OnInit {
     return v.address;
   }
 
+  // john
+  public getAddressInfo(v: ApiCoin): string {
+    if (v.address === 'false') {
+      return 'Data';
+    }
+
+    return v.address;
+  }
+
+  public getDataLength(v: ApiCoin): string {
+    return (v.script.toString().length/2).toString();
+  }
+
   public getConfirmations() {
     this.txProvider
       .getConfirmations(this.tx.blockheight, this.chainNetwork)

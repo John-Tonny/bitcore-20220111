@@ -4,6 +4,7 @@ var $ = require('preconditions').singleton();
 import {
   BitcoreLib,
   BitcoreLibCash,
+  BitcoreLibVcl,
   Deriver,
   Transactions
 } from 'crypto-wallet-core';
@@ -12,7 +13,7 @@ import 'source-map-support/register';
 import { Constants, Utils } from './common';
 import { Credentials } from './credentials';
 
-var Bitcore = BitcoreLib;
+var Bitcore = BitcoreLibVcl;
 var Mnemonic = require('bitcore-mnemonic');
 var sjcl = require('sjcl');
 var log = require('./log');
@@ -34,15 +35,18 @@ const wordsForLang: any = {
 // other than the serialization
 const NETWORK: string = 'livenet';
 export class Key {
-  #xPrivKey: string;
-  #xPrivKeyEncrypted: string;
-  #version: number;
-  #mnemonic: string;
-  #mnemonicEncrypted: string;
-  #mnemonicHasPassphrase: boolean;
+  xPrivKey: string;
+  xPrivKeyEncrypted: string;
+  version: number;
+  mnemonic: string;
+  mnemonicEncrypted: string;
+  mnemonicHasPassphrase: boolean;
 
   public id: any;
   public use0forBCH: boolean;
+  public useforElectrum: boolean;
+  public useSegwit: boolean;
+  public useMulti: boolean;
   public use44forMultisig: boolean;
   public compliantDerivation: boolean;
   public BIP45: boolean;
@@ -85,14 +89,18 @@ export class Key {
       useLegacyPurpose?: boolean;
       useLegacyCoinType?: boolean;
       nonCompliantDerivation?: boolean;
+      useMulti?: boolean;
       language?: string;
     } = { seedType: 'new' }
   ) {
-    this.#version = 1;
+    this.version = 1;
     this.id = Uuid.v4();
 
     // bug backwards compatibility flags
     this.use0forBCH = opts.useLegacyCoinType;
+    this.useforElectrum = false;
+    this.useSegwit = false;
+    this.useMulti = false;    
     this.use44forMultisig = opts.useLegacyPurpose;
     this.compliantDerivation = !opts.nonCompliantDerivation;
 
@@ -112,7 +120,10 @@ export class Key {
       case 'mnemonic':
         $.checkArgument(x, 'Need to provide opts.seedData');
         $.checkArgument(_.isString(x), 'sourceData need to be a string');
-        this.setFromMnemonic(new Mnemonic(x), opts);
+        this.useMulti = opts.useMulti || false;
+        var mm = new Mnemonic(x, '', this.useMulti);
+        this.setFromMnemonic(mm, opts);
+        this.useforElectrum = mm.useElectrum;
         break;
       case 'extendedPrivateKey':
         $.checkArgument(x, 'Need to provide opts.seedData');
@@ -126,17 +137,17 @@ export class Key {
         this.fingerPrint = xpriv.fingerPrint.toString('hex');
 
         if (opts.password) {
-          this.#xPrivKeyEncrypted = sjcl.encrypt(
+          this.xPrivKeyEncrypted = sjcl.encrypt(
             opts.password,
             xpriv.toString(),
             opts
           );
-          if (!this.#xPrivKeyEncrypted) throw new Error('Could not encrypt');
+          if (!this.xPrivKeyEncrypted) throw new Error('Could not encrypt');
         } else {
-          this.#xPrivKey = xpriv.toString();
+          this.xPrivKey = xpriv.toString();
         }
-        this.#mnemonic = null;
-        this.#mnemonicHasPassphrase = null;
+        this.mnemonic = null;
+        this.mnemonicHasPassphrase = null;
         break;
       case 'object':
         $.shouldBeObject(x, 'Need to provide an object at opts.seedData');
@@ -145,17 +156,17 @@ export class Key {
           'opts.password not allowed when source is object'
         );
 
-        if (this.#version != x.version) {
+        if (this.version != x.version) {
           throw new Error('Bad Key version');
         }
 
-        this.#xPrivKey = x.xPrivKey;
-        this.#xPrivKeyEncrypted = x.xPrivKeyEncrypted;
+        this.xPrivKey = x.xPrivKey;
+        this.xPrivKeyEncrypted = x.xPrivKeyEncrypted;
 
-        this.#mnemonic = x.mnemonic;
-        this.#mnemonicEncrypted = x.mnemonicEncrypted;
-        this.#mnemonicHasPassphrase = x.mnemonicHasPassphrase;
-        this.#version = x.version;
+        this.mnemonic = x.mnemonic;
+        this.mnemonicEncrypted = x.mnemonicEncrypted;
+        this.mnemonicHasPassphrase = x.mnemonicHasPassphrase;
+        this.version = x.version;
         this.fingerPrint = x.fingerPrint;
         this.compliantDerivation = x.compliantDerivation;
         this.BIP45 = x.BIP45;
@@ -164,7 +175,7 @@ export class Key {
         this.use44forMultisig = x.use44forMultisig;
 
         $.checkState(
-          this.#xPrivKey || this.#xPrivKeyEncrypted,
+          this.xPrivKey || this.xPrivKeyEncrypted,
           'Failed state:  #xPrivKey || #xPrivKeyEncrypted at Key constructor'
         );
         break;
@@ -180,13 +191,13 @@ export class Key {
           this.compliantDerivation = x.compliantDerivation;
         if (!_.isUndefined(x.id)) this.id = x.id;
 
-        this.#xPrivKey = x.xPrivKey;
-        this.#xPrivKeyEncrypted = x.xPrivKeyEncrypted;
+        this.xPrivKey = x.xPrivKey;
+        this.xPrivKeyEncrypted = x.xPrivKeyEncrypted;
 
-        this.#mnemonic = x.mnemonic;
-        this.#mnemonicEncrypted = x.mnemonicEncrypted;
-        this.#mnemonicHasPassphrase = x.mnemonicHasPassphrase;
-        this.#version = x.version || 1;
+        this.mnemonic = x.mnemonic;
+        this.mnemonicEncrypted = x.mnemonicEncrypted;
+        this.mnemonicHasPassphrase = x.mnemonicHasPassphrase;
+        this.version = x.version || 1;
         this.fingerPrint = x.fingerPrint;
 
         // If the wallet was single seed... multisig walelts accounts
@@ -223,33 +234,33 @@ export class Key {
     this.fingerPrint = xpriv.fingerPrint.toString('hex');
 
     if (opts.password) {
-      this.#xPrivKeyEncrypted = sjcl.encrypt(
+      this.xPrivKeyEncrypted = sjcl.encrypt(
         opts.password,
         xpriv.toString(),
         opts.sjclOpts
       );
-      if (!this.#xPrivKeyEncrypted) throw new Error('Could not encrypt');
-      this.#mnemonicEncrypted = sjcl.encrypt(
+      if (!this.xPrivKeyEncrypted) throw new Error('Could not encrypt');
+      this.mnemonicEncrypted = sjcl.encrypt(
         opts.password,
         m.phrase,
         opts.sjclOpts
       );
-      if (!this.#mnemonicEncrypted) throw new Error('Could not encrypt');
+      if (!this.mnemonicEncrypted) throw new Error('Could not encrypt');
     } else {
-      this.#xPrivKey = xpriv.toString();
-      this.#mnemonic = m.phrase;
-      this.#mnemonicHasPassphrase = !!opts.passphrase;
+      this.xPrivKey = xpriv.toString();
+      this.mnemonic = m.phrase;
+      this.mnemonicHasPassphrase = !!opts.passphrase;
     }
   }
 
   toObj = function () {
     const ret = {
-      xPrivKey: this.#xPrivKey,
-      xPrivKeyEncrypted: this.#xPrivKeyEncrypted,
-      mnemonic: this.#mnemonic,
-      mnemonicEncrypted: this.#mnemonicEncrypted,
-      version: this.#version,
-      mnemonicHasPassphrase: this.#mnemonicHasPassphrase,
+      xPrivKey: this.xPrivKey,
+      xPrivKeyEncrypted: this.xPrivKeyEncrypted,
+      mnemonic: this.mnemonic,
+      mnemonicEncrypted: this.mnemonicEncrypted,
+      version: this.version,
+      mnemonicHasPassphrase: this.mnemonicHasPassphrase,
       fingerPrint: this.fingerPrint, //  32bit fingerprint
       compliantDerivation: this.compliantDerivation,
       BIP45: this.BIP45,
@@ -262,14 +273,76 @@ export class Key {
     return _.clone(ret);
   };
 
+  // john
+  getPrivateKey = function(password, rootPath, path, coin) {
+    var derived: any = {};
+    coin = coin || 'vcl';
+
+    var derived = this.derive(password, rootPath, coin);
+    var xpriv = new Bitcore.HDPrivateKey(derived);
+
+    if (!derived[path]) {
+      return xpriv.deriveChild(path).privateKey;
+    }
+    return null;
+  };
+
+  // john
+  getPrivateKeyofWif = function(password, rootPath, path, coin, network) {
+    var derived: any = {};
+    coin = coin || 'vcl';
+    network = network || NETWORK;
+
+    var derived = this.derive(password, rootPath, coin);
+    var xPrivKey = new Bitcore.HDPrivateKey(derived);
+    if (network == 'testnet') {
+      var x = derived.toObject();
+      x.network = 'testnet';
+      delete x.xprivkey;
+      delete x.checksum;
+      x.privateKey = _.padStart(x.privateKey, 64, '0');
+      xPrivKey = new Bitcore.HDPrivateKey(x);
+    }
+
+    if (!derived[path]) {
+      return xPrivKey.deriveChild(path).privateKey.toWIF();
+    }
+    return null;
+  };
+
+// john
+  isValidAddress = function(password, rootPath, coin, queryAddress, start, stop) {
+    var privs = [];
+    var derived: any = {};
+    coin = coin || 'vcl';
+    var derived = this.derive(password, rootPath, coin);
+    var xpriv = new Bitcore.HDPrivateKey(derived);
+
+    start = start || 0;
+    stop = stop || start + 100;
+
+    var privKey;
+    for (var i = start; i < stop; i++) {
+      var path = 'm/0/' + i.toString();
+      if (!derived[path]) {
+        privKey = xpriv.deriveChild(path).privateKey;
+        var address = privKey.publicKey.toAddress().toString();
+        if (address === queryAddress) {
+          return true;
+        }
+      }
+    }
+    return false;
+  };
+  
   isPrivKeyEncrypted = function () {
-    return !!this.#xPrivKeyEncrypted && !this.#xPrivKey;
+    return !!this.xPrivKeyEncrypted && !this.xPrivKey;
   };
 
   checkPassword = function (password) {
     if (this.isPrivKeyEncrypted()) {
       try {
-        sjcl.decrypt(password, this.#xPrivKeyEncrypted);
+        sjcl.decrypt(password, this.xPrivKeyEncrypted);
       } catch (ex) {
         return false;
       }
@@ -288,7 +361,7 @@ export class Key {
         'Private keys are encrypted, a password is needed'
       );
       try {
-        keys.xPrivKey = sjcl.decrypt(password, this.#xPrivKeyEncrypted);
+        keys.xPrivKey = sjcl.decrypt(password, this.xPrivKeyEncrypted);
 
         // update fingerPrint if not set.
         if (!this.fingerPrint) {
@@ -297,50 +370,50 @@ export class Key {
           fingerPrintUpdated = true;
         }
 
-        if (this.#mnemonicEncrypted) {
-          keys.mnemonic = sjcl.decrypt(password, this.#mnemonicEncrypted);
+        if (this.mnemonicEncrypted) {
+          keys.mnemonic = sjcl.decrypt(password, this.mnemonicEncrypted);
         }
       } catch (ex) {
         throw new Error('Could not decrypt');
       }
     } else {
-      keys.xPrivKey = this.#xPrivKey;
-      keys.mnemonic = this.#mnemonic;
+      keys.xPrivKey = this.xPrivKey;
+      keys.mnemonic = this.mnemonic;
       if (fingerPrintUpdated) {
         keys.fingerPrintUpdated = true;
       }
     }
-    keys.mnemonicHasPassphrase = this.#mnemonicHasPassphrase || false;
+    keys.mnemonicHasPassphrase = this.mnemonicHasPassphrase || false;
     return keys;
   };
 
   encrypt = function (password, opts) {
-    if (this.#xPrivKeyEncrypted)
+    if (this.xPrivKeyEncrypted)
       throw new Error('Private key already encrypted');
 
-    if (!this.#xPrivKey) throw new Error('No private key to encrypt');
+    if (!this.xPrivKey) throw new Error('No private key to encrypt');
 
-    this.#xPrivKeyEncrypted = sjcl.encrypt(password, this.#xPrivKey, opts);
-    if (!this.#xPrivKeyEncrypted) throw new Error('Could not encrypt');
+    this.xPrivKeyEncrypted = sjcl.encrypt(password, this.xPrivKey, opts);
+    if (!this.xPrivKeyEncrypted) throw new Error('Could not encrypt');
 
-    if (this.#mnemonic)
-      this.#mnemonicEncrypted = sjcl.encrypt(password, this.#mnemonic, opts);
+    if (this.mnemonic)
+      this.mnemonicEncrypted = sjcl.encrypt(password, this.mnemonic, opts);
 
-    this.#xPrivKey = null;
-    this.#mnemonic = null;
+    this.xPrivKey = null;
+    this.mnemonic = null;
   };
 
   decrypt = function (password) {
-    if (!this.#xPrivKeyEncrypted)
+    if (!this.xPrivKeyEncrypted)
       throw new Error('Private key is not encrypted');
 
     try {
-      this.#xPrivKey = sjcl.decrypt(password, this.#xPrivKeyEncrypted);
-      if (this.#mnemonicEncrypted) {
-        this.#mnemonic = sjcl.decrypt(password, this.#mnemonicEncrypted);
+      this.xPrivKey = sjcl.decrypt(password, this.xPrivKeyEncrypted);
+      if (this.mnemonicEncrypted) {
+        this.mnemonic = sjcl.decrypt(password, this.mnemonicEncrypted);
       }
-      this.#xPrivKeyEncrypted = null;
-      this.#mnemonicEncrypted = null;
+      this.xPrivKeyEncrypted = null;
+      this.mnemonicEncrypted = null;
     } catch (ex) {
       log.error('error decrypting:', ex);
       throw new Error('Could not decrypt');
@@ -393,6 +466,8 @@ export class Key {
       coinCode = '0';
     } else if (opts.coin == 'eth') {
       coinCode = '60';
+    } else if (opts.coin == 'vcl') {
+      coinCode = '57';
     } else if (opts.coin == 'xrp') {
       coinCode = '144';
     } else if (opts.coin == 'doge') {
@@ -402,7 +477,15 @@ export class Key {
     } else {
       throw new Error('unknown coin: ' + opts.coin);
     }
-
+    if (this.useforElectrum) {
+      if (this.useSegwit) {
+        if (opts.n == 1) {
+          return "m/0'";
+        }
+        return "m/1'";
+      }
+      return 'm';
+    }
     return 'm/' + purpose + "'/" + coinCode + "'/" + opts.account + "'";
   };
 
@@ -427,10 +510,15 @@ export class Key {
 
     let path = this.getBaseAddressDerivationPath(opts);
     let xPrivKey = this.derive(password, path);
-    let requestPrivKey = this.derive(
-      password,
-      Constants.PATHS.REQUEST_KEY
-    ).privateKey.toString();
+    // john
+    let requestKey = Constants.PATHS.REQUEST_KEY;
+    if (this.useforElectrum) {
+      requestKey = Constants.PATHS.REQUEST_ELECTRUM_KEY;
+      if (this.useSegwit) {
+        requestKey = Constants.PATHS.REQUEST_SEGWIT_ELECTRUM_KEY;
+      }
+    }
+    let requestPrivKey = this.derive(password, requestKey).privateKey.toString();
 
     if (opts.network == 'testnet') {
       // Hacky: BTC/BCH xPriv depends on network: This code is to
@@ -492,6 +580,14 @@ export class Key {
     var xpriv = new Bitcore.HDPrivateKey(derived);
 
     var t = Utils.buildTx(txp);
+    if (txp.atomicswap && txp.atomicswap.isAtomicSwap && txp.atomicswap.redeem != undefined) {
+      t.inputs[0].output.setScript(txp.atomicswap.contract);
+      if (!txp.atomicswap.redeem) {
+        t.lockUntilDate(txp.atomicswap.lockTime);
+      } else {
+        t.nLockTime = txp.atomicswap.lockTime;
+      }
+    }
 
     if (Constants.UTXO_COINS.includes(txp.coin)) {
       _.each(txp.inputs, function (i) {
@@ -542,6 +638,29 @@ export class Key {
         });
         signatures.push(signed);
       }
+      return signatures;
+    }
+  };
+
+  // john 20210409
+  signAtomicSwap = function(privKey, txp, cb) {
+    var t = Utils.buildTx(txp);
+
+    t.inputs[0].output.setScript(txp.contract);
+    t.lockUntilDate(txp.lockTime);
+    var privs = [];
+
+    if (Constants.UTXO_COINS.includes(txp.coin)) {
+      privs.push(new Bitcore.PrivateKey(privKey));
+
+      var signatures = _.map(privs, function(priv, i) {
+        return t.getSignatures(priv, undefined, txp.signingMethod);
+      });
+
+      signatures = _.map(_.sortBy(_.flatten(signatures), 'inputIndex'), function(s) {
+        return s.signature.toDER(txp.signingMethod).toString('hex');
+      });
+
       return signatures;
     }
   };

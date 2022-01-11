@@ -5,6 +5,7 @@ import {
   BitcoreLibCash,
   BitcoreLibDoge,
   BitcoreLibLtc,
+  BitcoreLibVcl,
   Deriver,
   Transactions
 } from 'crypto-wallet-core';
@@ -17,14 +18,15 @@ const $ = require('preconditions').singleton();
 const sjcl = require('sjcl');
 const Stringify = require('json-stable-stringify');
 
-const Bitcore = BitcoreLib;
+const Bitcore = BitcoreLibVcl;
 const Bitcore_ = {
   btc: Bitcore,
   bch: BitcoreLibCash,
   eth: Bitcore,
   xrp: Bitcore,
   doge: BitcoreLibDoge,
-  ltc: BitcoreLibLtc
+  ltc: BitcoreLibLtc,
+  vcl: BitcoreLibVcl
 };
 const PrivateKey = Bitcore.PrivateKey;
 const PublicKey = Bitcore.PublicKey;
@@ -182,7 +184,7 @@ export class Utils {
   ) {
     $.checkArgument(_.includes(_.values(Constants.SCRIPT_TYPES), scriptType));
 
-    coin = coin || 'btc';
+    coin = coin || 'vcl';
     const chain = this.getChain(coin).toLowerCase();
     var bitcore = Bitcore_[chain];
     var publicKeys = _.map(publicKeyRing, item => {
@@ -271,7 +273,7 @@ export class Utils {
     // now it is effective for all coins.
 
     const chain = this.getChain(coin).toLowerCase();
-    var str = chain == 'btc' ? xpub : chain + xpub;
+    var str = chain == 'btc' || chain == 'vcl' ? xpub : chain + xpub;
 
     var hash = sjcl.hash.sha256.hash(str);
     return sjcl.codec.hex.fromBits(hash);
@@ -341,12 +343,14 @@ export class Utils {
   }
 
   static buildTx(txp) {
-    var coin = txp.coin || 'btc';
+    var coin = txp.coin || 'vcl';
 
     if (Constants.UTXO_COINS.includes(coin)) {
       var bitcore = Bitcore_[coin];
 
       var t = new bitcore.Transaction();
+
+      t.setAtomicSwap(txp.atomicswap);
 
       if (txp.version >= 4) {
         t.setVersion(2);
@@ -402,7 +406,9 @@ export class Utils {
         );
       }
 
-      t.change(txp.changeAddress.address);
+      if (txp.changeAddress) {
+        t.change(txp.changeAddress.address);
+      }
 
       if (txp.enableRBF) t.enableRBF();
 
@@ -494,6 +500,15 @@ export class Utils {
         unsignedTxs.push(rawTx);
       }
       return { uncheckedSerialize: () => unsignedTxs };
+    }
+  }
+
+  static isPrivateKey(privKey) {
+    try {
+      var privkey = new PrivateKey(privKey);
+      return true;
+    } catch (e) {
+      return false;
     }
   }
 }

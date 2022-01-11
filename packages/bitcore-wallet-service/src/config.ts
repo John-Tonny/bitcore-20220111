@@ -1,6 +1,11 @@
 import _ from 'lodash';
 import { logger } from './lib/logger';
 
+let dbUrl = 'mongodb://localhost:27017/bws';
+if (process.env.DB_URL) {
+  dbUrl = process.env.DB_URL + '/bws';
+}
+
 const Config = () => {
   let defaultConfig = {
     basePath: '/bws/api',
@@ -25,7 +30,8 @@ const Config = () => {
 
     storageOpts: {
       mongoDb: {
-        uri: 'mongodb://localhost:27017/bws',
+        uri: dbUrl,
+        // uri: 'mongodb://localhost:27017/bws',
         dbname: 'bws'
       }
     },
@@ -83,6 +89,14 @@ const Config = () => {
         },
         testnet: {
           url: 'https://api.bitcore.io'
+        }
+      },
+      vcl: {
+        livenet: {
+          url: 'http://192.168.246.133:8200'
+        },
+        testnet: {
+          url: 'http://192.168.246.133:8200'
         }
       },
       socketApiKey: 'socketApiKey'

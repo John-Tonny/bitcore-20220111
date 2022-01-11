@@ -2,9 +2,9 @@ import * as _ from 'lodash';
 import { Constants, Utils } from './common';
 var $ = require('preconditions').singleton();
 
-import { BitcoreLib, BitcoreLibCash } from 'crypto-wallet-core';
+import { BitcoreLib, BitcoreLibCash, BitcoreLibVcl } from 'crypto-wallet-core';
 
-var Bitcore = BitcoreLib;
+var Bitcore = BitcoreLibVcl;
 var BCHAddress = BitcoreLibCash.Address;
 
 var log = require('./log');
@@ -116,9 +116,14 @@ export class Verifier {
     for (var i = 0; i < txp.outputs.length; i++) {
       var o1 = txp.outputs[i];
       var o2 = args.outputs[i];
-      if (!strEqual(o1.toAddress, o2.toAddress)) return false;
-      if (!strEqual(o1.script, o2.script)) return false;
-      if (o1.amount != o2.amount) return false;
+      // john 20210409
+      if (!txp.atomicswap || txp.atomicswap.isAtomicSwap) {
+        if (!strEqual(o1.toAddress, o2.toAddress)) return false;
+        if (!strEqual(o1.script, o2.script)) return false;
+      }
+      if (!args.sendMax && txp.atomicswap && !txp.atomicswap.isAtomicSwap) {
+        if (o1.amount != o2.amount) return false;
+      }
       var decryptedMessage = null;
       try {
         decryptedMessage = Utils.decryptMessage(o2.message, encryptingKey);
@@ -164,7 +169,7 @@ export class Verifier {
     var creatorKeys = _.find(credentials.publicKeyRing, item => {
       if (
         Utils.xPubToCopayerId(
-          txp.chain ? txp.chain : txp.coin ? txp.coin : 'btc',
+          txp.chain ? txp.chain : txp.coin ? txp.coin : 'vcl',
           item.xPubKey
         ) === txp.creatorId
       )
@@ -195,7 +200,20 @@ export class Verifier {
     var hash;
     if (parseInt(txp.version) >= 3) {
       var t = Utils.buildTx(txp);
-      hash = t.uncheckedSerialize();
+      // john
+      if (txp.atomicswap && txp.atomicswap.isAtomicSwap && txp.atomicswap.redeem != undefined) {
+        t.inputs[0].output.setScript(txp.atomicswap.contract);
+        if (!txp.atomicswap.redeem) {
+          t.lockUntilDate(txp.atomicswap.lockTime);
+        } else {
+          t.nLockTime = txp.atomicswap.lockTime;
+        }
+      }
+      if(txp.coin.toLowerCase() == 'vcl') {
+        hash = t.uncheckedSerialize1();
+      }else{
+        hash = t.uncheckedSerialize();
+      }
     } else {
       throw new Error('Transaction proposal not supported');
     }
@@ -210,9 +228,11 @@ export class Verifier {
       return false;
 
     if (Constants.UTXO_COINS.includes(txp.coin)) {
-      if (!this.checkAddress(credentials, txp.changeAddress)) {
-        return false;
+      // john 20210409
+      if ((!txp.atomicswap || txp.atomicswap.isAtomicSwap) && (txp.changeAddress && !this.checkAddress(credentials, txp.changeAddress))) {
+  	    return false;
       }
+
       if (
         txp.escrowAddress &&
         !this.checkAddress(credentials, txp.escrowAddress, txp.inputs)
@@ -240,7 +260,7 @@ export class Verifier {
 
     if (amount != _.sumBy(payproOpts.instructions, 'amount')) return false;
 
-    if (txp.coin == 'btc' && toAddress != payproOpts.instructions[0].toAddress)
+    if ((txp.coin == 'btc' || txp.coin == 'vcl') && toAddress != payproOpts.instructions[0].toAddress)
       return false;
 
     // Workaround for cashaddr/legacy address problems...

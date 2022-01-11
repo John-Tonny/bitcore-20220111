@@ -3,7 +3,7 @@ import * as request from 'request-promise-native';
 import { URL } from 'url';
 import logger from '../../logger';
 
-const bitcoreLib = require('bitcore-lib');
+const bitcoreLib = require('bitcore-lib-vcl');
 const secp256k1 = require('secp256k1');
 export class Client {
   authKey: { bn: { toBuffer: (arg) => Buffer } };
@@ -90,6 +90,16 @@ export class Client {
       json: true
     });
   }
+  
+  // john
+  async getRawTx(params) {
+    const { txid } = params;
+    const url = `${this.baseUrl}/tx/${txid}/rawhex`;
+    console.log('[client.js.59:url:]', url); // TODO
+    return request.get(url, {
+      json: true
+    });
+  }  
 
   async getCoins(params) {
     const { payload, pubKey, includeSpent } = params;
@@ -173,5 +183,21 @@ export class Client {
     const url = `${this.baseUrl}/tx/send`;
     logger.debug('Broadcast', url);
     return request.post(url, { body: payload, json: true });
+  }
+  // john
+  async broadcastMasternode(params) {
+    const { payload } = params;
+    const url = `${this.baseUrl}/masternode/send`;
+    console.log('[client.js.113:url:]', url); // TODO
+    return request.post(url, { body: payload, json: true });
+  }
+
+  async getMasternodeStatus(params) {
+    const { txId } = params;
+    const url = `${this.baseUrl}/masternode/status/${txId}`;
+    console.log('GET MASTERNODE STATUS:', url);
+    return request.get(url, {
+      json: true
+    });
   }
 }

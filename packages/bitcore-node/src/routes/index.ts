@@ -61,6 +61,8 @@ app.use(CacheMiddleware(CacheTimes.Second, CacheTimes.Second));
 app.use(RateLimiter('GLOBAL', 10, 200, 4000));
 app.use('/api', getRouterFromFile('status'));
 
+app.set('rpcIndex', 0);
+
 app.use('/api/:chain/:network', (req: Request, resp: Response, next: any) => {
   let { chain, network } = req.params;
   const hasChain = chains.includes(chain);

@@ -12,6 +12,7 @@ function findConfig(): ConfigType | undefined {
   let bitcoreConfigPaths = [
     `${homedir()}/${configFileName}`,
     `../../../../${configFileName}`,
+    `../../../${configFileName}`,
     `../../${configFileName}`
   ];
   const overrideConfig = argConfigPath || envConfigPath;
@@ -51,10 +52,14 @@ function setTrustedPeers(config: ConfigType): ConfigType {
   return config;
 }
 const Config = function(): ConfigType {
+  let dbUrl = '';
+  if (process.env.DB_URL) {
+    dbUrl = process.env.DB_URL + '/bitcore?socketTimeoutMS=3600000&noDelay=true';
+  }
   let config: ConfigType = {
     maxPoolSize: 50,
     port: 3000,
-    dbUrl: process.env.DB_URL || '',
+    dbUrl,
     dbHost: process.env.DB_HOST || '127.0.0.1',
     dbName: process.env.DB_NAME || 'bitcore',
     dbPort: process.env.DB_PORT || '27017',
@@ -62,9 +67,9 @@ const Config = function(): ConfigType {
     dbPass: process.env.DB_PASS || '',
     numWorkers: cpus().length,
     chains: {},
-    modules: ['./bitcoin', './bitcoin-cash', './ethereum'],
+    modules: ['./bitcoin', './bitcoin-cash', './ethereum', './vircle'],
     services: {
-      api: {
+        api: {
         rateLimiter: {
           disabled: false,
           whitelist: ['::ffff:127.0.0.1', '::1']
@@ -79,9 +84,11 @@ const Config = function(): ConfigType {
       },
       p2p: {},
       socket: {
-        bwsKeys: []
+        bwsKeys: ['02ba37ec8d97f5ce1db8040919b402f1b758a67dfab822b92d8c4a4e8239bd9923']
       },
-      storage: {}
+      storage: {},
+      masternode: {},
+      rpc: {}
     }
   };
 
@@ -90,16 +97,18 @@ const Config = function(): ConfigType {
   config = _.mergeWith(config, foundConfig, mergeCopyArray);
   if (!Object.keys(config.chains).length) {
     Object.assign(config.chains, {
-      BTC: {
+      VCL: {
         mainnet: {
           chainSource: 'p2p',
-          trustedPeers: [{ host: '127.0.0.1', port: 8333 }],
-          rpc: {
-            host: '127.0.0.1',
-            port: 8332,
-            username: 'bitcoin',
-            password: 'bitcoin'
-          }
+          trustedPeers: [{ host: '127.0.0.1', port: 9900 }],
+          rpc: [
+            {
+              host: '127.0.0.1',
+              port: 9902,
+              username: 'chain',
+              password: '999000'
+            }
+          ]
         }
       }
     });

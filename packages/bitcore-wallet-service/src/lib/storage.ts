@@ -7,6 +7,7 @@ import {
   Address,
   Advertisement,
   Email,
+  Masternodes,
   Notification,
   Preferences,
   PushNotificationSub,
@@ -36,6 +37,8 @@ const collections = {
   SESSIONS: 'sessions',
   PUSH_NOTIFICATION_SUBS: 'push_notification_subs',
   TX_CONFIRMATION_SUBS: 'tx_confirmation_subs',
+  // john
+  MASTERNODES: 'masternodes',
   LOCKS: 'locks'
 };
 
@@ -157,6 +160,14 @@ export class Storage {
     });
     db.collection(collections.SESSIONS).createIndex({
       copayerId: 1
+    });
+    // john
+    db.collection(collections.MASTERNODES).createIndex({
+      walletId: 1
+    });
+    db.collection(collections.MASTERNODES).createIndex({
+      walletId: 1,
+      txid: 1
     });
   }
 
@@ -442,6 +453,47 @@ export class Storage {
       });
   }
 
+  // john 20210409
+  fetchAtomicSwapPendingTxs(walletId, cb) {
+    this.db
+      .collection(collections.TXS)
+      .find({
+        walletId,
+        atomicswapAddr: { $ne: null }
+      })
+      .sort({
+        createdOn: -1
+      })
+      .toArray((err, result) => {
+        if (err) return cb(err);
+        if (!result) return cb();
+        const txs = _.map(result, tx => {
+          return TxProposal.fromObj(tx);
+        });
+        return this._completeTxData(walletId, txs, cb);
+      });
+  }
+
+  fetchAtomicSwapBySecretHash(walletId, txp, cb) {
+    this.db
+      .collection(collections.TXS)
+      .find({
+        walletId,
+        atomicswapSecretHash: txp.atomicswapSecretHash
+      })
+      .sort({
+        createdOn: -1
+      })
+      .toArray((err, result) => {
+        if (err) return cb(err);
+        if (!result) return cb();
+        const txs = _.map(result, tx => {
+          return TxProposal.fromObj(tx);
+        });
+        return this._completeTxData(walletId, txs, cb);
+      });
+  }
+  
   /**
    * fetchTxs. Times are in UNIX EPOCH (seconds)
    *
@@ -1635,6 +1687,166 @@ export class Storage {
     );
   }
 
+  // TODO: store masternode
+  storeMasternode(walletId, masternode, cb) {
+    this.db.collection(collections.MASTERNODES).update(
+      {
+        txid: masternode.txid,
+        walletId
+      },
+      masternode,
+      {
+        w: 1,
+        upsert: true
+      },
+      cb
+    );
+  }
+
+  // TODO: update masternode
+  updateMasternode(masternode, cb) {
+    this.db.collection(collections.MASTERNODES).update(
+      {
+        txid: masternode.txid
+      },
+      {
+        $set: {
+          createdOn: masternode.createdOn,
+          address: masternode.address,
+          payee: masternode.payee,
+          status: masternode.status,
+          protocol: masternode.protocol,
+          daemonversion: masternode.daemonversion,
+          sentinelversion: masternode.sentinelversion,
+          sentinelstate: masternode.sentinelstate,
+          lastseen: masternode.lastseen,
+          activeseconds: masternode.activeseconds,
+          lastpaidtime: masternode.lastpaidtime,
+          lastpaidblock: masternode.lastpaidblock,
+          pingretries: masternode.pingretries
+        }
+      },
+      {
+        w: 1,
+        upsert: false
+      },
+      cb
+    );
+  }
+
+  // TODO: remove masternode
+  removeMasternodes(walletId, txid, cb) {
+    if (!this.db) return cb();
+
+    if (txid) {
+      this.db.collection(collections.MASTERNODES).remove(
+        {
+          txid,
+          walletId
+        },
+        {
+          w: 1
+        },
+        cb
+      );
+    } else {
+      this.db.collection(collections.MASTERNODES).remove(
+        {
+          walletId
+        },
+        {
+          w: 1
+        },
+        cb
+      );
+    }
+  }
+
+  /**
+   * fetchMasternodes. Times are in UNIX EPOCH (seconds)
+   *
+   * @param walletId
+   * @param txid
+   */
+
+  fetchMasternodes(walletId, txid, cb) {
+    if (!this.db) return cb();
+
+    if (txid) {
+      this.db.collection(collections.MASTERNODES).findOne(
+        {
+          txid,
+          walletId
+        },
+        (err, result) => {
+          if (err) return cb(err);
+          if (!result) return cb();
+          return cb(null, Masternodes.fromObj(result));
+        }
+      );
+    } else {
+      this.db
+        .collection(collections.MASTERNODES)
+        .find({ walletId })
+        .toArray((err, result) => {
+          if (err) return cb(err);
+          if (!result) return cb();
+          var masternodes = [];
+          for (let i = 0; i < result.length; i++) {
+            masternodes.push(Masternodes.fromObj(result[i]));
+          }
+          return cb(null, masternodes);
+        });
+    }
+  }
+
+  fetchMasternodesFromTxId(txid, cb) {
+    if (!this.db) return cb();
+    if (!txid) return cb();
+
+    this.db.collection(collections.MASTERNODES).findOne(
+      {
+        txid
+      },
+      (err, result) => {
+        if (err) return cb(err);
+        if (!result) return cb();
+        return cb(null, Masternodes.fromObj(result));
+      }
+    );
+  }
+
+  async _completeTxDataAsync(walletId, txs) {
+    var { err, wallet } = await this.fetchWalletAsync(walletId);
+    if (err) return { err };
+    _.each([].concat(txs), tx => {
+      tx.derivationStrategy = wallet.derivationStrategy || 'BIP45';
+      tx.creatorName = wallet.getCopayer(tx.creatorId).name;
+      _.each(tx.actions, action => {
+        action.copayerName = wallet.getCopayer(action.copayerId).name;
+      });
+
+      if (tx.status == 'accepted') tx.raw = tx.getRawTx();
+    });
+    return { err: null, txs };
+  }
+
+  async fetchWalletAsync(id) {
+    if (!this.db) return { err: 'not ready' };
+    var result = await this.db.collection(collections.WALLETS).findOne({ id });
+    if (!result) return { err: 'not result' };
+    return { err: null, wallet: Wallet.fromObj(result) };
+  }
+
+  //  john
+  async fetchTxByHashAsync(hash) {
+    if (!this.db) return { err: 'not ready' };
+
+    var result = await this.db.collection(collections.TXS).findOne({ txid: hash });
+    if (!result) return { err: 'not result' };
+    return await this._completeTxDataAsync(result.walletId, TxProposal.fromObj(result));
+  }
+
   fetchTestingAdverts(cb) {
     this.db
       .collection(collections.ADVERTISEMENTS)
@@ -1744,4 +1956,5 @@ export class Storage {
       cb
     );
   }
+
 }

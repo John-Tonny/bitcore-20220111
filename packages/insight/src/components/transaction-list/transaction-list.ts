@@ -146,7 +146,7 @@ export class TransactionListComponent implements OnInit {
 
   public loadMore(infiniteScroll) {
     if (
-      (this.queryType === 'blockHash' && this.chainNetwork.chain === 'BTC') ||
+      (this.queryType === 'blockHash' && (this.chainNetwork.chain === 'BTC' || this.chainNetwork.chain === 'VCL')) ||
       this.chainNetwork.chain === 'BCH' ||
       this.chainNetwork.chain === 'DOGE'
     ) {

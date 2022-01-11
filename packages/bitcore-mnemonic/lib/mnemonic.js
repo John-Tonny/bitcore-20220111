@@ -13,6 +13,8 @@ const Random = bitcore.crypto.Random;
 
 const $ = bitcore.util.preconditions;
 
+const SEED_STANDARD_PREFIX = '01';
+const SEED_SEGWIT_PREFIX = '100';
 
 /**
  * This is an immutable class that represents a BIP39 Mnemonic code.
@@ -35,7 +37,8 @@ const $ = bitcore.util.preconditions;
  * @returns {Mnemonic} A new instance of Mnemonic
  * @constructor
  */
-var Mnemonic = function(data, wordlist) {
+// john
+var Mnemonic = function(data, wordlist, useMulti) {
   if (!(this instanceof Mnemonic)) {
     return new Mnemonic(data, wordlist);
   }
@@ -72,10 +75,19 @@ var Mnemonic = function(data, wordlist) {
     phrase = Mnemonic._entropy2mnemonic(seed, wordlist);
   }
 
-
+  // john
+  this.useMulti = useMulti || false;
+  this.useElectrum = true;
+  this.useSegwit = false;
   // validate phrase and ent
   if (phrase && !Mnemonic.isValid(phrase, wordlist)) {
-    throw new errors.InvalidMnemonic(phrase);
+    var status = Mnemonic.isElectrumValid(phrase, wordlist);
+    this.useSegwit = status[1];
+    if (phrase && !status[0]) {
+        throw new errors.InvalidMnemonic(phrase);
+    }
+  }else {
+    this.useElectrum = false;
   }
   if (ent % 32 !== 0 || ent < 128 || ent > 256) {
     throw new bitcore.errors.InvalidArgument('ENT', 'Values must be ENT > 128 and ENT < 256 and ENT % 32 == 0');
@@ -98,6 +110,44 @@ var Mnemonic = function(data, wordlist) {
 };
 
 Mnemonic.Words = require('./words');
+
+/**
+ * Will return a boolean if the mnemonic is valid
+ *
+ * @example
+ *
+ * var valid = Mnemonic.isElectrumValid('lab rescue lunch elbow recall phrase perfect donkey biology guess moment husband');
+ * // true
+ *
+ * @param {String} mnemonic - The mnemonic string
+ * @param {String} [wordlist] - The wordlist used
+ * @returns {boolean}
+ */
+Mnemonic.isElectrumValid = function(mnemonic, wordlist) {
+    mnemonic = unorm.nfkd(mnemonic);
+    wordlist = wordlist || Mnemonic._getDictionary(mnemonic);
+
+    if (!wordlist) {
+        return [false, false];
+    }
+
+    var words = mnemonic.split(' ');
+    for (var i = 0; i < words.length; i++) {
+        var ind = wordlist.indexOf(words[i]);
+        if (ind < 0) return [false, false];
+    }
+
+    let s = Hash.sha512hmac(new Buffer(mnemonic, 'utf-8'), new Buffer(unorm.nfkd('Seed version'), 'utf-8'));
+    if (s.length === 64) {
+        let ss = s.toString('hex');
+        if (ss.indexOf(SEED_STANDARD_PREFIX) === 0) {
+            return [true, false];
+        }else if (ss.indexOf(SEED_SEGWIT_PREFIX) === 0) {
+            return [true, true];
+        }
+    }
+    return [false, false];
+};
 
 /**
  * Will return a boolean if the mnemonic is valid
@@ -181,6 +231,10 @@ Mnemonic._getDictionary = function(mnemonic) {
  */
 Mnemonic.prototype.toSeed = function(passphrase) {
   passphrase = passphrase || '';
+  // john
+  if (this.useElectrum) {
+    return pbkdf2(unorm.nfkd(this.phrase), unorm.nfkd('electrum' + passphrase), 2048, 64);
+  }
   return pbkdf2(unorm.nfkd(this.phrase), unorm.nfkd('mnemonic' + passphrase), 2048, 64);
 };
 
@@ -208,7 +262,7 @@ Mnemonic.fromSeed = function(seed, wordlist) {
  */
 Mnemonic.prototype.toHDPrivateKey = function(passphrase, network) {
   var seed = this.toSeed(passphrase);
-  return bitcore.HDPrivateKey.fromSeed(seed, network);
+  return bitcore.HDPrivateKey.fromSeed(seed, network, this.useSegwit, this.useMulti);
 };
 
 /**

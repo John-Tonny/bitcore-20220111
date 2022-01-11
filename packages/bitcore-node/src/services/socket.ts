@@ -3,7 +3,7 @@ import { ObjectID } from 'mongodb';
 import SocketIO = require('socket.io');
 import { LoggifyClass } from '../decorators/Loggify';
 import logger from '../logger';
-import { CoinEvent, EventModel, EventStorage, TxEvent } from '../models/events';
+import { CoinEvent, EventModel, EventStorage, MasternodeEvent, TxEvent } from '../models/events';
 import { BlockEvent } from '../models/events';
 import { WalletStorage } from '../models/wallet';
 import { ConfigType } from '../types/Config';
@@ -125,6 +125,14 @@ export class SocketService {
       }
     });
 
+    // john
+    this.eventService.masternodeEvent.on('masternode', (masternode: MasternodeEvent) => {
+      if (!this.stopped && this.io) {
+        const { chain, network } = masternode;
+        this.io.sockets.in(`/${chain}/${network}/masternode`).emit('masternode', masternode);
+      }
+    });
+
     this.eventService.addressCoinEvent.on('coin', async (addressCoin: CoinEvent) => {
       if (!this.stopped && this.io) {
         const { coin, address } = addressCoin;
@@ -144,6 +152,11 @@ export class SocketService {
         }
       }
     });
+  }
+
+  // john
+  async signalMasternode(masternode: MasternodeEvent) {
+    await EventStorage.signalMasternode(masternode);
   }
 
   async signalBlock(block: BlockEvent) {

@@ -136,6 +136,22 @@ export type isValidParams = ChainNetwork & {
   input: string;
 };
 
+// john
+export type BroadcastMasternodeParams = ChainNetwork & {
+  rawTx: string;
+};
+
+export type StreamMasternodeStatusParams = ChainNetwork & {
+  utxo: string;
+};
+
+// john 20210409
+export type RawTransactionParams = ChainNetwork & {
+  chain: string;
+  network: string;
+  txId: string;
+};
+
 export interface GetCoinsForTxParams {
   chain: string;
   network: string;
@@ -179,6 +195,11 @@ export interface IChainStateService {
   getLocalTip(params): Promise<IBlock | null>;
   getLocatorHashes(params): Promise<any>;
   isValid(params: isValidParams): { isValid: boolean; type: string };
+
+  // john
+  broadcastMasternode(params: BroadcastMasternodeParams): Promise<any>;
+  getMasternodeStatus(params: StreamMasternodeStatusParams): Promise<any | undefined>;
+  getRawTransaction(params: RawTransactionParams): Promise<any | undefined>;
 }
 
 export interface ChainStateServices {

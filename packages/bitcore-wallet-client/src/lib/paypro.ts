@@ -1,14 +1,15 @@
-import { BitcoreLib, BitcoreLibCash } from 'crypto-wallet-core';
+import { BitcoreLib, BitcoreLibCash, BitcoreLibVcl } from 'crypto-wallet-core';
 
 var $ = require('preconditions').singleton();
 const URL = require('url');
 const _ = require('lodash');
 const superagent = require('superagent');
-const Bitcore = BitcoreLib;
+const Bitcore = BitcoreLibVcl;
 const Errors = require('./errors');
 var Bitcore_ = {
   btc: Bitcore,
-  bch: BitcoreLibCash
+  bch: BitcoreLibCash,
+  vcl: BitcoreLibVcl,
 };
 // const request = require('request');
 const JSON_PAYMENT_REQUEST_CONTENT_TYPE = 'application/payment-request';
@@ -212,7 +213,7 @@ export class PayPro {
     $.checkArgument(opts && opts.url);
     opts.trustedKeys = opts.trustedKeys || dfltTrustedKeys;
 
-    var coin = opts.coin || 'btc';
+    var coin = opts.coin || 'vcl';
     var bitcore = Bitcore_[coin];
 
     var COIN = coin.toUpperCase();
@@ -284,7 +285,7 @@ export class PayPro {
       .checkArgument(opts.url)
       .checkArgument(opts.rawTx);
 
-    var coin = opts.coin || 'btc';
+    var coin = opts.coin || 'vcl';
     var COIN = coin.toUpperCase();
 
     opts.network = opts.network || 'livenet';

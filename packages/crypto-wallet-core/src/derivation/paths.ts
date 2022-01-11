@@ -12,6 +12,10 @@ export const Paths = {
     livenet: "m/44'/60'/",
     testnet: "m/44'/60'/"
   },
+  VCL: {
+    mainnet: "m/44'/57'/",
+    livenet: "m/44'/57'/"
+  },
   XRP: {
     mainnet: "m/44'/144'/",
     livenet: "m/44'/144'/",

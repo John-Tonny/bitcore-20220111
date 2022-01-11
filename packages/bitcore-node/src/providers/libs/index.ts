@@ -3,7 +3,11 @@ class LibProvider {
     BTC: {
       lib: require('bitcore-lib'),
       p2p: require('bitcore-p2p')
-    }
+    },
+    VCL: {
+      lib: require('bitcore-lib-vcl'),
+      p2p: require('bitcore-p2p-vcl')
+    },
   };
 
   register(chain: string, lib: string, p2p: string) {

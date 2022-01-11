@@ -1,7 +1,7 @@
 import { EventEmitter } from 'events';
 import { LoggifyClass } from '../decorators/Loggify';
 import logger from '../logger';
-import { BlockEvent, CoinEvent, EventModel, EventStorage, TxEvent } from '../models/events';
+import { BlockEvent, CoinEvent, EventModel, EventStorage, MasternodeEvent, TxEvent } from '../models/events';
 import { Config, ConfigService } from './config';
 import { StorageService } from './storage';
 import { Storage } from './storage';
@@ -11,6 +11,8 @@ export class EventService {
   txEvent = new EventEmitter();
   blockEvent = new EventEmitter();
   addressCoinEvent = new EventEmitter();
+  // john
+  masternodeEvent = new EventEmitter();
   events = new EventEmitter();
   storageService: StorageService;
   configService: ConfigService;
@@ -24,6 +26,7 @@ export class EventService {
     this.signalTx = this.signalTx.bind(this);
     this.signalBlock = this.signalBlock.bind(this);
     this.signalAddressCoin = this.signalAddressCoin.bind(this);
+    this.signalMasternode = this.signalMasternode.bind(this);
   }
 
   start() {
@@ -53,6 +56,7 @@ export class EventService {
     let lastBlockUpdate = new Date();
     let lastTxUpdate = new Date();
     let lastAddressTxUpdate = new Date();
+    let lastMasternodeUpdate = new Date();
 
     const retryTxCursor = async () => {
       const txCursor = this.eventModel.getTxTail(lastTxUpdate);
@@ -101,6 +105,27 @@ export class EventService {
       }
     };
     retryAddressTxCursor();
+
+    // john
+    const retryMasternodeCursor = async () => {
+      const masternodeCursor = this.eventModel.getMasternodeTail(lastMasternodeUpdate);
+      while (!this.stopped && (await masternodeCursor.hasNext())) {
+        const masternodeEvent = await masternodeCursor.next();
+        if (masternodeEvent) {
+          const masternode = masternodeEvent.payload as MasternodeEvent;
+          this.masternodeEvent.emit('masternode', masternode);
+          lastMasternodeUpdate = new Date();
+        }
+      }
+      if (!this.stopped) {
+        setTimeout(retryMasternodeCursor, 100);
+      }
+    };
+    retryMasternodeCursor();
+  }
+
+  async signalMasternode(masternode: MasternodeEvent) {
+    await this.eventModel.signalMasternode(masternode);
   }
 
   async signalBlock(block: BlockEvent) {

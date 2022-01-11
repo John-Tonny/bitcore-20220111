@@ -961,4 +961,10 @@ export class BtcChain implements IChain {
   onTx(tx) {
     return null;
   }
+
+  // john 20211228
+  getRedeemSendMaxInfo(server, wallet, opts, cb) {
+    return cb(null, null);
+  }
+
 }

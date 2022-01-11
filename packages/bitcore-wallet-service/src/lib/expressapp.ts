@@ -21,6 +21,9 @@ export class ExpressApp {
 
   constructor() {
     this.app = express();
+
+    this.app.use(bodyParser.json({ limit: Defaults.MAX_POST_SIZE }));
+    this.app.use(bodyParser.urlencoded({ limit: Defaults.MAX_POST_SIZE, extended: true }));
   }
   /**
    * start
@@ -37,6 +40,10 @@ export class ExpressApp {
     this.app.use(compression());
 
     this.app.use((req, res, next) => {
+      // john
+      res.setHeader('Access-Control-Allow-Header', 'X-Requested-With');
+      res.setHeader('Access-Control-Allow-Credentials', 'true');
+
       res.setHeader('Access-Control-Allow-Origin', '*');
       res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, DELETE');
       res.setHeader(
@@ -470,6 +477,16 @@ export class ExpressApp {
       });
     });
 
+    // john 20210409
+    router.get('/v2/atomicswaptxproposals/', (req, res) => {
+      getServerWithAuth(req, res, server => {
+        server.getPendingAtomicSwapTxs({}, (err, pendings) => {
+          if (err) return returnError(err, res, req);
+          res.json(pendings);
+        });
+      });
+    });
+
     // DEPRECATED
     router.post('/v1/txproposals/', (req, res) => {
       const Errors = require('./errors/errordefinitions');
@@ -650,6 +667,26 @@ export class ExpressApp {
     });
 
 */
+    // john 20210409
+    router.post('/v3/redeemtxproposals/', (req, res) => {
+      getServerWithAuth(req, res, server => {
+        req.body.txpVersion = 3;
+        server.createRedeemTx(req.body, (err, txp) => {
+          if (err) return returnError(err, res, req);
+          res.json(txp);
+        });
+      });
+    });
+
+    router.post('/v3/atomicswaptxproposals/', (req, res) => {
+      getServerWithAuth(req, res, server => {
+        req.body.txpVersion = 3;
+        server.createAtomicSwapTx(req.body, (err, txp) => {
+          if (err) return returnError(err, res, req);
+          res.json(txp);
+        });
+      });
+    });
 
     // DEPRECATED
     router.post('/v1/addresses/', (req, res) => {
@@ -707,9 +744,10 @@ export class ExpressApp {
 
     router.get('/v1/addresses/', (req, res) => {
       getServerWithAuth(req, res, server => {
-        const opts: { limit?: number; reverse?: boolean } = {};
+        const opts: { limit?: number; reverse?: boolean; address?: string } = {};
         if (req.query.limit) opts.limit = +req.query.limit;
         opts.reverse = req.query.reverse == '1';
+        if (req.query.address) opts.address = req.query.address; // john 20210409
 
         server.getMainAddresses(opts, (err, addresses) => {
           if (err) return returnError(err, res, req);
@@ -841,11 +879,13 @@ export class ExpressApp {
           feeLevel?: number;
           returnInputs?: boolean;
           excludeUnconfirmedUtxos?: boolean;
+          excludeMasternode?: boolean;
         } = {};
         if (q.feePerKb) opts.feePerKb = +q.feePerKb;
         if (q.feeLevel) opts.feeLevel = q.feeLevel;
         if (q.excludeUnconfirmedUtxos == '1') opts.excludeUnconfirmedUtxos = true;
         if (q.returnInputs == '1') opts.returnInputs = true;
+        if (q.excludeMasternode == '1') opts.excludeMasternode = true;
         server.getSendMaxInfo(opts, (err, info) => {
           if (err) return returnError(err, res, req);
           res.json(info);
@@ -1547,6 +1587,82 @@ export class ExpressApp {
           if (err) return returnError(err, res, req);
         });
     });
+
+    // john
+    router.get('/v1/masternode/collateral/', (req, res) => {
+      getServerWithAuth(req, res, server => {
+        const opts: { coin?: string } = {};
+        if (req.query.coin) opts.coin = req.query.coin;
+        server.getMasternodeCollateral(opts, (err, tx) => {
+          if (err) return returnError(err, res, req);
+          res.json(tx);
+        });
+      });
+    });
+
+    router.get('/v1/masternode/', (req, res) => {
+      getServerWithAuth(req, res, server => {
+        const opts: { coin?: string; txid?: string } = {};
+        if (req.query.coin) opts.coin = req.query.coin;
+        if (req.query.txid) opts.txid = req.query.txid;
+        server.getMasternodes(opts, (err, ret) => {
+          if (err) return returnError(err, res, req);
+          res.json(ret);
+        });
+      });
+    });
+
+    router.get('/v1/masternode/status', (req, res) => {
+      getServerWithAuth(req, res, server => {
+        const opts: { coin?: string; txid?: string; address?: string; payee?: string } = {};
+        if (req.query.coin) opts.coin = req.query.coin;
+        if (req.query.txid) opts.txid = req.query.txid;
+        if (req.query.address) opts.address = req.query.address;
+        if (req.query.payee) opts.payee = req.query.payee;
+        server.getMasternodeStatus(opts, (err, ret) => {
+          if (err) return returnError(err, res, req);
+          res.json(ret);
+        });
+      });
+    });
+
+    router.get('/v1/masternode/ping/', (req, res) => {
+      getServerWithAuth(req, res, server => {
+        const opts: { coin?: string; txid?: string; vout?: number } = {};
+        if (req.query.coin) opts.coin = req.query.coin;
+        if (req.query.txid) opts.txid = req.query.txid;
+        if (req.query.vout) opts.vout = req.query.vout;
+        server.getMasternodePing(opts, (err, result) => {
+          if (err) return returnError(err, res, req);
+          res.json(result);
+        });
+      });
+    });
+
+    router.post('/v1/masternode/broadcast/', (req, res) => {
+      getServerWithAuth(req, res, server => {
+        const opts: { coin?: string; raw?: string; jsonHeader?: boolean } = {};
+        if (req.query.coin) opts.coin = req.query.coin;
+        if (req.query.jsonHeader) opts.jsonHeader = req.query.jsonHeader;
+        server.broadcastMasternode(req.body, (err, ret) => {
+          if (err) return returnError(err, res, req);
+          res.json(ret);
+        });
+      });
+    });
+
+    router.delete('/v1/masternode/', (req, res) => {
+      getServerWithAuth(req, res, server => {
+        const opts: { coin?: string; txid?: string } = {};
+        if (req.query.coin) opts.coin = req.query.coin;
+        if (req.query.txid) opts.txid = req.query.txid;
+        server.removeMasternodes(opts, (err, ret) => {
+          if (err) return returnError(err, res, req);
+          res.json(ret);
+        });
+      });
+    });
+
 
     // Set no-cache by default
     this.app.use((req, res, next) => {

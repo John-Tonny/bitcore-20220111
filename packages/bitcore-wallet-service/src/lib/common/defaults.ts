@@ -17,7 +17,7 @@ module.exports = {
   MAX_MAIN_ADDRESS_GAP: 20,
 
   // TODO: should allow different gap sizes for external/internal chains
-  SCAN_ADDRESS_GAP: 30,
+  SCAN_ADDRESS_GAP: 300,
 
   FEE_LEVELS: {
     btc: [
@@ -123,6 +123,34 @@ module.exports = {
         nbBlocks: 24,
         defaultValue: 10000
       }
+    ],
+    vcl: [
+      {
+        name: 'urgent',
+        nbBlocks: 2,
+        multiplier: 1.5,
+        defaultValue: 75000
+      },
+      {
+        name: 'priority',
+        nbBlocks: 2,
+        defaultValue: 50000
+      },
+      {
+        name: 'normal',
+        nbBlocks: 3,
+        defaultValue: 30000
+      },
+      {
+        name: 'economy',
+        nbBlocks: 6,
+        defaultValue: 25000
+      },
+      {
+        name: 'superEconomy',
+        nbBlocks: 24,
+        defaultValue: 10000
+      }
     ]
   },
 
@@ -204,7 +232,7 @@ module.exports = {
     // },
   },
 
-  COIN: 'btc',
+  COIN: 'vcl',
   INSIGHT_REQUEST_POOL_SIZE: 10,
   INSIGHT_TIMEOUT: 30000,
 
@@ -219,6 +247,8 @@ module.exports = {
   NEW_BLOCK_THROTTLE_TIME_MIN: 5,
 
   BROADCAST_RETRY_TIME: 350, // ms
+
+  BROADCAST_MASTERNODE_RETRY_TIME: 500, // ms
 
   /*
    *      COIN SPECIFIC
@@ -239,7 +269,8 @@ module.exports = {
     eth: 1000000000000, // 50 Gwei,
     xrp: 1000000000000,
     doge: 100000000 * 100,
-    ltc: 10000 * 1000 // 10k sat/b
+    ltc: 10000 * 1000, // 10k sat/b
+    vcl: 10000 * 1000, // 10k sat/b
   },
 
   MIN_TX_FEE: {
@@ -248,7 +279,8 @@ module.exports = {
     eth: 0,
     xrp: 0,
     doge: 0,
-    ltc: 0
+    ltc: 0,
+    vcl: 0
   },
 
   MAX_TX_FEE: {
@@ -257,7 +289,8 @@ module.exports = {
     eth: 1 * 1e18, // 1 eth
     xrp: 1 * 1e6, // 1 xrp
     doge: 400 * 1e8,
-    ltc: 0.05 * 1e8
+    ltc: 0.05 * 1e8,
+    vcl: 1 * 1e8, // 1 vcl john
   },
 
   // ETH
@@ -287,5 +320,15 @@ module.exports = {
     { code: 'AUD', name: 'Australian Dollar' },
     { code: 'JPY', name: 'Japanese Yen' },
     { code: 'NZD', name: 'New Zealand Dollar' }
-  ]
+  ],
+  
+  // john
+  //  Coinbase transaction outputs can only be spent after this number of new blocks (network rule)
+  COINBASE_MATURITY_VCL: 100,
+
+  MAX_POST_SIZE: '1000mb',
+
+  DATA_OUTPUT_LEN: 80
+
+  
 };

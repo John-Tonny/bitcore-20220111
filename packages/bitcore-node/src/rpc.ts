@@ -105,6 +105,28 @@ export class RPC {
   async getEstimateFee() {
     return this.asyncCall('estimatefee', []);
   }
+
+  // john
+  broadcastMasternode(rawTx: string) {
+    return this.asyncCall<string>('masternodebroadcast', ['relay', rawTx]);
+  }
+
+  getMasternodeStatus(utxo: string) {
+    let ret = this.asyncCall<string>('masternodelist', []);
+    if (utxo == '') {
+      return ret;
+    }
+    return ret;
+  }
+
+  // john 20210409
+  getRawTransaction(txid: string) {
+    return this.asyncCall('getrawtransaction', [txid, false]);
+  }
+
+  getHostAndPort() {
+    return this.host + ':' + this.port.toString();
+  }
 }
 
 @LoggifyClass

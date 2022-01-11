@@ -27,11 +27,19 @@ export class DenominationComponent {
     )
       ? true
       : false;
-    this.units = [
-      'USD',
-      this.api.networkSettings.selectedNetwork.chain,
-      'm' + this.api.networkSettings.selectedNetwork.chain
-    ];
+    // john 20211228
+    const coin_unit = this.api.getCoinUnitFromUser();
+    if(this.api.networkSettings.selectedNetwork.chain !== 'VCL' ||  coin_unit === '' ){
+      this.units = [
+        this.api.networkSettings.selectedNetwork.chain,
+	'm' + this.api.networkSettings.selectedNetwork.chain
+      ];
+    }else{
+      this.units = [
+        coin_unit,
+        'm' + coin_unit
+      ];
+    }
   }
 
   public changeUnit(unit: string): void {

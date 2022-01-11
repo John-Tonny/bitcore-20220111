@@ -74,6 +74,9 @@ export interface ITxProposal {
   isTokenSwap?: boolean;
   enableRBF?: boolean;
   replaceTxByFee?: boolean;
+  atomicswap?: any;
+  atomicswapAddr?: string;
+  atomicswapSecretHash?: string;
 }
 
 export class TxProposal {
@@ -139,10 +142,15 @@ export class TxProposal {
   isTokenSwap?: boolean;
   enableRBF?: boolean;
   replaceTxByFee?: boolean;
+  atomicswap?: any; // john 20210409
+  atomicswapAddr?: string;
+  atomicswapSecretHash?: string;
+
 
   static create(opts) {
     opts = opts || {};
 
+    $.checkArgument(Utils.checkValueInCollection(opts.coin, Constants.COINS));
     $.checkArgument(Utils.checkValueInCollection(opts.network, Constants.NETWORKS));
 
     const x = new TxProposal();
@@ -226,6 +234,11 @@ export class TxProposal {
     x.destinationTag = opts.destinationTag;
     x.invoiceID = opts.invoiceID;
 
+    // john 20210409
+    x.atomicswap = opts.atomicswap;
+    x.atomicswapAddr = opts.atomicswapAddr;
+    x.atomicswapSecretHash = opts.atomicswapSecretHash;
+
     return x;
   }
 
@@ -301,6 +314,11 @@ export class TxProposal {
       x.raw = obj.raw;
     }
 
+    // john 20210409
+    x.atomicswap = obj.atomicswap;
+    x.atomicswapAddr = obj.atomicswapAddr;
+    x.atomicswapSecretHash = obj.atomicswapSecretHash;
+
     return x;
   }
 
@@ -338,10 +356,27 @@ export class TxProposal {
     });
   }
 
+  // john
   getRawTx() {
     const t = ChainService.getBitcoreTx(this);
+    if (this.atomicswap && this.atomicswap.isAtomicSwap && this.atomicswap.redeem != undefined) {
+      return t.uncheckedAtomicSwapSerialize();
+    }
     return t.uncheckedSerialize();
   }
+
+  // john
+  getRawTx1() {
+    const t = ChainService.getBitcoreTx(this);
+    return t.uncheckedSerialize1();
+  }
+
+  // john
+  getRawAtomicswapTx() {
+    const t = ChainService.getBitcoreTx(this);
+    return t.uncheckedAtomicSwapSerialize();
+  }
+
 
   /**
    * getTotalAmount
@@ -415,7 +450,11 @@ export class TxProposal {
       this.addAction(copayerId, 'accept', null, signatures, xpub);
 
       if (this.status == 'accepted') {
-        this.raw = tx.uncheckedSerialize();
+        if (this.atomicswap && this.atomicswap.isAtomicSwap && this.atomicswap.redeem != undefined) {
+          this.raw = tx.uncheckedAtomicSwapSerialize();
+        } else {
+          this.raw = tx.uncheckedSerialize();
+        }
         this.txid = tx.id;
       }
 
@@ -456,5 +495,11 @@ export class TxProposal {
     $.checkState(this.txid, 'Failed state: this.txid at <setBroadcasted()>');
     this.status = 'broadcasted';
     this.broadcastedOn = Math.floor(Date.now() / 1000);
+  }
+
+  // john 20210409
+  setAtomicswaped() {
+    $.checkState(this.txid);
+    this.atomicswapAddr = null;
   }
 }

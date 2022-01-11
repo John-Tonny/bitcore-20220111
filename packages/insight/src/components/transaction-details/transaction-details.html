@@ -77,10 +77,21 @@
             <p>
               <b>Unlocking Script</b>
             </p>
-            <div *ngFor="let item of vin.items">
-              <div *ngIf="item.scriptSig">
-                <div class="unlocking-script">
-                  <p>{{ item.scriptSig.asm }}
+            <div *ngIf="chainNetwork.chain !== 'VCL'">
+              <div *ngFor="let item of vin.items">
+                <div *ngIf="item.scriptSig">
+                  <div class="unlocking-script">
+                    <p>{{ item.scriptSig.asm }}
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div *ngIf="chainNetwork.chain === 'VCL'">
+              <div *ngFor="let item of vin.items">
+                <div *ngIf="item.script">
+                  <div class="unlocking-script">
+                    <p>{{ item.script }}
+                  </div>
                 </div>
               </div>
             </div>
@@ -110,10 +121,16 @@
       <ion-list>
         <ion-item *ngFor="let vout of tx.vout; let i = index">
           <div>
-            <div class="ellipsis">
+            <div *ngIf="chainNetwork.chain !== 'VCL'" class="ellipsis">
               <p>
                 <a [ngClass]="{'disabled-link': getAddress(vout) === 'Unparsed address' }"
                   (click)="goToAddress(vout.address)" role="button" tabindex="0">{{ getAddress(vout) }}</a>
+              </p>
+            </div>
+            <div *ngIf="chainNetwork.chain === 'VCL'" class="ellipsis">
+              <p>
+                <a [ngClass]="{'disabled-link': getAddress(vout) === 'Unparsed address' }"
+                   (click)="goToAddress(vout.address)" role="button" tabindex="0">{{ getAddressInfo(vout) }}</a>
               </p>
             </div>
             <div *ngIf="expanded">
@@ -124,20 +141,32 @@
               <p>
                 <b>Locking Script</b>
               </p>
-              <div class="locking-script">
-                <p>{{ vout.script.asm }}</p>
+              <div *ngIf="chainNetwork.chain !== 'VCL'">
+                <div class="locking-script">
+                  <p>{{ vout.script.asm }}</p>
+                </div>
+              </div>
+              <div *ngIf="chainNetwork.chain === 'VCL'">
+                <div class="locking-script">
+                  <p>{{ vout.script }}</p>
+                </div>
               </div>
             </div>
           </div>
 
-          <div item-end>
+          <div item-end *ngIf="getAddress(vout) !== 'Unparsed address'">
             {{ currencyProvider.getConvertedNumber(vout.value, chainNetwork.chain) | number:'1.0-8' }} {{ currencyProvider.currencySymbol }}
             <span [hidden]="!vout.spentTxid">(S)</span>
             <span [hidden]="vout.spentTxid">(U)</span>
           </div>
 
-          <button title="Go to Transaction" item-end ion-button *ngIf="expanded && vout.spentTxid && vout.spentTxid !== '' " (click)="
-            goToTx(vout.spentTxid, i, true)" clear icon-only type="button" tabindex="0">
+          <div item-end *ngIf="getAddress(vout) === 'Unparsed address'">
+            {{ getDataLength(vout) }}
+            <span>(Bytes)</span>
+          </div>
+
+          <button item-end ion-button *ngIf="expanded && vout.spentTxid && vout.spentTxid !== '' " (click)="
+            goToTx(vout.spentTxid, i, true)" clear icon-only>
             <ion-icon color="primary" name="ios-arrow-forward"></ion-icon>
           </button>
         </ion-item>

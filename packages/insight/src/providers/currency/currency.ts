@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { ApiProvider, ChainNetwork } from '../api/api';
+import { Logger } from '../logger/logger';
 
 @Injectable()
 export class CurrencyProvider {
@@ -23,12 +24,24 @@ export class CurrencyProvider {
     if (!currency) {
       currency = chainNetwork.chain.toUpperCase();
     }
+    const logger = new Logger();
     if (currency !== 'USD') {
-      const chain = chainNetwork.chain.toUpperCase();
+      // john
+      let chain = chainNetwork.chain.toUpperCase();      
+      const coin_unit = this.apiProvider.getCoinUnitFromUser();
+
+      logger.info(chain);
+      logger.info(coin_unit);
+      if(chain === 'VCL'){
+        if(coin_unit !== '' ){
+          chain = coin_unit;
+        }
+      }
       this.currencySymbol = currency.startsWith('m') ? 'm' + chain : chain;
     } else {
       this.currencySymbol = 'USD';
     }
+    logger.info(this.currencySymbol);
   }
 
   public getCurrency(): string {

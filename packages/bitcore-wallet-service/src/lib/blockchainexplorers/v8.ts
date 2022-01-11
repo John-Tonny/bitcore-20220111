@@ -15,7 +15,8 @@ const Bitcore_ = {
   eth: Bitcore,
   xrp: Bitcore,
   doge: require('bitcore-lib-doge'),
-  ltc: require('bitcore-lib-ltc')
+  ltc: require('bitcore-lib-ltc'),
+  vcl: require('bitcore-lib-vcl')
 };
 const config = require('../../config');
 const Constants = Common.Constants,
@@ -146,7 +147,6 @@ export class V8 {
   getConnectionInfo() {
     return 'V8 (' + this.coin + '/' + this.v8network + ') @ ' + this.host;
   }
-
   _transformUtxos(utxos, bcheight) {
     $.checkState(bcheight > 0, 'Failed state: No BC height passed to _transformUtxos()');
     const ret = _.map(
@@ -170,6 +170,30 @@ export class V8 {
         return u;
       }
     );
+
+    return ret;
+  }
+  
+   // john 20210409
+  _transformTx(txs, bcheight) {
+    $.checkState(bcheight > 0, 'No BC height passed to _transformTx');
+    const ret = _.map(txs, x => {
+      const u = {
+        address: x.address,
+        satoshis: x.value,
+        amount: x.value / 1e8,
+        scriptPubKey: x.script,
+        mintTxid: x.mintTxid,
+        mintIndex: x.mintIndex,
+        spentTxid: x.spentTxid,
+        locked: false,
+        coinbase: x.coinbase,
+        mintConfirmations: x.mintHeight > 0 && bcheight >= x.mintHeight ? bcheight - x.mintHeight + 1 : 0,
+        spentConfirmations: x.spentHeight > 0 && bcheight >= x.spentHeight ? bcheight - x.spentHeight + 1 : 0
+      };
+      // v8 field name differences
+      return u;
+    });
 
     return ret;
   }
@@ -281,6 +305,25 @@ export class V8 {
       });
   }
 
+  // john 20210409
+  getRawTransaction(txid, cb) {
+    console.log('[v8.js.207] GET TX', txid); // TODO
+    const client = this._getClient();
+    client
+      .getRawTx({ txid })
+      .then(tx => {
+        return cb(null, tx);
+      })
+      .catch(err => {
+        // The TX was not found
+        if (err.statusCode == '404') {
+          return cb();
+        } else {
+          return cb(err);
+        }
+      });
+  }
+
   getAddressUtxos(address, height, cb) {
     console.log(' GET ADDR UTXO', address, height); // TODO
     const client = this._getClient();
@@ -289,6 +332,19 @@ export class V8 {
       .getAddressTxos({ address, unspent: true })
       .then(utxos => {
         return cb(null, this._transformUtxos(utxos, height));
+      })
+      .catch(cb);
+  }
+
+  // john 20210409
+  getAddressTx(address, height, cb) {
+    console.log(' GET ADDR UTXO', address, height); // TODO
+    const client = this._getClient();
+
+    client
+      .getAddressTxos({ address })
+      .then(utxos => {
+        return cb(null, this._transformTx(utxos, height));
       })
       .catch(cb);
   }
@@ -524,6 +580,87 @@ export class V8 {
         }
       })
       .catch(cb);
+  }
+
+  // john
+  getBlockHashInHeight(blockHeight, cb) {
+    const url = this.baseUrl + '/tx/?blockHeight=' + blockHeight;
+    this.request
+      .get(url, {})
+      .then(ret => {
+        try {
+          ret = JSON.parse(ret);
+          return cb(null, ret[0].blockHeight, ret[0].blockHash);
+        } catch (err) {
+          return cb(new Error('Could not get blockhash from block explorer'));
+        }
+      })
+      .catch(cb);
+  }
+
+  getMasternodeStatus(opts, cb) {
+    let qs = '';
+    if (typeof opts.txid !== 'undefined') {
+      qs = '?txid=' + opts.txid;
+    } else if (typeof opts.address !== 'undefined') {
+      qs = '?address=' + opts.address;
+    } else if (typeof opts.payee !== 'undefined') {
+      qs = '?payee=' + opts.payee;
+    }
+    const url = this.baseUrl + '/masternode/status/' + qs;
+    this.request
+      .get(url, {})
+      .then(ret => {
+        try {
+          ret = JSON.parse(ret);
+          return cb(null, ret);
+        } catch (err) {
+          return cb(new Error('Could not get masternodestatus from block explorer'));
+        }
+      })
+      .catch(cb);
+  }
+
+  /**
+   * Broadcast a masternode announce to the bitcoin network
+   */
+  broadcastMasternode(rawTx, cb, count: number = 0) {
+    const payload = {
+      rawTx,
+      network: this.v8network,
+      chain: this.chain
+    };
+
+    const client = this._getClient();
+    client
+      .broadcastMasternode({ payload })
+      .then(infos => {
+        let errMsg;
+
+        _.forEach(_.keys(infos), function(key) {
+          if (key == 'errorMessage') {
+            errMsg = infos[key];
+            return;
+          }
+        });
+        if (errMsg) {
+          return cb(new Error('Error broadcasting'));
+        }
+        return cb(null, infos);
+      })
+      .catch(err => {
+        if (count > 3) {
+          logger.error('FINAL Broadcast Masternode error:', err);
+          return cb(err);
+        } else {
+          count++;
+          // retry
+          setTimeout(() => {
+            logger.info('Retrying broadcast masternode after', count * Defaults.BROADCAST_MASTERNODE_RETRY_TIME);
+            return this.broadcastMasternode(rawTx, cb, count);
+          }, count * Defaults.BROADCAST_MASTERNODE_RETRY_TIME);
+        }
+      });
   }
 
   initSocket(callbacks) {

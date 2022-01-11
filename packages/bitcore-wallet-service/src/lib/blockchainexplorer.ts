@@ -30,7 +30,11 @@ const PROVIDERS = {
     ltc: {
       livenet: 'https://api.bitpay.com',
       testnet: 'https://api.bitpay.com'
-    }
+    },
+    vcl: {
+      livenet: 'https://bws.vircle.xyz',
+      testnet: 'https://bws.vircle.xyz'
+    }    
   }
 };
 

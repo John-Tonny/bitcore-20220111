@@ -1,5 +1,5 @@
 import through2 from 'through2';
-import { StreamTransactionParams } from '../../../types/namespaces/ChainStateProvider';
+import { StreamMasternodeStatusParams, StreamTransactionParams } from '../../../types/namespaces/ChainStateProvider';
 import { StreamBlocksParams } from '../../../types/namespaces/ChainStateProvider';
 
 import { Validation } from 'crypto-wallet-core';
@@ -14,11 +14,14 @@ import { StateStorage } from '../../../models/state';
 import { ITransaction, TransactionStorage } from '../../../models/transaction';
 import { IWallet, WalletStorage } from '../../../models/wallet';
 import { IWalletAddress, WalletAddressStorage } from '../../../models/walletAddress';
+import app from '../../../routes';
 import { RPC } from '../../../rpc';
 import { Config } from '../../../services/config';
 import { Storage } from '../../../services/storage';
 import { CoinJSON, SpentHeightIndicators } from '../../../types/Coin';
 import {
+  BroadcastMasternodeParams,
+  // john
   BroadcastTransactionParams,
   CreateWalletParams,
   DailyTransactionsParams,
@@ -29,6 +32,7 @@ import {
   GetWalletBalanceParams,
   GetWalletParams,
   IChainStateService,
+  RawTransactionParams,
   StreamAddressUtxosParams,
   StreamTransactionsParams,
   StreamWalletAddressesParams,
@@ -51,7 +55,13 @@ export class InternalStateProvider implements IChainStateService {
   }
 
   getRPC(chain: string, network: string) {
-    const RPC_PEER = Config.get().chains[chain][network].rpc;
+    let RPC_PEER;
+    if(chain.toLowerCase() == 'vcl') {
+      const index = app.get('rpcIndex') || 0;
+      RPC_PEER = Config.get().chains[chain][network].rpc[index];
+    }else{
+      RPC_PEER = Config.get().chains[chain][network].rpc;
+    }
     if (!RPC_PEER) {
       throw new Error(`RPC not configured for ${chain} ${network}`);
     }
@@ -475,6 +485,23 @@ export class InternalStateProvider implements IChainStateService {
       txids.push(txid);
     }
     return txids.length === 1 ? txids[0] : txids;
+  }
+
+  // john
+  async broadcastMasternode(params: BroadcastMasternodeParams) {
+    const { chain, network, rawTx } = params;
+    return await this.getRPC(chain, network).broadcastMasternode(rawTx);
+  }
+
+  async getMasternodeStatus(params: StreamMasternodeStatusParams) {
+    const { chain, network, utxo } = params;
+    return await this.getRPC(chain, network).getMasternodeStatus(utxo);
+  }
+
+  // john 20210409
+  async getRawTransaction(params: RawTransactionParams) {
+    const { chain, network, txId } = params;
+    return await this.getRPC(chain, network).getRawTransaction(txId);
   }
 
   async getCoinsForTx({ chain, network, txid }: { chain: string; network: string; txid: string }) {

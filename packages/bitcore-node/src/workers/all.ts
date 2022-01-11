@@ -4,6 +4,8 @@ import { Modules } from '../modules';
 import { Api } from '../services/api';
 import { Event } from '../services/event';
 import { P2P } from '../services/p2p';
+// import { Masternode } from '../services/masternode';
+import { RpcSrv } from '../services/rpc';
 import { Storage } from '../services/storage';
 import { Worker } from '../services/worker';
 import parseArgv from '../utils/parseArgv';
@@ -14,7 +16,7 @@ const services: Array<any> = [];
 
 export const FullClusteredWorker = async () => {
   process.on('unhandledRejection', error => {
-    console.error('Unhandled Rejection at:', error.stack || error);
+    console.error('all Unhandled Rejection at:', error.stack || error);
     stop();
   });
   process.on('SIGTERM', stop);
@@ -31,6 +33,9 @@ export const FullClusteredWorker = async () => {
   } else {
     services.push(Api);
   }
+  // john
+  // services.push(Masternode);
+  services.push(RpcSrv);
 
   Modules.loadConfigured();
 

@@ -10,9 +10,16 @@ export interface CoinEvent {
   coin: Partial<ICoin>;
   address: string;
 }
+// john
+export interface MasternodeEvent {
+  chain: string;
+  network: string;
+  state: string;
+}
+
 interface IEvent {
-  payload: BlockEvent | TxEvent | CoinEvent;
-  type: 'block' | 'tx' | 'coin';
+  payload: BlockEvent | TxEvent | CoinEvent | MasternodeEvent;
+  type: 'block' | 'tx' | 'coin' | 'masternode';
   emitTime: Date;
 }
 export class EventModel extends BaseModel<IEvent> {
@@ -25,6 +32,11 @@ export class EventModel extends BaseModel<IEvent> {
   async onConnect() {
     await this.collection.createIndex({ type: 1, emitTime: 1 }, { background: true });
     await this.collection.createIndex({ emitTime: 1 }, { background: true, expireAfterSeconds: 60 * 5 });
+  }
+
+  // john
+  public signalMasternode(masternode: MasternodeEvent) {
+    return this.collection.insertOne({ payload: masternode, emitTime: new Date(), type: 'masternode' });
   }
 
   public signalBlock(block: BlockEvent) {
@@ -47,6 +59,12 @@ export class EventModel extends BaseModel<IEvent> {
     return this.collection.insertMany(
       coins.map(coin => ({ payload: coin, emitTime: new Date(), type: 'coin' as 'coin' }))
     );
+  }
+
+  public getMasternodeTail(lastSeen: Date) {
+    return this.collection
+      .find({ type: 'masternode', emitTime: { $gte: lastSeen } })
+      .addCursorFlag('noCursorTimeout', true);
   }
 
   public getBlockTail(lastSeen: Date) {

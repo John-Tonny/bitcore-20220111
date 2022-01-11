@@ -10,7 +10,8 @@ const Bitcore_ = {
   btc: Bitcore,
   bch: require('bitcore-lib-cash'),
   doge: require('bitcore-lib-doge'),
-  ltc: require('bitcore-lib-ltc')
+  ltc: require('bitcore-lib-ltc'),
+  vcl: require('bitcore-lib-vcl')
 };
 
 export class Utils {
@@ -252,7 +253,12 @@ export class Utils {
             new Bitcore_['ltc'].Address(address);
             return 'ltc';
           } catch (e) {
-            return;
+	    try {
+              new Bitcore_['vcl'].Address(address);
+              return 'vcl';
+            } catch (e) {	  
+              return;
+	    }
           }
         }
       }

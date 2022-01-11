@@ -9,6 +9,7 @@ module.exports = {
     XRP: 'xrp',
     DOGE: 'doge',
     LTC: 'ltc',
+    VCL: 'vcl',
     USDC: 'usdc',
     PAX: 'pax',
     GUSD: 'gusd',
@@ -32,7 +33,8 @@ module.exports = {
     BTC: 'btc',
     BCH: 'bch',
     DOGE: 'doge',
-    LTC: 'ltc'
+    LTC: 'ltc',
+    VCL: 'vcl'
   },
 
   NETWORKS: {
@@ -55,6 +57,7 @@ module.exports = {
 
   PATHS: {
     SINGLE_ADDRESS: "m/0'/0",
+    REQUEST_ELECTRUM_KEY: "m/0'",
     REQUEST_KEY: "m/1'/0",
     TXPROPOSAL_KEY: "m/1'/1",
     REQUEST_KEY_AUTH: 'm/2' // relative to BASE
@@ -62,5 +65,9 @@ module.exports = {
 
   BIP45_SHARED_INDEX: 0x80000000 - 1,
 
-  TOKEN_OPTS: CWC.Constants.TOKEN_OPTS
+  TOKEN_OPTS: CWC.Constants.TOKEN_OPTS,
+  
+  // john
+  COLLATERAL_COIN: parseInt(process.env.COLLATERAL_COIN) || 100000000000,
+  MASTERNODE_MIN_CONFIRMATIONS: 15
 };

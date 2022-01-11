@@ -13,9 +13,11 @@ import { MessageBroker } from './messagebroker';
 import {
   Advertisement,
   Copayer,
+  IMasternode,
   INotification,
   ITxProposal,
   IWallet,
+  Masternodes,
   Notification,
   Preferences,
   PushNotificationSub,
@@ -33,17 +35,20 @@ const $ = require('preconditions').singleton();
 const deprecatedServerMessage = require('../deprecated-serverMessages');
 const serverMessages = require('../serverMessages');
 const BCHAddressTranslator = require('./bchaddresstranslator');
+
+
 const EmailValidator = require('email-validator');
 
 import { Validation } from 'crypto-wallet-core';
-const Bitcore = require('bitcore-lib');
+const Bitcore = require('bitcore-lib-vcl');
 const Bitcore_ = {
   btc: Bitcore,
   bch: require('bitcore-lib-cash'),
   eth: Bitcore,
   xrp: Bitcore,
   doge: require('bitcore-lib-doge'),
-  ltc: require('bitcore-lib-ltc')
+  ltc: require('bitcore-lib-ltc'),
+  vcl: require('bitcore-lib-vcl')
 };
 
 const Common = require('./common');
@@ -464,7 +469,7 @@ export class WalletService {
    * @param {number} opts.n - Total copayers.
    * @param {string} opts.pubKey - Public key to verify copayers joining have access to the wallet secret.
    * @param {string} opts.singleAddress[=false] - The wallet will only ever have one address.
-   * @param {string} opts.coin[='btc'] - The coin for this wallet (btc, bch, eth, doge, ltc).
+   * @param {string} opts.coin[='vcl'] - The coin for this wallet (btc, bch, eth, doge, ltc, vcl).
    * @param {string} opts.network[='livenet'] - The Bitcoin network for this wallet.
    * @param {string} opts.account[=0] - BIP44 account number
    * @param {string} opts.usePurpose48 - for Multisig wallet, use purpose=48
@@ -690,6 +695,7 @@ export class WalletService {
       }>;
       balance?: string;
       pendingTxps?: ITxProposal[];
+      pendingAtomicSwapTxps?: ITxProposal[];
       preferences?: boolean;
     } = {};
     async.parallel(
@@ -743,6 +749,13 @@ export class WalletService {
           this.getPendingTxs(opts, (err, pendingTxps) => {
             if (err) return next(err);
             status.pendingTxps = pendingTxps;
+            next();
+          });
+        },
+        next => {
+          this.getPendingAtomicSwapTxs(opts, (err, pendingAtomicSwapTxps) => {
+            if (err) return next(err);
+            status.pendingAtomicSwapTxps = pendingAtomicSwapTxps;
             next();
           });
         },
@@ -849,6 +862,38 @@ export class WalletService {
       },
       extraArgs
     );
+    this._notify(type, data, {}, cb);
+  }
+
+  // john
+  _notifyRedeemTxProposalAction(type, txp, extraArgs, cb?: (err?: any, data?: any) => void) {
+    if (_.isFunction(extraArgs)) {
+      cb = extraArgs;
+      extraArgs = {};
+    }
+
+    var data;
+    // john 20211026
+    if (txp.atomicswap && txp.atomicswap.secret) {
+      const data = _.assign(
+        {
+          txProposalId: txp.id,
+          creatorId: txp.creatorId,
+          amount: txp.getTotalAmount(),
+          secret: txp.atomicswap.secret
+        },
+        extraArgs
+      );
+    } else {
+      const data = _.assign(
+        {
+          txProposalId: txp.id,
+          creatorId: txp.creatorId,
+          amount: txp.getTotalAmount()
+        },
+        extraArgs
+      );
+    }
     this._notify(type, data, {}, cb);
   }
 
@@ -1005,7 +1050,7 @@ export class WalletService {
    * Joins a wallet in creation.
    * @param {Object} opts
    * @param {string} opts.walletId - The wallet id.
-   * @param {string} opts.coin[='btc'] - The expected coin for this wallet (btc, bch, eth, doge, ltc).
+   * @param {string} opts.coin[='vcl'] - The expected coin for this wallet (btc, bch, eth, doge, ltc, vcl).
    * @param {string} opts.name - The copayer name.
    * @param {string} opts.xPubKey - Extended Public Key for this copayer.
    * @param {string} opts.requestPubKey - Public Key used to check requests from this copayer.
@@ -1399,6 +1444,9 @@ export class WalletService {
     opts = opts || {};
     this.storage.fetchAddresses(this.walletId, (err, addresses) => {
       if (err) return cb(err);
+      if (opts.address) {
+        addresses = _.filter(addresses, { address: opts.address });
+      }
       let onlyMain = _.reject(addresses, {
         isChange: true
       });
@@ -1471,6 +1519,11 @@ export class WalletService {
 
     const utxoKey = utxo => {
       return utxo.txid + '|' + utxo.vout;
+    };
+
+    const utxoKey1 = outpoint => {
+      var xtxid = outpoint.split('-');
+      return xtxid[0] + '|' + xtxid[1];
     };
 
     let coin, allAddresses, allUtxos, utxoIndex, addressStrs, bc, wallet, blockchainHeight;
@@ -1633,6 +1686,24 @@ export class WalletService {
             }
           );
         },
+        // john
+        next => {
+          if (!opts.excludeMasternode) {
+            return next();
+          }
+          this.storage.fetchMasternodes(this.walletId, undefined, (err, masternodes) => {
+            if (err) return next(err);
+            const lockedInputs1 = _.map(_.flatten(_.map(masternodes, 'txid')), utxoKey1);
+            _.each(lockedInputs1, input => {
+              if (utxoIndex[input]) {
+                utxoIndex[input].locked = true;
+                utxoIndex[input].isMasternode = true;
+              }
+            });
+            logger.debug(`Got  ${masternodes.length} locked masternode utxos`);
+            return next();
+          });
+        },
         next => {
           // Needed for the clients to sign UTXOs
           const addressToPath = _.keyBy(allAddresses, 'address');
@@ -1706,6 +1777,56 @@ export class WalletService {
     }
   }
 
+  // john 20210409
+  /**
+   * Returns list of UTXOs
+   * @param {Object} opts
+   * @param {Array} [opts.addresses] - List of addresses. options. only one address is supported
+   * @returns {Array} utxos - List of UTXOs.
+   */
+  getAddressTx(opts, cb) {
+    opts = opts || {};
+
+    if (opts.coin) {
+      return cb(new ClientError('coins option no longer supported'));
+    }
+
+    if (opts.addresses) {
+      if (opts.addresses.length > 1) return cb(new ClientError('Addresses option only support 1 address'));
+
+      this.getWallet({}, (err, wallet) => {
+        if (err) return cb(err);
+
+        const bc = this._getBlockchainExplorer(wallet.coin, wallet.network);
+        if (!bc) {
+          return cb(new Error('Could not get blockchain explorer instance'));
+        }
+
+        const address = opts.addresses[0];
+        const A = Bitcore_[wallet.coin].Address;
+        let addrObj: { network?: { name?: string } } = {};
+        try {
+          addrObj = new A(address);
+        } catch (ex) {
+          return cb(null, []);
+        }
+        if (addrObj.network.name != wallet.network) {
+          return cb(null, []);
+        }
+
+        this._getBlockchainHeight(wallet.coin, wallet.network, (err, height, hash) => {
+          if (err) return cb(err);
+          bc.getAddressTx(address, height, (err, utxos) => {
+            if (err) return cb(err);
+            return cb(null, utxos);
+          });
+        });
+      });
+    } else {
+      this.getUtxosForCurrentWallet({}, cb);
+    }
+  }
+
   /**
    * Returns list of Coins for TX
    * @param {Object} opts
@@ -1747,6 +1868,8 @@ export class WalletService {
     if (opts.coin) {
       return cb(new ClientError('coin is not longer supported in getBalance'));
     }
+    opts.excludeMasternode = opts.excludeMasternode || true; // john 20210916
+
     let wallet = opts.wallet;
 
     const setWallet = cb1 => {
@@ -1766,7 +1889,9 @@ export class WalletService {
           totalConfirmedAmount: 0,
           lockedConfirmedAmount: 0,
           availableAmount: 0,
-          availableConfirmedAmount: 0
+          availableConfirmedAmount: 0,
+          availableAmountExcludeMasternode: 0,
+          availableConfirmedAmountExcludeMasternode: 0
         };
         return cb(null, emptyBalance);
       }
@@ -1787,6 +1912,7 @@ export class WalletService {
    * @param {string} opts.returnInputs[=false] - Optional. Return the list of UTXOs that would be included in the tx.
    * @param {string} opts.usePayPro[=false] - Optional. Use fee estimation for paypro
    * @param {string} opts.from - Optional. Specify the sender ETH address.
+   * @param {string} opts.excludeMasternode[=false] - Optional. Do not use UTXOs of masternode transactions as inputs
    * @returns {Object} sendMaxInfo
    */
   getSendMaxInfo(opts, cb) {
@@ -1817,6 +1943,10 @@ export class WalletService {
           return cb(new ClientError('Invalid fee per KB'));
       }
 
+      // john 20210409
+      if (opts.atomicswap && opts.atomicswap.isAtomicSwap) {
+        return ChainService.getRedeemSendMaxInfo(this, wallet, opts, cb);
+      }
       return ChainService.getWalletSendMaxInfo(this, wallet, opts, cb);
     });
   }
@@ -1855,7 +1985,7 @@ export class WalletService {
   /**
    * Returns fee levels for the current state of the network.
    * @param {Object} opts
-   * @param {string} [opts.coin = 'btc'] - The coin to estimate fee levels from.
+   * @param {string} [opts.coin = 'vcl'] - The coin to estimate fee levels from.
    * @param {string} [opts.network = 'livenet'] - The Bitcoin network to estimate fee levels from.
    * @returns {Object} feeLevels - A list of fee levels & associated amount per kB in satoshi.
    */
@@ -2076,7 +2206,9 @@ export class WalletService {
             {
               feePerKb: opts.feePerKb,
               excludeUnconfirmedUtxos: !!opts.excludeUnconfirmedUtxos,
-              returnInputs: true
+              returnInputs: true,
+              excludeMasternode: !!opts.excludeMasternode,
+              atomicswap: opts.atomicswap
             },
             (err, info) => {
               if (err) return next(err);
@@ -2473,6 +2605,552 @@ export class WalletService {
     );
   }
 
+  // john 20211228
+  /**
+   * Creates a new transaction proposal.
+   * @param {Object} opts
+   * @param {string} opts.txProposalId - Optional. If provided it will be used as this TX proposal ID. Should be unique in the scope of the wallet.
+   * @param {Array} opts.atomicswap - atomicswap.
+   * @param {Array} opts.atomicswap.contract - atomicswap contract.
+   * @param {Array} opts.atomicswap.redeem - atomicswap redeem.
+   * @param {String} opts.coin - tx coin.
+   * @param {Array} opts.outputs - List of outputs.
+   * @param {string} opts.outputs[].toAddress - Destination address.
+   * @param {number} opts.outputs[].amount - Amount to transfer in satoshi.
+   * @param {string} opts.outputs[].message - A message to attach to this output.
+   * @param {string} opts.message - A message to attach to this transaction.
+   * @param {number} opts.feeLevel[='normal'] - Optional. Specify the fee level for this TX ('priority', 'normal', 'economy', 'superEconomy') as defined in Defaults.FEE_LEVELS.
+   * @param {number} opts.feePerKb - Optional. Specify the fee per KB for this TX (in satoshi).
+   * @param {string} opts.changeAddress - Optional. Use this address as the change address for the tx. The address should belong to the wallet. In the case of singleAddress wallets, the first main address will be used.
+   * @param {string} opts.payProUrl - Optional. Paypro URL for peers to verify TX
+   * @param {Boolean} opts.excludeUnconfirmedUtxos[=false] - Optional. Do not use UTXOs of unconfirmed transactions as inputs
+   * @param {Boolean} opts.dryRun[=false] - Optional. Simulate the action but do not change server state.
+   * @param {Array} opts.inputs - Optional. Inputs for this TX
+   * @param {Array} opts.txpVersion - Optional. Version for TX Proposal (current = 4, only =3 allowed).
+   * @param {number} opts.fee - Optional. Use an fixed fee for this TX (only when opts.inputs is specified)
+   * @param {Boolean} opts.noShuffleOutputs - Optional. If set, TX outputs won't be shuffled. Defaults to false
+   * @param {Boolean} opts.noCashAddr - do not use cashaddress for bch
+   * @param {Boolean} opts.signingMethod[=ecdsa] - do not use cashaddress for bch
+   * @param {string} opts.tokenAddress - optional. ERC20 Token Contract Address
+   * @param {string} opts.multisigContractAddress - optional. MULTISIG ETH Contract Address
+   * @param {Boolean} opts.isTokenSwap - Optional. To specify if we are trying to make a token swap
+   * @param {Boolean} opts.enableRBF - Optional. enable BTC Replace By Fee
+   * @param {Boolean} opts.replaceTxByFee - Optional. Ignore locked utxos check ( used for replacing a transaction designated as RBF)
+   * @returns {TxProposal} Transaction proposal. outputs address format will use the same format as inpunt.
+   */
+  createRedeemTx(opts, cb) {
+    opts = opts ? _.clone(opts) : {};
+
+    const checkTxpAlreadyExists = (txProposalId, cb) => {
+      if (!txProposalId) return cb();
+      this.storage.fetchTx(this.walletId, txProposalId, cb);
+    };
+
+    // john 20211026
+    if (!opts.atomicswap || !opts.atomicswap.contract) return cb(new Error('atomicswap contract is required'));
+
+    this._runLocked(
+      cb,
+      cb => {
+        let changeAddress, feePerKb, gasPrice, gasLimit, fee;
+        this.getWallet({}, (err, wallet) => {
+          if (err) return cb(err);
+          if (!wallet.isComplete()) return cb(Errors.WALLET_NOT_COMPLETE);
+
+          if (wallet.scanStatus == 'error') return cb(Errors.WALLET_NEED_SCAN);
+
+          if (config.suspendedChains && config.suspendedChains.includes(wallet.coin)) {
+            let Err = Errors.NETWORK_SUSPENDED;
+            Err.message = Err.message.replace('$network', wallet.coin.toUpperCase());
+            return cb(Err);
+          }
+
+          checkTxpAlreadyExists(opts.txProposalId, (err, txp) => {
+            if (err) return cb(err);
+            if (txp) return cb(null, txp);
+
+            async.series(
+              [
+                next => {
+                  // john 20210409
+                  delete opts.outputs[0].amount;
+                  opts.sendMax = true;
+                  let cnt = new Bitcore.atomicswap.AuditContract(opts.atomicswap.contract);
+                  if (!cnt.isAtomicSwap) return next(new Error('atomicswap contract is invalid'));
+                  opts.atomicswap.lockTime = cnt.lockTime;
+                  opts.atomicswap.isAtomicSwap = true;
+                  opts.atomicswapAddr = cnt.contractAddr;
+                  opts.atomicswapSecretHash = cnt.secretHash;
+                  let signAddr;
+                  if (opts.atomicswap.redeem) {
+                    signAddr = cnt.recipientAddr;
+                  } else {
+                    signAddr = cnt.refundAddr;
+                  }
+                  let curTime = Math.round(new Date().getTime() / 1000);
+                  if (cnt.lockTime > curTime) {
+                    next(new Error('the lock time is no expired'));
+                  }
+                  this.storage.fetchAddressByWalletId(this.walletId, signAddr, (err, address) => {
+                    if (err || !address) return next(new Error('atomicswap signAddr is invalid'));
+                    opts.atomicswap.signAddr = address;
+                    next();
+                  });
+                },
+                next => {
+                  this.getUtxos({ addresses: [opts.atomicswapAddr] }, (err, utxos) => {
+                    if (err || !utxos) return next(new Error('atomicswap contract has been spent'));
+                    utxos[0].path = opts.atomicswap.signAddr.path;
+                    utxos[0].publicKeys = opts.atomicswap.signAddr.publicKeys;
+                    opts.atomicswap.utxos = utxos;
+                    next();
+                  });
+                },
+                next => {
+                  if (ChainService.isUTXOCoin(wallet.coin)) return next();
+                  this.getMainAddresses({ reverse: true, limit: 1 }, (err, mainAddr) => {
+                    if (err) return next(err);
+                    opts.from = mainAddr[0].address;
+                    next();
+                  });
+                },
+                next => {
+                  this._validateAndSanitizeTxOpts(wallet, opts, next);
+                },
+                next => {
+                  this._canCreateTx((err, canCreate) => {
+                    if (err) return next(err);
+                    if (!canCreate) return next(Errors.TX_CANNOT_CREATE);
+                    next();
+                  });
+                },
+                async next => {
+                  try {
+                    changeAddress = await ChainService.getChangeAddress(this, wallet, opts);
+                  } catch (error) {
+                    return next(error);
+                  }
+                  return next();
+                },
+                async next => {
+                  if (_.isNumber(opts.fee) && !_.isEmpty(opts.inputs)) return next();
+
+                  try {
+                    ({ feePerKb, gasPrice, gasLimit, fee } = await ChainService.getFee(this, wallet, opts));
+                  } catch (error) {
+                    return next(error);
+                  }
+                  next();
+                },
+                async next => {
+                  if (!opts.nonce) {
+                    try {
+                      opts.nonce = await ChainService.getTransactionCount(this, wallet, opts.from);
+                    } catch (error) {
+                      return next(error);
+                    }
+                  }
+                  return next();
+                },
+                async next => {
+                  opts.signingMethod = opts.signingMethod || 'ecdsa';
+                  opts.coin = opts.coin || wallet.coin;
+
+                  if (!['ecdsa', 'schnorr'].includes(opts.signingMethod)) {
+                    return next(Errors.WRONG_SIGNING_METHOD);
+                  }
+
+                  //  schnorr only on BCH
+                  if (opts.coin != 'bch' && opts.signingMethod == 'schnorr') return next(Errors.WRONG_SIGNING_METHOD);
+
+                  return next();
+                },
+                next => {
+                  let txOptsFee = fee;
+
+                  if (!txOptsFee) {
+                    const useInputFee = opts.inputs && !_.isNumber(opts.feePerKb);
+                    const isNotUtxoCoin = !ChainService.isUTXOCoin(wallet.coin);
+                    const shouldUseOptsFee = useInputFee || isNotUtxoCoin;
+
+                    if (shouldUseOptsFee) {
+                      txOptsFee = opts.fee;
+                    }
+                  }
+
+                  const txOpts = {
+                    id: opts.txProposalId,
+                    walletId: this.walletId,
+                    creatorId: this.copayerId,
+                    coin: opts.coin,
+                    chain: opts.chain ? opts.chain : ChainService.getChain(opts.coin),
+                    network: wallet.network,
+                    outputs: opts.outputs,
+                    message: opts.message,
+                    from: opts.from,
+                    changeAddress,
+                    feeLevel: opts.feeLevel,
+                    feePerKb,
+                    payProUrl: opts.payProUrl,
+                    walletM: wallet.m,
+                    walletN: wallet.n,
+                    excludeUnconfirmedUtxos: !!opts.excludeUnconfirmedUtxos,
+                    instantAcceptanceEscrow: opts.instantAcceptanceEscrow,
+                    addressType: wallet.addressType,
+                    customData: opts.customData,
+                    inputs: opts.inputs,
+                    version: opts.txpVersion,
+                    fee: txOptsFee,
+                    noShuffleOutputs: opts.noShuffleOutputs,
+                    gasPrice,
+                    nonce: opts.nonce,
+                    gasLimit, // Backward compatibility for BWC < v7.1.1
+                    data: opts.data, // Backward compatibility for BWC < v7.1.1
+                    tokenAddress: opts.tokenAddress,
+                    multisigContractAddress: opts.multisigContractAddress,
+                    destinationTag: opts.destinationTag,
+                    invoiceID: opts.invoiceID,
+                    signingMethod: opts.signingMethod,
+                    isTokenSwap: opts.isTokenSwap,
+                    enableRBF: opts.enableRBF,
+                    replaceTxByFee: opts.replaceTxByFee,
+                    atomicswap: opts.atomicswap, // john 20210409
+                    atomicswapAddr: opts.atomicswapAddr,
+                    atomicswapSecretHash: opts.atomicswapSecretHash		    
+                  };
+                  txp = TxProposal.create(txOpts);
+                  next();
+                },
+                next => {
+                  return ChainService.selectTxInputs(this, txp, wallet, opts, next);
+                },
+                async next => {
+                  if (!wallet.isZceCompatible() || !opts.instantAcceptanceEscrow) return next();
+                  try {
+                    opts.inputs = txp.inputs;
+                    const escrowAddress = await ChainService.getChangeAddress(this, wallet, opts);
+                    txp.escrowAddress = escrowAddress;
+                  } catch (error) {
+                    return next(error);
+                  }
+                  if (opts.dryRun) return next();
+                  this._store(wallet, txp.escrowAddress, next, true);
+                },
+                next => {
+                  if (!changeAddress || wallet.singleAddress || opts.dryRun || opts.changeAddress) return next();
+
+                  if (txp.atomicswap) {
+                    if (txp.atomicswap.utxos) {
+                      delete txp.atomicswap.utxos;
+                    }
+                    if (txp.atomicswap.signAddr) {
+                      delete txp.atomicswap.signAddr;
+                    }
+                  }
+
+                  this._store(wallet, txp.changeAddress, next, true);
+                },
+                next => {
+                  if (opts.dryRun) return next();
+
+                  if (txp.atomicswap) {
+                    if (txp.atomicswap.utxos) {
+                      delete txp.atomicswap.utxos;
+                    }
+                    if (txp.atomicswap.signAddr) {
+                      delete txp.atomicswap.signAddr;
+                    }
+                  }
+                  if (txp.coin == 'bch' && txp.changeAddress) {
+                    const format = opts.noCashAddr ? 'copay' : 'cashaddr';
+                    txp.changeAddress.address = BCHAddressTranslator.translate(txp.changeAddress.address, format);
+                  }
+
+                  this.storage.storeTx(wallet.id, txp, next);
+                }
+              ],
+              err => {
+                if (err) return cb(err);
+
+                if (txp.coin == 'bch') {
+                  if (opts.returnOrigAddrOutputs) {
+                    logger.info('Returning Orig BCH address outputs for compat');
+                    txp.outputs = opts.origAddrOutputs;
+                  }
+                }
+                return cb(null, txp);
+              }
+            );
+          });
+        });
+      },
+      10 * 1000
+    );
+  }
+// john 20211228
+  /**
+   * Creates a new transaction proposal.
+   * @param {Object} opts
+   * @param {string} opts.txProposalId - Optional. If provided it will be used as this TX proposal ID. Should be unique in the scope of the wallet.
+   * @param {Array} opts.atomicswap - atomicswap.
+   * @param {Array} opts.atomicswap.secretHash - atomicswap.secretHash.
+   * @param {Array} opts.atomicswap.initiate - atomicswap.initiate.
+   * @param {String} opts.coin - tx coin.
+   * @param {Array} opts.outputs - List of outputs.
+   * @param {string} opts.outputs[].toAddress - Destination address.
+   * @param {number} opts.outputs[].amount - Amount to transfer in satoshi.
+   * @param {string} opts.outputs[].message - A message to attach to this output.
+   * @param {string} opts.message - A message to attach to this transaction.
+   * @param {number} opts.feeLevel[='normal'] - Optional. Specify the fee level for this TX ('priority', 'normal', 'economy', 'superEconomy') as defined in Defaults.FEE_LEVELS.
+   * @param {number} opts.feePerKb - Optional. Specify the fee per KB for this TX (in satoshi).
+   * @param {string} opts.changeAddress - Optional. Use this address as the change address for the tx. The address should belong to the wallet. In the case of singleAddress wallets, the first main address will be used.
+   * @param {string} opts.payProUrl - Optional. Paypro URL for peers to verify TX
+   * @param {Boolean} opts.excludeUnconfirmedUtxos[=false] - Optional. Do not use UTXOs of unconfirmed transactions as inputs
+   * @param {Boolean} opts.dryRun[=false] - Optional. Simulate the action but do not change server state.
+   * @param {Array} opts.inputs - Optional. Inputs for this TX
+   * @param {Array} opts.txpVersion - Optional. Version for TX Proposal (current = 4, only =3 allowed).
+   * @param {number} opts.fee - Optional. Use an fixed fee for this TX (only when opts.inputs is specified)
+   * @param {Boolean} opts.noShuffleOutputs - Optional. If set, TX outputs won't be shuffled. Defaults to false
+   * @param {Boolean} opts.noCashAddr - do not use cashaddress for bch
+   * @param {Boolean} opts.signingMethod[=ecdsa] - do not use cashaddress for bch
+   * @param {string} opts.tokenAddress - optional. ERC20 Token Contract Address
+   * @param {string} opts.multisigContractAddress - optional. MULTISIG ETH Contract Address
+   * @param {Boolean} opts.isTokenSwap - Optional. To specify if we are trying to make a token swap
+   * @param {Boolean} opts.enableRBF - Optional. enable BTC Replace By Fee
+   * @param {Boolean} opts.replaceTxByFee - Optional. Ignore locked utxos check ( used for replacing a transaction designated as RBF)
+   * @returns {TxProposal} Transaction proposal. outputs address format will use the same format as inpunt.
+   */
+  createAtomicSwapTx(opts, cb) {
+    opts = opts ? _.clone(opts) : {};
+
+    const checkTxpAlreadyExists = (txProposalId, cb) => {
+      if (!txProposalId) return cb();
+      this.storage.fetchTx(this.walletId, txProposalId, cb);
+    };
+
+    this._runLocked(
+      cb,
+      cb => {
+        let changeAddress, feePerKb, gasPrice, gasLimit, fee;
+        this.getWallet({}, (err, wallet) => {
+          if (err) return cb(err);
+          if (!wallet.isComplete()) return cb(Errors.WALLET_NOT_COMPLETE);
+
+          if (wallet.scanStatus == 'error') return cb(Errors.WALLET_NEED_SCAN);
+
+          if (config.suspendedChains && config.suspendedChains.includes(wallet.coin)) {
+            let Err = Errors.NETWORK_SUSPENDED;
+            Err.message = Err.message.replace('$network', wallet.coin.toUpperCase());
+            return cb(Err);
+          }
+
+          checkTxpAlreadyExists(opts.txProposalId, (err, txp) => {
+            if (err) return cb(err);
+            if (txp) return cb(null, txp);
+
+            async.series(
+              [
+                next => {
+                  if (ChainService.isUTXOCoin(wallet.coin)) return next();
+                  this.getMainAddresses({ reverse: true, limit: 1 }, (err, mainAddr) => {
+                    if (err) return next(err);
+                    opts.from = mainAddr[0].address;
+                    next();
+                  });
+                },
+                next => {
+                  this._validateAndSanitizeTxOpts(wallet, opts, next);
+                },
+                next => {
+                  this._canCreateTx((err, canCreate) => {
+                    if (err) return next(err);
+                    if (!canCreate) return next(Errors.TX_CANNOT_CREATE);
+                    next();
+                  });
+                },
+                async next => {
+                  if (opts.sendMax) return next();
+                  try {
+                    changeAddress = await ChainService.getChangeAddress(this, wallet, opts);
+                  } catch (error) {
+                    return next(error);
+                  }
+                  return next();
+                },
+                next => {
+                  if (opts.atomicswap) {
+                    this.getMainAddresses(
+                      { reverse: true, limit: 1, address: opts.outputs[0].toAddress },
+                      (err, addr) => {
+                        if (err) return next(err);
+                        if (addr && addr.length > 0)
+                          return next(new Error('The redemption address must be for another wallet'));
+                        next();
+                      }
+                    );
+                  } else {
+                    next();
+                  }
+                },
+                async next => {
+                  try {
+                    let contract = Bitcore.atomicswap.CreateContract(
+                      opts.atomicswap.secretHash,
+                      opts.outputs[0].toAddress,
+                      changeAddress.address,
+                      opts.atomicswap.initiate
+                    );
+                    let cnt = Bitcore.atomicswap.AuditContract(contract.hex);
+                    if (!cnt.isAtomicSwap) next(new Error('An error occurred in atomicswap contract creation'));
+                    opts.outputs[0].toAddress = cnt.contractAddr;
+                    opts.atomicswap.contract = contract.hex;
+                    opts.atomicswapAddr = cnt.contractAddr;
+                    opts.atomicswapSecretHash = cnt.secretHash;
+                  } catch (error) {
+                    return next(error);
+                  }
+                  return next();
+                },
+                async next => {
+                  if (_.isNumber(opts.fee) && !_.isEmpty(opts.inputs)) return next();
+
+                  try {
+                    ({ feePerKb, gasPrice, gasLimit, fee } = await ChainService.getFee(this, wallet, opts));
+                  } catch (error) {
+                    return next(error);
+                  }
+                  next();
+                },
+                async next => {
+                  if (!opts.nonce) {
+                    try {
+                      opts.nonce = await ChainService.getTransactionCount(this, wallet, opts.from);
+                    } catch (error) {
+                      return next(error);
+                    }
+                  }
+                  return next();
+                },
+                async next => {
+                  opts.signingMethod = opts.signingMethod || 'ecdsa';
+                  opts.coin = opts.coin || wallet.coin;
+
+                  if (!['ecdsa', 'schnorr'].includes(opts.signingMethod)) {
+                    return next(Errors.WRONG_SIGNING_METHOD);
+                  }
+
+                  //  schnorr only on BCH
+                  if (opts.coin != 'bch' && opts.signingMethod == 'schnorr') return next(Errors.WRONG_SIGNING_METHOD);
+
+                  return next();
+                },
+                next => {
+                  let txOptsFee = fee;
+
+                  if (!txOptsFee) {
+                    const useInputFee = opts.inputs && !_.isNumber(opts.feePerKb);
+                    const isNotUtxoCoin = !ChainService.isUTXOCoin(wallet.coin);
+                    const shouldUseOptsFee = useInputFee || isNotUtxoCoin;
+
+                    if (shouldUseOptsFee) {
+                      txOptsFee = opts.fee;
+                    }
+                  }
+
+                  const txOpts = {
+                    id: opts.txProposalId,
+                    walletId: this.walletId,
+                    creatorId: this.copayerId,
+                    coin: opts.coin,
+                    chain: opts.chain ? opts.chain : ChainService.getChain(opts.coin),
+                    network: wallet.network,
+                    outputs: opts.outputs,
+                    message: opts.message,
+                    from: opts.from,
+                    changeAddress,
+                    feeLevel: opts.feeLevel,
+                    feePerKb,
+                    payProUrl: opts.payProUrl,
+                    walletM: wallet.m,
+                    walletN: wallet.n,
+                    excludeUnconfirmedUtxos: !!opts.excludeUnconfirmedUtxos,
+                    instantAcceptanceEscrow: opts.instantAcceptanceEscrow,
+                    addressType: wallet.addressType,
+                    customData: opts.customData,
+                    inputs: opts.inputs,
+                    version: opts.txpVersion,
+                    fee: txOptsFee,
+                    noShuffleOutputs: opts.noShuffleOutputs,
+                    gasPrice,
+                    nonce: opts.nonce,
+                    gasLimit, // Backward compatibility for BWC < v7.1.1
+                    data: opts.data, // Backward compatibility for BWC < v7.1.1
+                    tokenAddress: opts.tokenAddress,
+                    multisigContractAddress: opts.multisigContractAddress,
+                    destinationTag: opts.destinationTag,
+                    invoiceID: opts.invoiceID,
+                    signingMethod: opts.signingMethod,
+                    isTokenSwap: opts.isTokenSwap,
+                    enableRBF: opts.enableRBF,
+                    replaceTxByFee: opts.replaceTxByFee,
+                    atomicswap: opts.atomicswap, // john 20210409
+                    atomicswapAddr: opts.atomicswapAddr,
+                    atomicswapSecretHash: opts.atomicswapSecretHash		    
+                  };
+                  txp = TxProposal.create(txOpts);
+                  next();
+                },
+                next => {
+                  return ChainService.selectTxInputs(this, txp, wallet, opts, next);
+                },
+                async next => {
+                  if (!wallet.isZceCompatible() || !opts.instantAcceptanceEscrow) return next();
+                  try {
+                    opts.inputs = txp.inputs;
+                    const escrowAddress = await ChainService.getChangeAddress(this, wallet, opts);
+                    txp.escrowAddress = escrowAddress;
+                  } catch (error) {
+                    return next(error);
+                  }
+                  if (opts.dryRun) return next();
+                  this._store(wallet, txp.escrowAddress, next, true);
+                },
+                next => {
+                  if (!changeAddress || wallet.singleAddress || opts.dryRun || opts.changeAddress) return next();
+
+                  this._store(wallet, txp.changeAddress, next, true);
+                },
+                next => {
+                  if (opts.dryRun) return next();
+
+                  if (txp.coin == 'bch' && txp.changeAddress) {
+                    const format = opts.noCashAddr ? 'copay' : 'cashaddr';
+                    txp.changeAddress.address = BCHAddressTranslator.translate(txp.changeAddress.address, format);
+                  }
+
+                  this.storage.storeTx(wallet.id, txp, next);
+                }
+              ],
+              err => {
+                if (err) return cb(err);
+
+                if (txp.coin == 'bch') {
+                  if (opts.returnOrigAddrOutputs) {
+                    logger.info('Returning Orig BCH address outputs for compat');
+                    txp.outputs = opts.origAddrOutputs;
+                  }
+                }
+                return cb(null, txp);
+              }
+            );
+          });
+        });
+      },
+      10 * 1000
+    );
+  }
+
+  
   /**
    * Publish an already created tx proposal so inputs are locked and other copayers in the wallet can see it.
    * @param {Object} opts
@@ -2500,9 +3178,29 @@ export class WalletService {
 
           const copayer = wallet.getCopayer(this.copayerId);
 
+          //  john 20210409
+          if (txp.atomicswap) {
+            if (txp.atomicswap.contract) {
+              txp.atomicswap.isAtomicSwap = false;
+              let cnt = Bitcore.atomicswap.AuditContract(txp.atomicswap.contract);
+              if (cnt.isAtomicSwap) {
+                txp.atomicswap.isAtomicSwap = cnt.isAtomicSwap;
+                txp.atomicswapAddr = cnt.contractAddr;
+                txp.atomicswapSecretHash = cnt.secretHash;
+              }
+            }
+            if (!txp.atomicswap.isAtomicSwap) {
+              cb(new Error('atomicswap contract is invalid'));
+            }
+          }
+
           let raw;
           try {
-            raw = txp.getRawTx();
+            if (txp.coin.toLowerCase() == 'vcl') {
+              raw = txp.getRawTx1();
+            }else{
+              raw = txp.getRawTx();
+            }
           } catch (ex) {
             return cb(ex);
           }
@@ -2518,21 +3216,35 @@ export class WalletService {
             txp.proposalSignaturePubKeySig = signingKey.signature;
           }
 
-          ChainService.checkTxUTXOs(this, txp, opts, err => {
-            if (err) return cb(err);
-            txp.status = 'pending';
-            this.storage.storeTx(this.walletId, txp, err => {
-              if (err) return cb(err);
+          if (txp.atomicswap && txp.atomicswap.isAtomicSwap) {
+            this.getUtxos({addresses: [txp.atomicswapAddr]}, (err, utxos) => {
+              if (err || !utxos) return cb(new Error('atomicswap contract  has been spent'));
+              txp.status = 'pending';
+              this.storage.storeTx(this.walletId, txp, err => {
+                if (err) return cb(err);
 
-              this._notifyTxProposalAction('NewTxProposal', txp, () => {
-                if (txp.coin == 'bch' && txp.changeAddress) {
-                  const format = opts.noCashAddr ? 'copay' : 'cashaddr';
-                  txp.changeAddress.address = BCHAddressTranslator.translate(txp.changeAddress.address, format);
-                }
-                return cb(null, txp);
+                this._notifyTxProposalAction('NewTxProposal', txp, () => {
+                  return cb(null, txp);
+                });
               });
             });
-          });
+          } else {
+            ChainService.checkTxUTXOs(this, txp, opts, err => {
+              if (err) return cb(err);
+              txp.status = 'pending';
+              this.storage.storeTx(this.walletId, txp, err => {
+                if (err) return cb(err);
+
+                this._notifyTxProposalAction('NewTxProposal', txp, () => {
+                  if (txp.coin == 'bch' && txp.changeAddress) {
+                    const format = opts.noCashAddr ? 'copay' : 'cashaddr';
+                    txp.changeAddress.address = BCHAddressTranslator.translate(txp.changeAddress.address, format);
+                  }
+                  return cb(null, txp);
+                });
+              });
+            });
+          }
         });
       });
     });
@@ -2684,7 +3396,7 @@ export class WalletService {
   /**
    * Broadcast a raw transaction.
    * @param {Object} opts
-   * @param {string} [opts.coin = 'btc'] - The coin for this transaction.
+   * @param {string} [opts.coin = 'vcl'] - The coin for this transaction.
    * @param {string} [opts.network = 'livenet'] - The Bitcoin network for this transaction.
    * @param {string} opts.rawTx - Raw tx data.
    */
@@ -2709,6 +3421,152 @@ export class WalletService {
       return cb(null, !!tx);
     });
   }
+
+  // john 20210409
+  getAtomicSwapInfo(opts, cb) {
+    if (!opts.txid) return cb();
+    const bc = this._getBlockchainExplorer(opts.coin, opts.network);
+    if (!bc) return cb(new Error('Could not get blockchain explorer instance'));
+    bc.getRawTransaction(opts.txid, (err, rawHex) => {
+      if (err) return cb(err);
+      if (!rawHex || _.isEmpty(rawHex)) {
+        return cb(new Error('failed to get txid'));
+      }
+      let info = Bitcore.atomicswap.ExtractContract(rawHex);
+      return cb(null, info);
+    });
+  }
+
+  _checkTxFromAddress(txp, cb) {
+    async.series(
+      [
+        next => {
+          // txp.atomicswapStatus = 'pending';
+          this.getAddressTx({ addresses: [txp.atomicswapAddr] }, (err, utxos) => {
+            if (err || utxos.length != 1) return next(new Error('invalid atomicswap contractAddr'));
+            if (utxos[0].spentTxid.length == 0) return cb(null, txp);
+            if (utxos[0].spentTxid && txp.atomicswap.initiate) {
+              txp.atomicswapStatus = 'finished';
+            } else {
+              txp.utxo = utxos[0];
+            }
+            next();
+          });
+        },
+        next => {
+          if (txp.utxo) {
+            this.getAtomicSwapInfo(
+              {
+                txid: txp.utxo.spentTxid,
+                coin: txp.coin,
+                network: txp.network
+              },
+              (err, info) => {
+                delete txp.utxo;
+                if (info && info.isAtomicSwap) {
+                  if (!info.redeem) {
+                    txp.atomicswapStatus = 'finished';
+                  } else {
+                    txp.atomicswap.secret = info.secret;
+                    txp.atomicswapStatus = 'notify';
+                  }
+                }
+                next();
+              }
+            );
+          } else {
+            next();
+          }
+        },
+        next => {
+          this._processAtomicSwap(
+            txp,
+            {
+              byThirdParty: true,
+              state: txp.atomicswapStatus
+            },
+            next
+          );
+        }
+      ],
+      err => {
+        if (err) return cb(err);
+        return cb(null, txp);
+      }
+    );
+  }
+
+  /*
+  _checkTxFromAddress(txp, cb) {
+    async.series(
+        [
+          next => {
+            // txp.atomicswapStatus = 'pending';
+            this.getAddressTx({addresses: [txp.atomicswapAddr]}, (err,utxos) => {
+              if (err || utxos.length != 1) return next(new Error('invalid atomicswap contractAddr'));
+              if(utxos[0].spentTxid.length == 0 ) return cb(null, txp);
+              if(utxos[0].spentTxid && txp.atomicswap.initiate){
+                txp.atomicswapStatus = 'finished';
+              }else {
+                txp.utxo = utxos[0];
+              }
+              next()
+            });
+          },
+          next => {
+            if(txp.utxo) {
+              this.getCoinsForTx({txId: txp.utxo.spentTxid}, (err, tx) => {
+                delete txp.utxo;
+                if (tx.outputs.length != 1) {
+                  txp.atomicswapStatus = 'finished';
+                } else {
+                  txp.atomicswapRewardAddr = tx.outputs[0].address;
+                }
+                next();
+              });
+            }else{
+              next();
+            }
+          },
+          next => {
+            if(txp.atomicswapRewardAddr) {
+              this.getMainAddresses({coin: txp.coin, address: txp.atomicswapRewardAddr}, (err, addresses) => {
+                delete txp.atomicswapRewardAddr;
+                if (err) cb(err);
+                if (!addresses) {
+		  // john 20211026
+                  if (txp.atomicswap && txp.atomicswap.initiate) {
+                    txp.atomicswapStatus = 'finished';
+                  } else {
+                    txp.atomicswapStatus = 'notify';
+                  }
+                } else {
+                  txp.atomicswapStatus = 'finished';
+                }
+                next()
+              });
+            }else{
+              next();
+            }
+          },
+          next => {
+            this._processAtomicSwap(
+                txp,
+                {
+                  byThirdParty: true,
+                  state: txp.atomicswapStatus,
+                },
+                next
+            )
+          }
+        ],
+        err => {
+          if (err) return cb(err);
+          return cb(null, txp);
+        }
+    );
+  }
+  */
 
   /**
    * Sign a transaction proposal.
@@ -2745,6 +3603,35 @@ export class WalletService {
                 'Your client does not support signing this transaction. Please upgrade'
               )
             );
+          }
+
+          //  john 20210409
+          if (txp.atomicswap) {
+            if (txp.atomicswap.contract) {
+              txp.atomicswap.isAtomicSwap = false;
+              let cnt = Bitcore.atomicswap.AuditContract(txp.atomicswap.contract);
+              if (cnt.isAtomicSwap) {
+                txp.atomicswap.isAtomicSwap = cnt.isAtomicSwap;
+                txp.atomicswapAddr = cnt.contractAddr;
+                txp.atomicswapSecretHash = cnt.secretHash;
+              }
+            }
+            if (!txp.atomicswap.isAtomicSwap) {
+              cb(new Error('atomicswap contract is invalid'));
+            }
+            if (txp.atomicswap.redeem && !opts.atomicswapSecret) {
+              cb(new Error('atomicswap secret is required'));
+            }
+
+            if (opts.atomicswapSecret && opts.atomicswapSecret.length == 64) {
+              if (
+                txp.atomicswapSecretHash !=
+                new Bitcore.crypto.Hash.sha256(Buffer.from(opts.atomicswapSecret, 'hex')).toString('hex')
+              ) {
+                cb(new Error('atomicswap secret is invalid'));
+              }
+              txp.atomicswap.secret = opts.atomicswapSecret;
+            }
           }
 
           const action = _.find(txp.actions, {
@@ -2809,22 +3696,83 @@ export class WalletService {
     $.checkState(txp.txid, 'Failed state: txp.txid undefined at <_processBroadcast()>');
     opts = opts || {};
     txp.setBroadcasted();
+
+    async.series(
+      [
+        next => {
+          // john 20210409
+          if (txp.atomicswap && txp.atomicswap.isAtomicSwap && txp.atomicswap.redeem != undefined) {
+            this.storage.fetchAtomicSwapBySecretHash(this.walletId, txp, (err, txs) => {
+              if (err) return next();
+              if (!txs) return next();
+              txs = _.reject(txs, tx => {
+                return tx.atomicswap.redeem != undefined;
+              });
+
+              let tx = txs[0];
+              tx.setAtomicswaped();
+              this.storage.storeTx(this.walletId, tx, err => {
+                if (err) return next(err);
+                next();
+              });
+            });
+          } else {
+            next();
+          }
+        },
+        next => {
+          this.storage.storeTx(this.walletId, txp, err => {
+            if (err) return next(err);
+
+            const extraArgs = {
+              txid: txp.txid
+            };
+            if (opts.byThirdParty) {
+              this._notifyTxProposalAction('NewOutgoingTxByThirdParty', txp, extraArgs);
+            } else {
+              this._notifyRedeemTxProposalAction('NewOutgoingTx', txp, extraArgs);
+            }
+            next();
+          });
+        }
+      ],
+      err => {
+        if (err) cb(err);
+        return cb(null, txp);
+      }
+    );
+  }
+
+  // john 20210409
+  _processAtomicSwap(txp, opts, cb) {
+    $.checkState(txp.txid);
+    opts = opts || {};
+
+    if (opts.state == 'finished') {
+      txp.setAtomicswaped();
+    }
+    if (txp.atomicswapStatus) {
+      delete txp.atomicswapStatus;
+    }
     this.storage.storeTx(this.walletId, txp, err => {
       if (err) return cb(err);
 
       const extraArgs = {
         txid: txp.txid
       };
-      if (opts.byThirdParty) {
-        this._notifyTxProposalAction('NewOutgoingTxByThirdParty', txp, extraArgs);
-      } else {
-        this._notifyTxProposalAction('NewOutgoingTx', txp, extraArgs);
+
+      if (opts.state == 'notify') {
+        if (opts.byThirdParty) {
+          this._notifyRedeemTxProposalAction('NewAtomicSwapOutgoingTxByThirdParty', txp, extraArgs);
+        } else {
+          this._notifyRedeemTxProposalAction('NewAtomicSwapOutgoingTx', txp, extraArgs);
+        }
       }
 
       return cb(null, txp);
     });
   }
-
+  
   /**
    * Broadcast a transaction proposal.
    * @param {Object} opts
@@ -2852,6 +3800,17 @@ export class WalletService {
           if (txp.status == 'broadcasted') return cb(Errors.TX_ALREADY_BROADCASTED);
           if (txp.status != 'accepted') return cb(Errors.TX_NOT_ACCEPTED);
 
+          //  john 20210409
+          if (txp.atomicswap) {
+            if (txp.atomicswap.contract) {
+              let cnt = Bitcore.atomicswap.AuditContract(txp.atomicswap.contract);
+              txp.atomicswap.isAtomicSwap = cnt.isAtomicSwap;
+            }
+            if (!txp.atomicswap.isAtomicSwap) {
+              cb(new Error('atomicswap contract is invalid'));
+            }
+          }
+
           const sub = TxConfirmationSub.create({
             copayerId: txp.creatorId,
             txid: txp.txid,
@@ -2865,6 +3824,10 @@ export class WalletService {
 
             let raw;
             try {
+              /*if (txp.atomicswap && txp.atomicswap.isAtomicSwap && txp.atomicswap.redeem != undefined) {
+                raw = txp.getRawAtomicswapTx();
+              } else {
+              }*/
               raw = txp.getRawTx();
             } catch (ex) {
               return cb(ex);
@@ -3049,6 +4012,79 @@ export class WalletService {
       });
     }
   }
+  
+  // john 20211228
+  /**
+   * Retrieves pending transaction proposals.
+   * @param {Object} opts
+   * @param {Boolean} opts.noCashAddr (do not use cashaddr, only for backwards compat)
+   * @param {String} opts.tokenAddress ERC20 Token Contract Address
+   * @param {String} opts.multisigContractAddress MULTISIG ETH Contract Address
+   * @param {String} opts.network  The network of the MULTISIG ETH transactions
+   * @returns {TxProposal[]} Transaction proposal.
+   */
+  async getPendingAtomicSwapTxs(opts, cb) {
+    if (opts.tokenAddress) {
+      return cb();
+    } else if (opts.multisigContractAddress) {
+      try {
+        const multisigTxpsInfo = await this.getMultisigTxpsInfo(opts);
+        const txps = await this.storage.fetchEthPendingTxs(multisigTxpsInfo);
+        return cb(null, txps);
+      } catch (error) {
+        return cb(error);
+      }
+    } else {
+      this.storage.fetchPendingTxs(this.walletId, (err, txps) => {
+        if (err) return cb(err);
+
+      _.each(txps, txp => {
+        txp.deleteLockTime = this.getRemainingDeleteLockTime(txp);
+        if(txp.atomicswap) {
+          let cnt = new Bitcore.atomicswap.AuditContract(txp.atomicswap.contract);
+          txp.atomicswap.isAtomicSwap = cnt.isAtomicSwap;
+        }
+      });
+
+      txps = _.reject(txps, txp => {
+        return txp.atomicswap && ( !txp.atomicswap.isAtomicSwap || txp.atomicswap.redeem != undefined || txp.status != 'broadcasted' );
+      });
+
+      async.each(
+        txps,
+        (txp: ITxProposal, next) => {
+          this._checkTxInBlockchain(txp, (err, isInBlockchain) => {
+            if (err || !isInBlockchain) {
+              txp.atomicswapAddr = null;
+              return next(err);
+            }
+            this._checkTxFromAddress(txp, next);
+          });
+        },
+        err => {
+          txps = _.reject(txps, txp => {
+            return txp.atomicswapAddr == null;
+          });
+
+            if (txps[0] && txps[0].coin == 'bch') {
+              const format = opts.noCashAddr ? 'copay' : 'cashaddr';
+              _.each(txps, x => {
+                if (x.changeAddress) {
+                  x.changeAddress.address = BCHAddressTranslator.translate(x.changeAddress.address, format);
+                }
+                _.each(x.outputs, x => {
+                  if (x.toAddress) {
+                    x.toAddress = BCHAddressTranslator.translate(x.toAddress, format);
+                  }
+                });
+              });
+            }
+            return cb(err, txps);
+          }
+        );
+      });
+    }
+  }  
 
   /**
    * Retrieves all transaction proposals in the range (maxTs-minTs)
@@ -3763,6 +4799,57 @@ export class WalletService {
     });
   }
 
+  // john
+  static _addProposalInfo1(tx: any, proposal: TxProposal, opts: any) {
+    opts = opts || {};
+    if (proposal) {
+      tx.createdOn = proposal.createdOn;
+      tx.proposalId = proposal.id;
+      tx.proposalType = proposal.type;
+      tx.creatorName = proposal.creatorName;
+      tx.message = proposal.message;
+      tx.actions = _.map(proposal.actions, action => {
+        return _.pick(action, ['createdOn', 'type', 'copayerId', 'copayerName', 'comment']);
+      });
+      _.each(tx.outputs, output => {
+        const query = {
+          toAddress: output.address,
+          amount: output.amount
+        };
+        if (proposal.outputs) {
+          const txpOut = proposal.outputs.find(o => o.toAddress === output.address && o.amount === output.amount);
+          output.message = txpOut ? txpOut.message : null;
+        }
+      });
+      tx.customData = proposal.customData;
+
+      tx.createdOn = proposal.createdOn;
+      if (opts.includeExtendedInfo) {
+        tx.raw = proposal.raw;
+      }
+      // .sentTs = proposal.sentTs;
+      // .merchant = proposal.merchant;
+      // .paymentAckMemo = proposal.paymentAckMemo;
+    }
+  }
+
+  // john
+  async addCustomData(tx) {
+    var { err, txs } = await this.storage.fetchTxByHashAsync(tx['txid']);
+    if (err || !txs) return tx;
+    WalletService._addProposalInfo1(tx, txs, {});
+    return tx;
+  }
+
+  async addCustomDatas(txs, res, cb) {
+    var finalTxs = [];
+    for (const tx of txs) {
+      var tx1 = await this.addCustomData(tx);
+      finalTxs.push(tx1);
+    }
+    return cb(null, { finalTxs, res });
+  }
+  
   tagLowFeeTxs(wallet: IWallet, txs: any[], cb) {
     const unconfirmed = txs.filter(tx => tx.confirmations === 0);
     if (_.isEmpty(unconfirmed)) return cb();
@@ -3862,7 +4949,7 @@ export class WalletService {
           }
 
           const startBlock = cacheStatus.updatedHeight || 0;
-          logger.debug(' ########### GET HISTORY v8 startBlock/bcH]', startBlock, bcHeight); // TODO
+          logger.debug('GET HISTORY v8 startBlock/bcH]', startBlock, bcHeight); // TODO
 
           bc.getTransactions(wallet, startBlock, (err, txs) => {
             if (err) return cb(err);
@@ -5147,6 +6234,284 @@ export class WalletService {
         resolve(true);
       });
     });
+  }
+
+  // john
+  getMasternodeCollateral(opts, cb) {
+    opts = opts || {};
+
+    if (opts.coin) {
+      return cb(new ClientError('coin is not longer supported in getMasternodeCollateral'));
+    }
+
+    this.getWallet({}, (err, wallet) => {
+      if (err) return cb(err);
+
+      if (!wallet.isComplete()) return cb(Errors.WALLET_NOT_COMPLETE);
+      if (wallet.scanStatus == 'error') return cb(Errors.WALLET_NEED_SCAN);
+      if (wallet.n != 1 && wallet.m != 1) return cb(Errors.WALLET_NOT_MASTERNODE);
+      if (wallet.addressType != Constants.SCRIPT_TYPES.P2PKH) return cb(Errors.WALLET_NOT_MASTERNODE);
+
+      this.getUtxosForCurrentWallet(
+        {
+          coin: opts.coin
+        },
+        (err, utxos) => {
+          if (err) return cb(err);
+
+          let ret = new Array();
+          _.each(utxos, utxo => {
+            if (utxo.satoshis == Constants.COLLATERAL_COIN) {
+              ret.push(utxo);
+            }
+          });
+
+          return cb(null, ret);
+        }
+      );
+    });
+  }
+
+  removeMasternodes(opts, cb) {
+    opts = opts || {};
+
+    opts.coin = opts.coin || Defaults.COIN;
+    if (!Utils.checkValueInCollection(opts.coin, Constants.COINS)) {
+      return cb(new ClientError('Invalid coin'));
+    }
+
+    if (opts.coin != 'vcl') {
+      return cb(new ClientError('coin is not longer supported in broadcastMasternode'));
+    }
+
+    opts.network = opts.network || 'livenet';
+    if (!Utils.checkValueInCollection(opts.network, Constants.NETWORKS)) {
+      return cb(new ClientError('Invalid network'));
+    }
+
+    this.getWallet({}, (err, wallet) => {
+      if (err) return cb(err);
+      if (!wallet.isComplete()) return cb(Errors.WALLET_NOT_COMPLETE);
+
+      if (wallet.scanStatus == 'error') return cb(Errors.WALLET_NEED_SCAN);
+
+      this.storage.removeMasternodes(wallet.id, opts.txid, cb);
+    });
+  }
+
+  getMasternodes(opts, cb) {
+    opts = opts || {};
+
+    opts.coin = opts.coin || Defaults.COIN;
+    if (!Utils.checkValueInCollection(opts.coin, Constants.COINS)) {
+      return cb(new ClientError('Invalid coin'));
+    }
+
+    if (opts.coin != 'vcl') {
+      return cb(new ClientError('coin is not longer supported in masternodes'));
+    }
+
+    opts.network = opts.network || 'livenet';
+    if (!Utils.checkValueInCollection(opts.network, Constants.NETWORKS)) {
+      return cb(new ClientError('Invalid network'));
+    }
+
+    this.getWallet({}, (err, wallet) => {
+      if (err) return cb(err);
+      if (!wallet.isComplete()) return cb(Errors.WALLET_NOT_COMPLETE);
+
+      if (wallet.scanStatus == 'error') return cb(Errors.WALLET_NEED_SCAN);
+
+      this.storage.fetchMasternodes(wallet.id, opts.txid, cb);
+    });
+  }
+
+  getMasternodeStatus(opts, cb) {
+    opts = opts || {};
+
+    opts.coin = opts.coin || Defaults.COIN;
+    if (!Utils.checkValueInCollection(opts.coin, Constants.COINS)) {
+      return cb(new ClientError('Invalid coin'));
+    }
+
+    if (opts.coin != 'vcl') {
+      return cb(new ClientError('coin is not longer supported in MasternodeStatus'));
+    }
+
+    opts.network = opts.network || 'livenet';
+    if (!Utils.checkValueInCollection(opts.network, Constants.NETWORKS)) {
+      return cb(new ClientError('Invalid network'));
+    }
+
+    const bc = this._getBlockchainExplorer(opts.coin, opts.network);
+    if (!bc) return cb(new Error('Could not get blockchain explorer instance'));
+    bc.getMasternodeStatus(opts, (err, ret) => {
+      if (err) return cb(err);
+      return cb(null, ret);
+    });
+  }
+
+  broadcastMasternode(opts, cb) {
+    opts = opts || {};
+
+    opts.coin = opts.coin || Defaults.COIN;
+    if (!Utils.checkValueInCollection(opts.coin, Constants.COINS)) {
+      return cb(new ClientError('Invalid coin'));
+    }
+
+    if (opts.coin != 'vcl') {
+      return cb(new ClientError('coin is not longer supported in broadcastMasternode'));
+    }
+
+    if (!opts.masternodeKey) {
+      return cb(new ClientError('Invalid masternode private key'));
+    }
+
+    opts.network = opts.network || 'livenet';
+    if (!Utils.checkValueInCollection(opts.network, Constants.NETWORKS)) {
+      return cb(new ClientError('Invalid network'));
+    }
+
+    this.getWallet({}, (err, wallet) => {
+      if (err) return cb(err);
+      if (!wallet.isComplete()) return cb(Errors.WALLET_NOT_COMPLETE);
+
+      if (wallet.scanStatus == 'error') return cb(Errors.WALLET_NEED_SCAN);
+
+      const bc = this._getBlockchainExplorer(opts.coin, opts.network);
+      if (!bc) return cb(new Error('Could not get blockchain explorer instance'));
+      bc.broadcastMasternode(opts.rawTx, (err, ret) => {
+        if (err) return cb(err);
+        // john
+
+        let masternodeStatus: {
+          coin?: string;
+          network?: string;
+          address?: string;
+          txid?: string;
+          masternodeKey?: string;
+          status?: string;
+          walletId?: string;
+        } = {};
+        if (!ret.errorMessage) {
+          _.forEach(_.keys(ret), function(key) {
+            if (ret[key].outpoint && ret[key].addr) {
+              masternodeStatus.coin = wallet.coin;
+              masternodeStatus.network = wallet.network;
+              masternodeStatus.address = ret[key].addr;
+              masternodeStatus.txid = ret[key].outpoint;
+              masternodeStatus.masternodeKey = opts.masternodeKey;
+              masternodeStatus.status = 'PRE_ENABLED';
+              masternodeStatus.walletId = wallet.id;
+              return;
+            }
+          });
+          let masternodes = Masternodes.create(masternodeStatus);
+          this.storage.storeMasternode(wallet.id, masternodes, err => {
+            if (!err) {
+              this._notify(
+                'NewMasternode',
+                {
+                  coin: masternodes.coin,
+                  network: masternodes.network,
+                  address: masternodes.address,
+                  txid: masternodes.txid,
+                  masternodeKey: masternodes.masternodeKey,
+                  status: masternodes.status
+                },
+                () => {}
+              );
+            }
+          });
+        }
+        if (opts.jsonHeader) {
+          return cb(null, { response: ret });
+        } else {
+          return cb(null, ret);
+        }
+      });
+    });
+  }
+
+  getMasternodePing(opts, cb) {
+    opts = opts || {};
+
+    opts.coin = opts.coin || Defaults.COIN;
+    if (!Utils.checkValueInCollection(opts.coin, Constants.COINS)) {
+      return cb(new ClientError('Invalid coin'));
+    }
+
+    opts.network = opts.network || 'livenet';
+    if (!Utils.checkValueInCollection(opts.network, Constants.NETWORKS)) {
+      return cb(new ClientError('Invalid network'));
+    }
+
+    if (!opts.txid) {
+      return cb(new ClientError('not utxo txid'));
+    }
+
+    if (!opts.vout) {
+      return cb(new ClientError('not utxo vout'));
+    }
+
+    async.series(
+      [
+        next => {
+          this.getUtxosForCurrentWallet(
+            {
+              coin: opts.coin
+            },
+            (err, utxos) => {
+              if (err) return cb(err);
+
+              let bfind = false;
+              _.each(utxos, utxo => {
+                if (utxo.txid == opts.txid && utxo.vout == opts.vout && utxo.satoshis == Constants.COLLATERAL_COIN) {
+                  opts.address = utxo.address;
+                  opts.publicKeys = utxo.publicKeys;
+                  opts.path = utxo.path;
+                  opts.confirmations = utxo.confirmations;
+                  bfind = true;
+                  return false;
+                }
+              });
+              if (bfind) {
+                if (opts.confirmations >= Constants.MASTERNODE_MIN_CONFIRMATIONS) {
+                  next();
+                } else {
+                  return cb('Collateral payment must have at least 15 confirmations');
+                }
+              } else {
+                return cb('Invalid utxo');
+              }
+            }
+          );
+        },
+        next => {
+          this._getBlockchainHeight(opts.coin, opts.network, (err, height, hash) => {
+            opts.currentHeight = height;
+            if (err) return cb(err);
+            next();
+          });
+        },
+        next => {
+          const bc = this._getBlockchainExplorer(opts.coin, opts.network);
+          if (!bc) return cb(new Error('Could not get blockchain explorer instance'));
+          bc.getBlockHashInHeight(opts.currentHeight - 12, (err, height, hash) => {
+            if (!err && height > 0) {
+              opts.pingHeight = height;
+              opts.pingHash = hash;
+              return cb(null, opts);
+            } else {
+              return cb(err || 'wrong height');
+            }
+          });
+        }
+      ],
+      err => {
+        if (err) return cb(err);
+      }
+    );
   }
 }
 

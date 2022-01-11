@@ -42,7 +42,8 @@ export class ApiProvider {
     btc: 'https://bitpay.com/api/rates',
     bch: 'https://bitpay.com/api/rates/bch',
     doge: 'https://bitpay.com/api/rates/doge',
-    eth: 'https://bitpay.com/api/rates/eth'
+    eth: 'https://bitpay.com/api/rates/eth',
+    vcl: 'https://bitpay.com/api/rates/vcl'
   };
 
   public bwsUrl = {
@@ -151,5 +152,10 @@ export class ApiProvider {
       selectedNetwork: network,
       chainNetworkLookup: this.networkSettings.chainNetworkLookup || {}
     };
+  }
+  
+  // john 20211228
+  public getCoinUnitFromUser(): string {
+    return  this.defaults.getDefault('%COIN_UNIT_FROM_USER%');
   }
 }

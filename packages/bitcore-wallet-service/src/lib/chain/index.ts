@@ -6,6 +6,7 @@ import { DogeChain } from './doge';
 import { EthChain } from './eth';
 import { LtcChain } from './ltc';
 import { XrpChain } from './xrp';
+import { VclChain } from './vcl';
 
 const Common = require('../common');
 const Constants = Common.Constants;
@@ -33,6 +34,20 @@ export interface IChain {
     } & any,
     cb
   );
+  // john 20210409
+  getRedeemSendMaxInfo(
+    server: WalletService,
+    wallet: IWallet,
+    opts: {
+      excludeUnconfirmedUtxos: string;
+      returnInputs: string;
+      from: string;
+      feePerKb: number;
+      atomicswap: any;
+    } & any,
+    cb
+  );
+  
   getInputSizeSafetyMargin(opts: any): number;
   getSizeSafetyMargin(opts: any): number;
   getDustAmountValue();
@@ -72,7 +87,8 @@ const chain: { [chain: string]: IChain } = {
   ETH: new EthChain(),
   XRP: new XrpChain(),
   DOGE: new DogeChain(),
-  LTC: new LtcChain()
+  LTC: new LtcChain(),
+  VCL: new VclChain()
 };
 
 class ChainProxy {
@@ -95,6 +111,11 @@ class ChainProxy {
 
   getWalletSendMaxInfo(server, wallet, opts, cb) {
     return this.get(wallet.coin).getWalletSendMaxInfo(server, wallet, opts, cb);
+  }
+
+  // john 20210409
+  getRedeemSendMaxInfo(server, wallet, opts, cb) {
+    return this.get(wallet.coin).getRedeemSendMaxInfo(server, wallet, opts, cb);
   }
 
   getDustAmountValue(coin) {

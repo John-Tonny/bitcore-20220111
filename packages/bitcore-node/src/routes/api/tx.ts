@@ -65,6 +65,26 @@ router.get('/:txId', async (req, res) => {
   }
 });
 
+// john 20210409
+router.get('/:txId/rawhex', async (req, res) => {
+  let { chain, network, txId } = req.params;
+  if (typeof txId !== 'string' || !chain || !network) {
+    return res.status(400).send('Missing required param');
+  }
+  chain = chain.toUpperCase();
+  network = network.toLowerCase();
+  try {
+    const tx = await ChainStateProvider.getRawTransaction({ chain, network, txId });
+    if (!tx) {
+      return res.status(404).send(`The requested txid ${txId} could not be found.`);
+    } else {
+      return res.send(tx);
+    }
+  } catch (err) {
+    return res.status(500).send(err);
+  }
+});
+
 // Get transaction with input and outputs, assigned to key coins
 router.get('/:txId/populated', async (req, res) => {
   let { chain, network, txId } = req.params;

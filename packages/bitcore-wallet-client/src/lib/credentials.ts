@@ -1,12 +1,12 @@
 'use strict';
 
-import { BitcoreLib } from 'crypto-wallet-core';
+import { BitcoreLib, BitcoreLibVcl } from 'crypto-wallet-core';
 
 import { Constants, Utils } from './common';
 const $ = require('preconditions').singleton();
 const _ = require('lodash');
 
-const Bitcore = BitcoreLib;
+const Bitcore = BitcoreLibVcl;
 const sjcl = require('sjcl');
 
 export class Credentials {
@@ -210,6 +210,8 @@ export class Credentials {
         coin = '3';
       } else if (this.coin == 'ltc') {
         coin = '2';
+      } else if (this.coin == 'vcl') {
+        coin = '57';
       } else {
         throw new Error('unknown coin: ' + this.coin);
       }
@@ -241,7 +243,7 @@ export class Credentials {
       throw new Error('External Wallets are no longer supported');
     }
 
-    x.coin = x.coin || 'btc';
+    x.coin = x.coin || 'vcl';
     x.addressType = x.addressType || Constants.SCRIPT_TYPES.P2SH;
     x.account = x.account || 0;
 
@@ -314,10 +316,10 @@ export class Credentials {
       (this.coin === 'btc' ||
         this.coin === 'bch' ||
         this.coin === 'doge' ||
-        this.coin === 'ltc') &&
+        this.coin === 'ltc' ||
+	    this.coin === 'vcl') &&
       (!this.publicKeyRing || this.publicKeyRing.length != this.n)
-    )
-      return false;
+    ) return false;
     return true;
   }
 }
