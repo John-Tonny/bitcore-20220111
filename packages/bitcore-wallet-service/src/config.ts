@@ -93,10 +93,10 @@ const Config = () => {
       },
       vcl: {
         livenet: {
-          url: 'http://192.168.246.133:8200'
+          url: 'http://127.0.0.1:8200'
         },
         testnet: {
-          url: 'http://192.168.246.133:8200'
+          url: 'http://127.0.0.1:8200'
         }
       },
       socketApiKey: 'socketApiKey'

@@ -4,8 +4,9 @@ if [ "x${BITCORE_PATH}" == "x" ]; then
   BITCORE_PATH=/root/bitcore
 fi
 
-if [ "x${NODE_PATH1}" == "x" ]; then
-  NODE_PATH=$HOME/.nvm/versions/node/v10.5.0/bin
+if [ "x${NODE_PATH}" == "x" ]; then
+  NODE_VERSION=`node -v`
+  NODE_PATH=$HOME/.nvm/versions/node/$NODE_VERSION/bin
 fi
 
 MODULE_PATH=$BITCORE_PATH/packages
