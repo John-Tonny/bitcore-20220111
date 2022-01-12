@@ -51,5 +51,5 @@ run_program ./ts_build/emailservice/emailservice.js pids/emailservice.pid $LOG_P
 run_program ./ts_build/pushnotificationsservice/pushnotificationsservice.js pids/pushnotificationsservice.pid $LOG_PATH/pushnotificationsservice.log
 run_program ./ts_build/fiatrateservice/fiatrateservice.js pids/fiatrateservice.pid $LOG_PATH/fiatrateservice.log
 run_program ./ts_build/masternodeservice/masternodeservice.js pids/masternodeservice.pid $LOG_PATH/masternodeservice.log
-#run_program ./ts_build/bws.js pids/bws.pid $LOG_PATH/bws.log
+run_program ./ts_build/bws.js pids/bws.pid $LOG_PATH/bws.log
 
