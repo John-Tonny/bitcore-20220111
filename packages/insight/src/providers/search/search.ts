@@ -112,7 +112,15 @@ export class SearchProvider {
     },
     // VCL Address
     {
-      regexes: [/^(vclcoin:)?([LM3][a-km-zA-HJ-NP-Z1-9]{26,33}$)/],
+      regexes: [/^(vclcoin:)?([S3][a-km-zA-HJ-NP-Z1-9]{26,33}$)/],
+      dataIndex: 2,
+      type: 'address',
+      chainNetworks: [
+        { chain: 'VCL', network: 'mainnet' }
+      ],
+    },
+    {
+      regexes: [/^(vclcoin:)?(sys1[a-klm-zA-HJ-NP-Z0-9]{39,59})/],
       dataIndex: 2,
       type: 'address',
       chainNetworks: [

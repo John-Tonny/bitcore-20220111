@@ -31,6 +31,7 @@ var Mnemonic = require('bitcore-mnemonic');
 var url = require('url');
 var querystring = require('querystring');
 var JSUtil = Bitcore.util.js;
+var buffer = require('buffer');
 var AuditContract = Bitcore.atomicswap.AuditContract;
 
 var log = require('./log');
@@ -1516,24 +1517,30 @@ export class API extends EventEmitter {
 
     // john 20210409
     $.checkArgument(opts.atomicswap.contract);
+    $.checkArgument(opts.atomicswap.secret);
+
     let cnt = AuditContract(opts.atomicswap.contract);
     if (!cnt.isAtomicSwap) {
-      cb(new Errors('atomicswap contract is invalid'));
+      return cb(new Error('atomicswap contract is invalid'));
     }
 
     let curTime = Math.round(new Date().getTime() / 1000);
     let lockTime = cnt.lockTime;
     if (lockTime > curTime) {
-      cb(new Errors('The lock time has not expired'));
+      return cb(new Error('The lock time has not expired'));
     }
 
-    $.checkArgument(opts.atomicswap.secret);
     if (
       !JSUtil.isHexa(opts.atomicswap.secret) &&
       opts.atomicswap.secret.length != 64
     ) {
-      cb(new Errors('atomicswap secret is invalid'));
+      return cb(new Error('atomicswap secret is invalid'));
     }
+
+    if(cnt.secretHash != new Bitcore.crypto.Hash.sha256(buffer.Buffer.from(opts.atomicswap.secret, 'hex')).toString('hex')){
+      return cb(new Error('atomicswap secret is mismatch'));
+    }
+
     opts.atomicswap.redeem = true;
     // BCH schnorr deployment
     if (
@@ -1568,7 +1575,7 @@ export class API extends EventEmitter {
 
   // john 20210409
   // /**
-  // * Create a atomicswap refunc transaction proposal
+  // * Create a atomicswap refund transaction proposal
   // *
   // * @param {Object} opts
   // * @param {string} opts.txProposalId - Optional. If provided it will be used as this TX proposal ID. Should be unique in the scope of the wallet.
@@ -1599,14 +1606,14 @@ export class API extends EventEmitter {
     $.checkArgument(opts.atomicswap.contract);
     let cnt = AuditContract(opts.atomicswap.contract);
     if (!cnt.isAtomicSwap) {
-      cb(new Errors('atomicswap contract is invalid'));
+      return cb(new Error('atomicswap contract is invalid'));
     }
     opts.atomicswap.redeem = false;
 
     let curTime = Math.round(new Date().getTime() / 1000);
     let lockTime = cnt.lockTime;
     if (lockTime > curTime) {
-      cb(new Errors('The lock time has not expired'));
+      return cb(new Error('The lock time has not expired'));
     }
 
     // BCH schnorr deployment
@@ -1675,11 +1682,11 @@ export class API extends EventEmitter {
       !JSUtil.isHexa(opts.atomicswap.secretHash) &&
       opts.atomicswap.secretHash.length != 64
     ) {
-      cb(new Errors('atomicswap secretHash is invalid'));
+      return cb(new Error('atomicswap secretHash is invalid'));
     }
     opts.atomicswap.initiate = true;
     if (opts.outputs && opts.outputs.length != 1) {
-      cb(new Errors('The number of atomicswap outputs must be one'));
+      return cb(new Error('The number of atomicswap outputs must be one'));
     }
 
     // BCH schnorr deployment
@@ -1748,11 +1755,11 @@ export class API extends EventEmitter {
       !JSUtil.isHexa(opts.atomicswap.secretHash) &&
       opts.atomicswap.secretHash.length != 64
     ) {
-      cb(new Errors('atomicswap secretHash is invalid'));
+      return cb(new Error('atomicswap secretHash is invalid'));
     }
     opts.atomicswap.initiate = false;
     if (opts.outputs && opts.outputs.length != 1) {
-      cb(new Errors('The number of atomicswap outputs must be one'));
+      return cb(new Error('The number of atomicswap outputs must be one'));
     }
 
     // BCH schnorr deployment
@@ -3965,22 +3972,42 @@ export class API extends EventEmitter {
     var network = opts.network || 'livenet';
 
     if (!opts.contract) return cb(new Error('Not contract'));
+    if( !opts.txid) return cb(new Error('Not txid'));
 
     if (!JSUtil.isHexa(opts.contract)) {
-      cb(new Error('contract must be hex string'));
+      return cb(new Error('contract must be hex string'));
     }
 
     let cnt = AuditContract(opts.contract);
     if (!cnt.isAtomicSwap) {
-      cb(new Error('atomicswap contract invalid'));
+      return cb(new Error('atomicswap contract invalid'));
     }
 
     this.getMainAddresses(
       { coin, network, address: cnt.recipientAddr },
       (err, addresses) => {
-        if (err) cb(err);
+        if (err) return cb(err);
         if (addresses && addresses.length > 0) {
-          cb(null, cnt);
+          this.getRawTransaction(coin, network, opts.txid, (err, rawHex) => {
+            if(err || !rawHex) return cb(err);
+            try {
+              let tx = new Bitcore.Transaction(rawHex);
+              for(var i=0; i< tx.outputs.length; i++){
+                let s = new Bitcore.Script(tx.outputs[i]._scriptBuffer);
+                if (s.isScriptHashOut() && s.chunks.length == 3 ) {
+                  let addr = Bitcore.Address.fromScriptHash(s.chunks[1].buf, network, Bitcore.Address.PayToScriptHash).toString();
+                  if (addr == cnt.contractAddr) {
+                    cnt.amount = tx.outputs[i]._satoshis;
+                    break;
+                  }
+                }
+              }
+              return cb(null, cnt);
+            }catch(e){
+              return cb(new Error(''));
+            }
+          });
+
         }
       }
     );
@@ -4053,4 +4080,218 @@ export class API extends EventEmitter {
     var ret = Utils.decryptMessage(msg, key);
     return cb(null, ret);
   }
+
+  // 20220114
+  participateAtomicSwap(opts) {
+    return this.initAtomicSwap(false, opts);
+  }
+
+  initateAtomicSwap(opts) {
+    return this.initAtomicSwap(true, opts);
+  }
+
+  // *
+  // * @param {boolean} initate - true[initate] false[participate].
+  // * @param {string} opts.coin[='vcl'] - The coin for this wallet (btc, bch, vcl).
+  // * @param {string} opts.network[='livenet']
+  // * @param {string} opts.address - Destination address.
+  // * @param {number} opts.amount - Amount to transfer in satoshi.
+  // * @param {number} opts.secretHash - atomicswap secretHash (only required in participate).
+  // * @param {number} opts.secret - atomicswap secret (optional in initate).
+  // */
+  initAtomicSwap(initate, opts) {
+    $.checkArgument(_.isObject(opts), 'Argument should be an object');
+    $.checkArgument(opts.address, 'no address not supported');
+    $.checkArgument(opts.amount, 'no amount not supported');
+
+    let secret;
+    let secretHash = opts.secretHash;
+    if(!initate){
+      $.checkArgument(opts.secretHash, 'no secretHash not supported');
+      if(JSUtil.isHexa(secretHash)) {
+        if(secretHash.length != 64) {
+          throw new Error('The length at secretHash must be 64');
+        }
+      }else{
+        throw new Error('secretHash must be string for hex');
+      }
+    }else {
+      if (opts.secret) {
+        if (JSUtil.isHexa(opts.secret)) {
+          secret = opts.secret;
+        } else {
+          throw new Error('secret must be string for hex');
+        }
+      } else {
+        secret = new Bitcore.PrivateKey().toString('hex');
+      }
+      secretHash = new Bitcore.crypto.Hash.sha256(buffer.Buffer.from(secret, 'hex')).toString('hex');
+    }
+
+    var coin = opts.coin || 'vcl';
+    if ( coin != 'vcl')
+      throw new Error('Invalid coin');
+
+    var network = opts.network || 'livenet';
+    if (!_.includes(['testnet', 'livenet'], network))
+      throw new Error('Invalid network');
+
+
+    return {
+      dryRun: false,
+      excludeUnconfirmedUtxos: true,
+      network: network,
+      excludeMasternode: true,
+      message: secret,  //save atomicswap secret
+      atomicswap: {
+        secretHash: secretHash,
+        initiate: initate,
+      },
+      outputs: [{
+        toAddress: opts.address,
+        amount: opts.amount
+      }]
+    };
+  }
+
+  // *
+  // * @param {string} opts.coin[='vcl'] - The coin for this wallet (btc, bch, vcl).
+  // * @param {string} opts.network[='livenet']
+  // */
+  refundAtomicSwap(opts) {
+    $.checkArgument(_.isObject(opts), 'Argument should be an object');
+    $.checkArgument(opts.address, 'no address not supported');
+    $.checkArgument(opts.contract, 'no contract not supported');
+
+    var coin = opts.coin || 'vcl';
+    if ( coin != 'vcl')
+      throw new Error('Invalid coin');
+
+    var network = opts.network || 'livenet';
+    if (!_.includes(['testnet', 'livenet'], network))
+      throw new Error('Invalid network');
+
+    return {
+      dryRun: false,
+      excludeUnconfirmedUtxos: true,
+      network: network,
+      excludeMasternode: true,
+      atomicswap: {
+        contract: opts.contract,
+        redeem: false,
+      },
+      outputs: [{
+        toAddress: opts.address,
+      }]
+    };
+  }
+
+  // *
+  // * @param {boolean} initate - true[initate] false[participate].
+  // * @param {string} opts.coin[='vcl'] - The coin for this wallet (btc, bch, vcl).
+  // * @param {string} opts.network[='livenet']
+  // * @param {string} opts.address - Destination address.
+  // * @param {number} opts.contract - atomicswap contract.
+  // * @param {number} opts.secret - atomicswap secret (optional in initate).
+  // */
+  redeemAtomicSwap(opts) {
+    $.checkArgument(_.isObject(opts), 'Argument should be an object');
+    $.checkArgument(opts.address, 'no address not supported');
+    $.checkArgument(opts.contract, 'no contract not supported');
+    $.checkArgument(opts.secret, 'no secret not supported');
+
+    var coin = opts.coin || 'vcl';
+    if ( coin != 'vcl')
+      throw new Error('Invalid coin');
+
+    var network = opts.network || 'livenet';
+    if (!_.includes(['testnet', 'livenet'], network))
+      throw new Error('Invalid network');
+
+    return {
+      dryRun: false,
+      excludeUnconfirmedUtxos: true,
+      network: network,
+      excludeMasternode: true,
+      atomicswap: {
+        secret: opts.secret,
+        contract: opts.contract,
+        redeem: true,
+      },
+      outputs: [{
+        toAddress: opts.address
+      }]
+    };
+  }
+
+  // /**
+  // * Returns contract info. 
+  // * @param {string} opts.txid - 
+  // * @return {Callback} cb - Return error (if exists) instantiation info
+  // */
+  getAtomicswapInfo(opts, cb) {
+    $.checkArgument(_.isObject(opts), 'Argument should be an object');
+    $.checkArgument(opts.txid, 'no txid not supported');
+    if (!cb) {
+      cb = opts;
+      opts = {};
+      log.warn('DEPRECATED WARN: getAtomicswapInfo should receive 2 parameters.');
+    }
+
+
+    var args = [];
+    if (opts.coin) {
+      args.push('coin=' + opts.coin);
+    }
+    if (opts.network) {
+      args.push('network=' + opts.network);
+    }
+    if (opts.txid) {
+      args.push('txid=' + opts.txid);
+    }
+
+    var qs = '';
+    if (args.length > 0) {
+      qs = '?' + args.join('&');
+    }
+
+    var url = '/v2/atomicswapinfo/' + qs;
+    this.request.get(url, (err, contractInfo) => {
+      if (err) return cb(err);
+      return cb(null, contractInfo);
+    });
+  }
+
+  // /**
+  // * getRawTransaction
+  // *
+  // * @param {String}  opts.txid
+  // * @return {Callback} cb - Return error or transaction
+  // */
+  getRawTransaction(coin, network ,txid, cb) {
+    var url = '/v2/transaction/';
+
+    var args = [];
+    if (coin) {
+      args.push('coin=' + coin);
+    }
+    if (network) {
+      args.push('network=' + network);
+    }
+    if (txid) {
+      args.push('txid=' + txid);
+    }
+
+    var qs = '';
+    if (args.length > 0) {
+      qs = '?' + args.join('&');
+    }
+
+    var url = '/v2/rawtransaction/' + qs;
+    this.request.get(url, (err, tx) => {
+      if (err) return cb(err);
+      return cb(null, tx);
+    });
+  }
+
 }

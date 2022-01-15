@@ -2648,6 +2648,11 @@ export class WalletService {
     // john 20211026
     if (!opts.atomicswap || !opts.atomicswap.contract) return cb(new Error('atomicswap contract is required'));
 
+    // john 20220113
+    if (!_.isArray(opts.outputs) || opts.outputs.length > 1) {
+      return cb(new ClientError('Only one output allowed'));
+    }
+
     this._runLocked(
       cb,
       cb => {
@@ -2672,7 +2677,9 @@ export class WalletService {
               [
                 next => {
                   // john 20210409
-                  delete opts.outputs[0].amount;
+                  if(opts.outputs[0].amount){
+                    delete opts.outputs[0].amount;
+                  }
                   opts.sendMax = true;
                   let cnt = new Bitcore.atomicswap.AuditContract(opts.atomicswap.contract);
                   if (!cnt.isAtomicSwap) return next(new Error('atomicswap contract is invalid'));
@@ -2698,7 +2705,7 @@ export class WalletService {
                 },
                 next => {
                   this.getUtxos({ addresses: [opts.atomicswapAddr] }, (err, utxos) => {
-                    if (err || !utxos) return next(new Error('atomicswap contract has been spent'));
+                    if (err || !utxos || utxos.length == 0 ) return next(new Error('atomicswap contract has been spent'));
                     utxos[0].path = opts.atomicswap.signAddr.path;
                     utxos[0].publicKeys = opts.atomicswap.signAddr.publicKeys;
                     opts.atomicswap.utxos = utxos;
@@ -2722,14 +2729,6 @@ export class WalletService {
                     if (!canCreate) return next(Errors.TX_CANNOT_CREATE);
                     next();
                   });
-                },
-                async next => {
-                  try {
-                    changeAddress = await ChainService.getChangeAddress(this, wallet, opts);
-                  } catch (error) {
-                    return next(error);
-                  }
-                  return next();
                 },
                 async next => {
                   if (_.isNumber(opts.fee) && !_.isEmpty(opts.inputs)) return next();
@@ -3420,9 +3419,23 @@ export class WalletService {
     });
   }
 
+  // john 20220114
+  getRawTransactionById(opts, cb) {
+    if (!opts.txid || !opts.coin || !opts.network) return cb();
+    const bc = this._getBlockchainExplorer(opts.coin, opts.network);
+    if (!bc) return cb(new Error('Could not get blockchain explorer instance'));
+    bc.getRawTransaction(opts.txid, (err, rawHex) => {
+      if (err) return cb(err);
+      if (!rawHex || _.isEmpty(rawHex)) {
+        return cb(new Error('failed to get txid'));
+      }
+      return cb(null, rawHex);
+    });
+  }
+
   // john 20210409
   getAtomicSwapInfo(opts, cb) {
-    if (!opts.txid) return cb();
+    if (!opts.txid || !opts.coin || !opts.network) return cb();
     const bc = this._getBlockchainExplorer(opts.coin, opts.network);
     if (!bc) return cb(new Error('Could not get blockchain explorer instance'));
     bc.getRawTransaction(opts.txid, (err, rawHex) => {
@@ -4033,7 +4046,7 @@ export class WalletService {
         return cb(error);
       }
     } else {
-      this.storage.fetchPendingTxs(this.walletId, (err, txps) => {
+      this.storage.fetchAtomicSwapPendingTxs(this.walletId, (err, txps) => {
         if (err) return cb(err);
 
         _.each(txps, txp => {
@@ -4046,8 +4059,7 @@ export class WalletService {
 
         txps = _.reject(txps, txp => {
           return (
-            txp.atomicswap &&
-            (!txp.atomicswap.isAtomicSwap || txp.atomicswap.redeem != undefined || txp.status != 'broadcasted')
+            (!txp.atomicswap || !txp.atomicswap.isAtomicSwap || txp.atomicswap.redeem != undefined || txp.status != 'broadcasted')
           );
         });
 

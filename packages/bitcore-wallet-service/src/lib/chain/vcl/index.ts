@@ -186,6 +186,8 @@ export class VclChain implements IChain {
       info.feePerKb = feePerKb;
 
       const txp = TxProposal.create({
+        // john 20220113
+        atomicswap: {},
         walletId: server.walletId,
         coin: wallet.coin,
         network: wallet.network,
@@ -291,7 +293,11 @@ export class VclChain implements IChain {
 
     switch (txp.addressType) {
       case Constants.SCRIPT_TYPES.P2PKH:
-        return 147;
+        if(txp.atomicswap){
+          return 147 + 97;
+        }else {
+          return 147;
+        }
 
       case Constants.SCRIPT_TYPES.P2WPKH:
         return 69; // vsize

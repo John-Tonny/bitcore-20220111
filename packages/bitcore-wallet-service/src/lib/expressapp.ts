@@ -487,6 +487,34 @@ export class ExpressApp {
       });
     });
 
+    //  john 20220114
+    router.get('/v2/atomicswapinfo/', (req, res) => {
+      getServerWithAuth(req, res, server => {
+        const opts: { coin?: string; network?: string; txid?: string } = {};
+        if (req.query.coin) opts.coin = req.query.coin || 'vcl';
+        if (req.query.network) opts.network = req.query.network || 'livenet';
+        if (req.query.txid) opts.txid = req.query.txid;
+        server.getAtomicSwapInfo({ txid: req.query.txid }, (err, info) => {
+          if (err) return returnError(err, res, req);
+          res.json(info);
+        });
+      });
+    });
+
+    router.get('/v2/rawtransaction/', (req, res) => {
+      getServerWithAuth(req, res, server => {
+        const opts: { coin?: string; network?: string; txid?: string } = {};
+        if (req.query.coin) opts.coin = req.query.coin || 'vcl';
+        if (req.query.network) opts.network = req.query.network || 'livenet';
+        if (req.query.txid) opts.txid = req.query.txid;
+        server.getRawTransactionById(opts, (err, info) => {
+          if (err) return returnError(err, res, req);
+          res.json(info);
+        });
+      });
+    });
+
+
     // DEPRECATED
     router.post('/v1/txproposals/', (req, res) => {
       const Errors = require('./errors/errordefinitions');
@@ -687,6 +715,8 @@ export class ExpressApp {
         });
       });
     });
+
+
 
     // DEPRECATED
     router.post('/v1/addresses/', (req, res) => {

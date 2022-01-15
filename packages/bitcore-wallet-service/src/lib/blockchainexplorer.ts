@@ -32,8 +32,8 @@ const PROVIDERS = {
       testnet: 'https://api.bitpay.com'
     },
     vcl: {
-      livenet: 'https://bws.vircle.xyz',
-      testnet: 'https://bws.vircle.xyz'
+      livenet: 'http://127.0.0.1:8200',
+      testnet: 'http://127.0.0.1:8200'
     }
   }
 };

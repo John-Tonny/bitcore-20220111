@@ -42,6 +42,7 @@ const Config = () => {
       }
     },
     blockchainExplorerOpts: {
+      /*
       btc: {
         livenet: {
           url: 'https://api.bitcore.io'
@@ -90,16 +91,16 @@ const Config = () => {
         testnet: {
           url: 'https://api.bitcore.io'
         }
-      },
+      },*/
       vcl: {
         livenet: {
-          url: 'http://127.0.0.1:8200'
-        },
+          url: 'http://127.0.0.1:3000'
+        }/*,
         testnet: {
-          url: 'http://127.0.0.1:8200'
-        }
+          url: 'http://127.0.0.1:3000'
+        }*/
       },
-      socketApiKey: 'socketApiKey'
+      socketApiKey: 'L2mPTvucM9CNvUU6MaJwUpYiLEDN9TLa3g3Fv4Fu8CnZob4ADZdJ'
     },
     pushNotificationsOpts: {
       templatePath: 'templates',

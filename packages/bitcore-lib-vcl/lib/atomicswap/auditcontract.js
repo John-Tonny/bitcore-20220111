@@ -77,7 +77,8 @@ function AuditContract(contract,network) {
  
   let contractHash = Hash.sha256ripemd160(Buffer.from(contract, 'hex'));
   this.contractAddr = Address.fromScriptHash(contractHash, network || NETWORK , Address.PayToScriptHash).toString();
-  
+ 
+  this.amount = 0; 
   return this;
 }
 
