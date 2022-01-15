@@ -1537,7 +1537,12 @@ export class API extends EventEmitter {
       return cb(new Error('atomicswap secret is invalid'));
     }
 
-    if(cnt.secretHash != new Bitcore.crypto.Hash.sha256(buffer.Buffer.from(opts.atomicswap.secret, 'hex')).toString('hex')){
+    if (
+      cnt.secretHash !=
+      new Bitcore.crypto.Hash.sha256(
+        buffer.Buffer.from(opts.atomicswap.secret, 'hex')
+      ).toString('hex')
+    ) {
       return cb(new Error('atomicswap secret is mismatch'));
     }
 
@@ -3972,7 +3977,7 @@ export class API extends EventEmitter {
     var network = opts.network || 'livenet';
 
     if (!opts.contract) return cb(new Error('Not contract'));
-    if( !opts.txid) return cb(new Error('Not txid'));
+    if (!opts.txid) return cb(new Error('Not txid'));
 
     if (!JSUtil.isHexa(opts.contract)) {
       return cb(new Error('contract must be hex string'));
@@ -3989,13 +3994,17 @@ export class API extends EventEmitter {
         if (err) return cb(err);
         if (addresses && addresses.length > 0) {
           this.getRawTransaction(coin, network, opts.txid, (err, rawHex) => {
-            if(err || !rawHex) return cb(err);
+            if (err || !rawHex) return cb(err);
             try {
               let tx = new Bitcore.Transaction(rawHex);
-              for(var i=0; i< tx.outputs.length; i++){
+              for (var i = 0; i < tx.outputs.length; i++) {
                 let s = new Bitcore.Script(tx.outputs[i]._scriptBuffer);
-                if (s.isScriptHashOut() && s.chunks.length == 3 ) {
-                  let addr = Bitcore.Address.fromScriptHash(s.chunks[1].buf, network, Bitcore.Address.PayToScriptHash).toString();
+                if (s.isScriptHashOut() && s.chunks.length == 3) {
+                  let addr = Bitcore.Address.fromScriptHash(
+                    s.chunks[1].buf,
+                    network,
+                    Bitcore.Address.PayToScriptHash
+                  ).toString();
                   if (addr == cnt.contractAddr) {
                     cnt.amount = tx.outputs[i]._satoshis;
                     break;
@@ -4003,11 +4012,10 @@ export class API extends EventEmitter {
                 }
               }
               return cb(null, cnt);
-            }catch(e){
+            } catch (e) {
               return cb(new Error(''));
             }
           });
-
         }
       }
     );
@@ -4106,16 +4114,16 @@ export class API extends EventEmitter {
 
     let secret;
     let secretHash = opts.secretHash;
-    if(!initate){
+    if (!initate) {
       $.checkArgument(opts.secretHash, 'no secretHash not supported');
-      if(JSUtil.isHexa(secretHash)) {
-        if(secretHash.length != 64) {
+      if (JSUtil.isHexa(secretHash)) {
+        if (secretHash.length != 64) {
           throw new Error('The length at secretHash must be 64');
         }
-      }else{
+      } else {
         throw new Error('secretHash must be string for hex');
       }
-    }else {
+    } else {
       if (opts.secret) {
         if (JSUtil.isHexa(opts.secret)) {
           secret = opts.secret;
@@ -4125,32 +4133,34 @@ export class API extends EventEmitter {
       } else {
         secret = new Bitcore.PrivateKey().toString('hex');
       }
-      secretHash = new Bitcore.crypto.Hash.sha256(buffer.Buffer.from(secret, 'hex')).toString('hex');
+      secretHash = new Bitcore.crypto.Hash.sha256(
+        buffer.Buffer.from(secret, 'hex')
+      ).toString('hex');
     }
 
     var coin = opts.coin || 'vcl';
-    if ( coin != 'vcl')
-      throw new Error('Invalid coin');
+    if (coin != 'vcl') throw new Error('Invalid coin');
 
     var network = opts.network || 'livenet';
     if (!_.includes(['testnet', 'livenet'], network))
       throw new Error('Invalid network');
 
-
     return {
       dryRun: false,
       excludeUnconfirmedUtxos: true,
-      network: network,
+      network,
       excludeMasternode: true,
-      message: secret,  //save atomicswap secret
+      message: secret, // save atomicswap secret
       atomicswap: {
-        secretHash: secretHash,
-        initiate: initate,
+        secretHash,
+        initiate: initate
       },
-      outputs: [{
-        toAddress: opts.address,
-        amount: opts.amount
-      }]
+      outputs: [
+        {
+          toAddress: opts.address,
+          amount: opts.amount
+        }
+      ]
     };
   }
 
@@ -4164,8 +4174,7 @@ export class API extends EventEmitter {
     $.checkArgument(opts.contract, 'no contract not supported');
 
     var coin = opts.coin || 'vcl';
-    if ( coin != 'vcl')
-      throw new Error('Invalid coin');
+    if (coin != 'vcl') throw new Error('Invalid coin');
 
     var network = opts.network || 'livenet';
     if (!_.includes(['testnet', 'livenet'], network))
@@ -4174,15 +4183,17 @@ export class API extends EventEmitter {
     return {
       dryRun: false,
       excludeUnconfirmedUtxos: true,
-      network: network,
+      network,
       excludeMasternode: true,
       atomicswap: {
         contract: opts.contract,
-        redeem: false,
+        redeem: false
       },
-      outputs: [{
-        toAddress: opts.address,
-      }]
+      outputs: [
+        {
+          toAddress: opts.address
+        }
+      ]
     };
   }
 
@@ -4201,8 +4212,7 @@ export class API extends EventEmitter {
     $.checkArgument(opts.secret, 'no secret not supported');
 
     var coin = opts.coin || 'vcl';
-    if ( coin != 'vcl')
-      throw new Error('Invalid coin');
+    if (coin != 'vcl') throw new Error('Invalid coin');
 
     var network = opts.network || 'livenet';
     if (!_.includes(['testnet', 'livenet'], network))
@@ -4211,22 +4221,24 @@ export class API extends EventEmitter {
     return {
       dryRun: false,
       excludeUnconfirmedUtxos: true,
-      network: network,
+      network,
       excludeMasternode: true,
       atomicswap: {
         secret: opts.secret,
         contract: opts.contract,
-        redeem: true,
+        redeem: true
       },
-      outputs: [{
-        toAddress: opts.address
-      }]
+      outputs: [
+        {
+          toAddress: opts.address
+        }
+      ]
     };
   }
 
   // /**
-  // * Returns contract info. 
-  // * @param {string} opts.txid - 
+  // * Returns contract info.
+  // * @param {string} opts.txid -
   // * @return {Callback} cb - Return error (if exists) instantiation info
   // */
   getAtomicswapInfo(opts, cb) {
@@ -4235,9 +4247,10 @@ export class API extends EventEmitter {
     if (!cb) {
       cb = opts;
       opts = {};
-      log.warn('DEPRECATED WARN: getAtomicswapInfo should receive 2 parameters.');
+      log.warn(
+        'DEPRECATED WARN: getAtomicswapInfo should receive 2 parameters.'
+      );
     }
-
 
     var args = [];
     if (opts.coin) {
@@ -4268,7 +4281,7 @@ export class API extends EventEmitter {
   // * @param {String}  opts.txid
   // * @return {Callback} cb - Return error or transaction
   // */
-  getRawTransaction(coin, network ,txid, cb) {
+  getRawTransaction(coin, network, txid, cb) {
     var url = '/v2/transaction/';
 
     var args = [];
@@ -4293,5 +4306,4 @@ export class API extends EventEmitter {
       return cb(null, tx);
     });
   }
-
 }

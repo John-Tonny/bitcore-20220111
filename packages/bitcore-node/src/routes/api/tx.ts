@@ -72,10 +72,10 @@ router.get('/:txId/rawhex', async (req, res) => {
     return res.status(400).send('Missing required param');
   }
   txId = txId
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;');
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
   chain = chain.toUpperCase();
   network = network.toLowerCase();
   try {

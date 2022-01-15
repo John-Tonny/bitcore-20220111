@@ -514,7 +514,6 @@ export class ExpressApp {
       });
     });
 
-
     // DEPRECATED
     router.post('/v1/txproposals/', (req, res) => {
       const Errors = require('./errors/errordefinitions');
@@ -715,8 +714,6 @@ export class ExpressApp {
         });
       });
     });
-
-
 
     // DEPRECATED
     router.post('/v1/addresses/', (req, res) => {

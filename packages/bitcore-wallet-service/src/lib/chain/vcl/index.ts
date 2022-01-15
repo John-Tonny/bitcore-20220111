@@ -293,9 +293,9 @@ export class VclChain implements IChain {
 
     switch (txp.addressType) {
       case Constants.SCRIPT_TYPES.P2PKH:
-        if(txp.atomicswap){
+        if (txp.atomicswap) {
           return 147 + 97;
-        }else {
+        } else {
           return 147;
         }
 

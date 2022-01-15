@@ -2677,7 +2677,7 @@ export class WalletService {
               [
                 next => {
                   // john 20210409
-                  if(opts.outputs[0].amount){
+                  if (opts.outputs[0].amount) {
                     delete opts.outputs[0].amount;
                   }
                   opts.sendMax = true;
@@ -2705,7 +2705,8 @@ export class WalletService {
                 },
                 next => {
                   this.getUtxos({ addresses: [opts.atomicswapAddr] }, (err, utxos) => {
-                    if (err || !utxos || utxos.length == 0 ) return next(new Error('atomicswap contract has been spent'));
+                    if (err || !utxos || utxos.length == 0)
+                      return next(new Error('atomicswap contract has been spent'));
                     utxos[0].path = opts.atomicswap.signAddr.path;
                     utxos[0].publicKeys = opts.atomicswap.signAddr.publicKeys;
                     opts.atomicswap.utxos = utxos;
@@ -4059,7 +4060,10 @@ export class WalletService {
 
         txps = _.reject(txps, txp => {
           return (
-            (!txp.atomicswap || !txp.atomicswap.isAtomicSwap || txp.atomicswap.redeem != undefined || txp.status != 'broadcasted')
+            !txp.atomicswap ||
+            !txp.atomicswap.isAtomicSwap ||
+            txp.atomicswap.redeem != undefined ||
+            txp.status != 'broadcasted'
           );
         });
 
