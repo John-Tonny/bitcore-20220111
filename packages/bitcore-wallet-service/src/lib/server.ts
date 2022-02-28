@@ -1,3 +1,4 @@
+import {constant} from 'async';
 import * as async from 'async';
 import * as _ from 'lodash';
 import 'source-map-support/register';
@@ -38,7 +39,7 @@ const BCHAddressTranslator = require('./bchaddresstranslator');
 
 const EmailValidator = require('email-validator');
 
-import { Validation } from 'crypto-wallet-core';
+import {BitcoreLibVcl, Validation} from 'crypto-wallet-core';
 const Bitcore = require('bitcore-lib-vcl');
 const Bitcore_ = {
   btc: Bitcore,
@@ -1516,6 +1517,9 @@ export class WalletService {
   getUtxosForCurrentWallet(opts, cb) {
     opts = opts || {};
 
+    // john delete
+    opts.excludeMasternode = false;
+
     const utxoKey = utxo => {
       return utxo.txid + '|' + utxo.vout;
     };
@@ -1690,7 +1694,7 @@ export class WalletService {
           if (!opts.excludeMasternode) {
             return next();
           }
-          this.storage.fetchMasternodes(this.walletId, undefined, (err, masternodes) => {
+          this.storage.fetchMasternodes(this.walletId, undefined, undefined, (err, masternodes) => {
             if (err) return next(err);
             const lockedInputs1 = _.map(_.flatten(_.map(masternodes, 'txid')), utxoKey1);
             _.each(lockedInputs1, input => {
@@ -2142,12 +2146,15 @@ export class WalletService {
         return new ClientError('Argument missing in output #' + (i + 1) + '.');
       }
 
-      if (!ChainService.checkValidTxAmount(wallet.coin, output)) {
-        return new ClientError('Invalid amount');
-      }
+      // john 20220219
+      if(!opts.txExtends) {
+        if (!ChainService.checkValidTxAmount(wallet.coin, output)) {
+          return new ClientError('Invalid amount');
+        }
 
-      const error = ChainService.checkDust(wallet.coin, output, opts);
-      if (error) return error;
+        const error = ChainService.checkDust(wallet.coin, output, opts);
+        if (error) return error;
+      }
       output.valid = true;
     }
     return null;
@@ -2419,6 +2426,9 @@ export class WalletService {
       this.storage.fetchTx(this.walletId, txProposalId, cb);
     };
 
+    // john 20220219
+    this._masternodeReady(opts, cb);
+
     this._runLocked(
       cb,
       cb => {
@@ -2448,6 +2458,9 @@ export class WalletService {
                     opts.from = mainAddr[0].address;
                     next();
                   });
+                },
+                next => {
+                  return this._txExtendsProcess(wallet, opts, next);
                 },
                 next => {
                   this._validateAndSanitizeTxOpts(wallet, opts, next);
@@ -2549,7 +2562,8 @@ export class WalletService {
                     signingMethod: opts.signingMethod,
                     isTokenSwap: opts.isTokenSwap,
                     enableRBF: opts.enableRBF,
-                    replaceTxByFee: opts.replaceTxByFee
+                    replaceTxByFee: opts.replaceTxByFee,
+ 		            txExtends: opts.txExtends,	// 20220219
                   };
                   txp = TxProposal.create(txOpts);
                   next();
@@ -2558,7 +2572,7 @@ export class WalletService {
                   return ChainService.selectTxInputs(this, txp, wallet, opts, next);
                 },
                 async next => {
-                  if (!wallet.isZceCompatible() || !opts.instantAcceptanceEscrow) return next();
+                  if (!wallet.isZceCompatible(feePerKb) || !opts.instantAcceptanceEscrow) return next();
                   try {
                     opts.inputs = txp.inputs;
                     const escrowAddress = await ChainService.getChangeAddress(this, wallet, opts);
@@ -3173,6 +3187,10 @@ export class WalletService {
           if (err) return cb(err);
           if (!txp) return cb(Errors.TX_NOT_FOUND);
           if (!txp.isTemporary()) return cb(null, txp);
+          if(txp.txExtends && txp.txExtends.version) {
+            if(!opts.outScripts) cb(new Error('outScripts is required'));
+            txp.txExtends.outScripts = opts.outScripts;
+          }
 
           const copayer = wallet.getCopayer(this.copayerId);
 
@@ -3662,7 +3680,7 @@ export class WalletService {
               this.logw('Client version:', this.clientVersion);
               this.logw('Arguments:', JSON.stringify(opts));
               this.logw('Transaction proposal:', JSON.stringify(txp));
-              const raw = ChainService.getBitcoreTx(txp).uncheckedSerialize();
+              const raw = txp.getRawTx();
               this.logw('Raw tx:', raw);
               return cb(Errors.BAD_SIGNATURES);
             }
@@ -3836,10 +3854,6 @@ export class WalletService {
 
             let raw;
             try {
-              /*if (txp.atomicswap && txp.atomicswap.isAtomicSwap && txp.atomicswap.redeem != undefined) {
-                raw = txp.getRawAtomicswapTx();
-              } else {
-              }*/
               raw = txp.getRawTx();
             } catch (ex) {
               return cb(ex);
@@ -6298,7 +6312,7 @@ export class WalletService {
     }
 
     if (opts.coin != 'vcl') {
-      return cb(new ClientError('coin is not longer supported in broadcastMasternode'));
+      return cb(new ClientError('coin is not longer supported in removeMasternode'));
     }
 
     opts.network = opts.network || 'livenet';
@@ -6339,7 +6353,7 @@ export class WalletService {
 
       if (wallet.scanStatus == 'error') return cb(Errors.WALLET_NEED_SCAN);
 
-      this.storage.fetchMasternodes(wallet.id, opts.txid, cb);
+      this.storage.fetchMasternodes(wallet.id, opts.txid, opts.proTxHash, cb);
     });
   }
 
@@ -6368,7 +6382,9 @@ export class WalletService {
     });
   }
 
+
   broadcastMasternode(opts, cb) {
+    /*
     opts = opts || {};
 
     opts.coin = opts.coin || Defaults.COIN;
@@ -6448,6 +6464,8 @@ export class WalletService {
         }
       });
     });
+    */
+    cb(null);
   }
 
   getMasternodePing(opts, cb) {
@@ -6530,6 +6548,102 @@ export class WalletService {
       }
     );
   }
+
+  // john 20220219
+  getMasternodeBlsGenerate(opts, cb) {
+    opts = opts || {};
+
+    opts.coin = opts.coin || Defaults.COIN;
+    if (!Utils.checkValueInCollection(opts.coin, Constants.COINS)) {
+      return cb(new ClientError('Invalid coin'));
+    }
+
+    if (opts.coin != 'vcl') {
+      return cb(new ClientError('coin is not longer supported in MasternodeStatus'));
+    }
+
+    opts.network = opts.network || 'livenet';
+    if (!Utils.checkValueInCollection(opts.network, Constants.NETWORKS)) {
+      return cb(new ClientError('Invalid network'));
+    }
+
+    const bc = this._getBlockchainExplorer(opts.coin, opts.network);
+    if (!bc) return cb(new Error('Could not get blockchain explorer instance'));
+    bc.getMasternodeBlsGenerate(opts, (err, ret) => {
+      if (err) return cb(err);
+      return cb(null, ret);
+    });
+  }
+
+  // john 20220219
+  _masternodeReady(opts, cb){
+    if (opts.txExtends){
+      if(opts.txExtends.version == Constants.TX_VERSION_MN_REGISTER){
+        // if (!opts.txExtends.collateralId) return cb(new Error('txExtends collateralId is require'));
+        // if (opts.txExtends.collateralIndex == undefined) return cb(new Error('txExtends collateralIndex is require'));
+        // if (!opts.txExtends.collateralPrivKey) return cb(new Error('txExtends collateralPrivKey is require'));
+        // if (!opts.txExtends.host) return cb(new Error('txExtends host is require'));
+        // if (!opts.txExtends.port) return cb(new Error('txExtends port is require'));
+        if (!opts.txExtends.masternodePrivKey) return cb(new Error('txExtends masternodePrivKey is require'));
+        // if (!opts.txExtends.masternodePubKey) return cb(new Error('txExtends masternodePubKey is require'));
+        // if (!opts.txExtends.payAddr) return cb(new Error('txExtends payAddr is require'));
+      }
+    }else if(opts.txExtends.version == Constants.TX_VERSION_MN_UPDATE_REGISTRAR){
+      if (!opts.txExtends.proTxHash) return cb(new Error('txExtends proTxHash is require'));
+      if (!opts.txExtends.masternodePrivKey){
+        delete opts.txExtends.masternodePrivKey;
+      }
+      if (opts.txExtends.masternodePubKey) {
+        if (!opts.txExtends.masternodePrivKey) return cb(new Error('txExtends masternodePrivKey is require'));
+      }
+    }
+  }
+
+  masternodeProcess(txp){
+    if(txp.txExtends){
+      if(txp.txExtends.version == Constants.TX_VERSION_MN_REGISTER){
+        let reward = txp.txExtends.reward || 0;
+        let mn = new Bitcore.masternode.ProRegTx(txp.inputs, txp.txExtends.collateralId, txp.txExtends.collateralIndex,
+            txp.txExtends.collateralPrivKey, txp.txExtends.host, txp.txExtends.port, txp.txExtends.masternodePubKey,
+            txp.txExtends.ownerAddr, txp.txExtends.voteAddr, txp.txExtends.payAddr, reward, txp.network);
+        txp.txExtends.outScripts = mn.getScript(true);
+      }else if(txp.txExtends.version == Constants.TX_VERSION_MN_UPDATE_REGISTRAR){
+        let mn = new Bitcore.masternode.ProUpRegTx(txp.inputs, txp.txExtends.proTxHash, txp.txExtends.masternodePubKey,
+            txp.txExtends.voteAddr, txp.txExtends.payAddr, txp.network);
+        txp.txExtends.outScripts = mn.getScript(true);
+      }
+    }
+  }
+
+
+  _txExtendsProcess(wallet, opts, cb){
+    if(!opts.txExtends) return cb(null);
+    if(!opts.txExtends.version) return cb(null);
+    if(opts.txExtends.version === Constants.TX_VERSION_MN_REGISTER){
+      if(opts.txExtends.ownerAddr && opts.txExtends.voteAddr) return cb(null);
+      this.getMainAddresses({limit: 1 }, (err, mainAddr) => {
+        if (err) return cb(err);
+        if(!opts.txExtends.ownerAddr) opts.txExtends.ownerAddr = mainAddr[0].address;
+        if(!opts.txExtends.voteAddr) opts.txExtends.voteAddr = mainAddr[0].address;
+        return cb(null);
+      });
+    }else {
+      if(opts.txExtends.masternodePubKey && opts.txExtends.masternodePrivKey && opts.txExtends.voteAddr && opts.txExtends.payAddr) return cb();
+      this.storage.fetchMasternodes(wallet.id, undefined, opts.txExtends.proTxHash, (err, masternode) => {
+        if (err) return cb(err);
+        if (!masternode) return cb(new Error('masternode no exists'));
+        if (!opts.txExtends.voteAddr) opts.txExtends.voteAddr = masternode.votingaddress;
+        if (!opts.txExtends.payAddr) opts.txExtends.payAddr = masternode.payee;
+        if (!opts.txExtends.masternodePubKey) {
+          opts.txExtends.masternodePubKey = masternode.masternodePubKey;
+          opts.txExtends.masternodePrivKey = masternode.masternodePrivKey;
+        }
+        opts.txExtends.ownerAddr = masternode.owneraddress;
+        cb(null);
+      });
+    }
+  }
+
 }
 
 function checkRequired(obj, args, cb?: (e: any) => void) {

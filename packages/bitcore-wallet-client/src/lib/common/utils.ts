@@ -352,10 +352,15 @@ export class Utils {
 
       t.setAtomicSwap(txp.atomicswap);
 
-      if (txp.version >= 4) {
+      if (txp.version >= 3) {
         t.setVersion(2);
       } else {
         t.setVersion(1);
+      }
+      
+      // john 20220219
+      if (txp.txExtends && txp.txExtends.version) {
+        t.setVersion(txp.txExtends.version);
       }
 
       $.checkState(

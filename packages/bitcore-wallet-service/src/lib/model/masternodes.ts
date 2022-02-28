@@ -6,41 +6,43 @@ export interface IMasternode {
   createdOn: number;
   walletId: string;
   txid: string;
-  masternodeKey: string;
+  masternodePrivKey: string;
+  masternodePubKey: string;
   coin: string;
   network: string;
   address: string;
   payee: string;
   status: string;
-  protocol: number;
-  daemonversion: string;
-  sentinelversion: string;
-  sentinelstate: string;
-  lastseen: number;
-  activeseconds: number;
+  proTxHash: string;
+  collateralblock: number;
   lastpaidtime: number;
   lastpaidblock: number;
-  pingretries: number;
+  owneraddress: string;
+  votingaddress: string;
+  collateraladdress: string;
+  payaddress: string;
+  reward: number;
 }
+
 export class Masternodes {
   createdOn: number;
   walletId: string;
   txid: string;
-  address: string;
-  masternodeKey: string;
+  masternodePrivKey: string;
+  masternodePubKey: string;
   coin: string;
   network: string;
-  payee?: string;
+  address: string;
+  payee: string;
   status: string;
-  protocol?: number;
-  daemonversion?: string;
-  sentinelversion?: string;
-  sentinelstate?: string;
-  lastseen?: number;
-  activeseconds?: number;
+  proTxHash?: string;
+  collateralblock?: number;
   lastpaidtime?: number;
   lastpaidblock?: number;
-  pingretries?: number;
+  owneraddress: string;
+  votingaddress: string;
+  collateraladdress?: string;
+  reward: number;
 
   static create(opts) {
     opts = opts || {};
@@ -52,21 +54,20 @@ export class Masternodes {
     x.walletId = opts.walletId;
     x.txid = opts.txid;
     x.address = opts.address;
-    x.masternodeKey = opts.masternodeKey;
+    x.masternodePrivKey = opts.masternodePrivKey;
+    x.masternodePubKey = opts.masternodePubKey;
     x.coin = opts.coin;
     x.network = opts.network;
     x.payee = opts.payee;
     x.status = opts.status;
-    x.protocol = opts.protocol;
-    x.daemonversion = opts.daemonversion;
-    x.sentinelversion = opts.sentinelversion;
-    x.sentinelstate = opts.sentinelstate;
-    x.lastseen = opts.lastseen;
-    x.activeseconds = opts.activeseconds;
+    x.proTxHash = opts.proTxHash;
+    x.collateralblock = opts.collateralblock;
     x.lastpaidtime = opts.lastpaidtime;
     x.lastpaidblock = opts.lastpaidblock;
-    x.pingretries = opts.pingretries;
-
+    x.owneraddress = opts.owneraddress;
+    x.votingaddress = opts.votingaddress;
+    x.collateraladdress = opts.collateraladdress;
+    x.reward = opts.reward;
     return x;
   }
 
@@ -76,22 +77,21 @@ export class Masternodes {
     x.createdOn = obj.createdOn;
     x.walletId = obj.walletId;
     x.txid = obj.txid;
-    x.masternodeKey = obj.masternodeKey;
+    x.masternodePrivKey = obj.masternodePrivKey;
+    x.masternodePubKey = obj.masternodePubKey;
     x.coin = obj.coin;
     x.network = obj.network;
     x.address = obj.address;
     x.payee = obj.payee;
     x.status = obj.status;
-    x.protocol = obj.protocol;
-    x.daemonversion = obj.daemonversion;
-    x.sentinelversion = obj.sentinelversion;
-    x.sentinelstate = obj.sentinelstate;
-    x.lastseen = obj.lastseen;
-    x.activeseconds = obj.activeseconds;
+    x.proTxHash = obj.proTxHash;
+    x.collateralblock = obj.collateralblock;
     x.lastpaidtime = obj.lastpaidtime;
     x.lastpaidblock = obj.lastpaidblock;
-    x.pingretries = obj.pingretries;
-
+    x.owneraddress = obj.owneraddress;
+    x.votingaddress =  obj.votingaddress;
+    x.collateraladdress = obj.collateraladdress;
+    x.reward = obj.reward;
     return x;
   }
 }

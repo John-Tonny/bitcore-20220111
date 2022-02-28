@@ -71,8 +71,7 @@ var sighash = function sighash(transaction, sighashType, inputNumber, scriptCode
   // Version
   var writer = new BufferWriter();
   // john
-  // writer.writeUInt32LE(transaction.version);
-  writer.writeUInt32LE(0x02);
+  writer.writeUInt32LE(transaction.version);
 
   // Input prevouts/nSequence (none/all, depending on flags)
   writer.write(hashPrevouts);

@@ -200,6 +200,9 @@ export interface IChainStateService {
   broadcastMasternode(params: BroadcastMasternodeParams): Promise<any>;
   getMasternodeStatus(params: StreamMasternodeStatusParams): Promise<any | undefined>;
   getRawTransaction(params: RawTransactionParams): Promise<any | undefined>;
+
+  // john 20220219
+  getMasternodeBlsGenerate(params): Promise<any | undefined>;
 }
 
 export interface ChainStateServices {

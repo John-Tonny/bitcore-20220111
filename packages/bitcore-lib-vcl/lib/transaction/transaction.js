@@ -62,7 +62,8 @@ function Transaction(serialized, opts) {
     this._newTransaction();
   }
 }
-var CURRENT_VERSION = 2;
+// var CURRENT_VERSION = 2;
+var CURRENT_VERSION = 135;
 var DEFAULT_NLOCKTIME = 0;
 var MAX_BLOCK_SIZE = 1000000;
 
@@ -346,8 +347,7 @@ Transaction.prototype.hasWitnesses = function() {
 
 Transaction.prototype.toBufferWriter = function(writer, noWitness) {
   // john
-  writer.writeInt32LE(0x02);
-  // writer.writeInt32LE(this.version);
+  writer.writeInt32LE(this.version);
 
   var hasWitnesses = this.hasWitnesses();
 
@@ -384,8 +384,7 @@ Transaction.prototype.toBufferWriter = function(writer, noWitness) {
 // john
 Transaction.prototype.toBufferWriter1 = function(writer, inputNumber) {
   // john
-  writer.writeInt32LE(0x02);
-  // writer.writeInt32LE(this.version);
+  writer.writeInt32LE(this.version);
 
   var noWitness = this.isNotWitnesses();
 

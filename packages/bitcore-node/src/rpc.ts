@@ -112,12 +112,18 @@ export class RPC {
   }
 
   getMasternodeStatus(utxo: string) {
-    let ret = this.asyncCall<string>('masternodelist', []);
+    let ret = this.asyncCall<string>('masternode_list', []);
     if (utxo == '') {
       return ret;
     }
     return ret;
   }
+  
+  // john 20220219
+  getMasternodeBlsGenerate(){
+    return  this.asyncCall<string>('bls_generate', []);
+  }
+
 
   // john 20210409
   getRawTransaction(txid: string) {

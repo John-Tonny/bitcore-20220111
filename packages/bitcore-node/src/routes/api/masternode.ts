@@ -71,6 +71,16 @@ router.post('/send', async function(req, res) {
   }
 });
 
+router.get('/blsgenerate', async (req, res) => {
+  try {
+    let { chain, network } = req.params;
+    let ret = await ChainStateProvider.getMasternodeBlsGenerate({chain, network});
+    return res.send(ret);
+  } catch (err) {
+    return res.status(500).send(err);
+  }
+});
+
 module.exports = {
   router,
   path: '/masternode'

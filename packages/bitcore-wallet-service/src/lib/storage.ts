@@ -169,6 +169,10 @@ export class Storage {
       walletId: 1,
       txid: 1
     });
+    db.collection(collections.MASTERNODES).createIndex({
+      walletId: 1,
+      proTxHash: 1
+    });
   }
 
   connect(opts, cb) {
@@ -1769,21 +1773,33 @@ export class Storage {
    * @param txid
    */
 
-  fetchMasternodes(walletId, txid, cb) {
+  fetchMasternodes(walletId, txid, proTxHash, cb) {
     if (!this.db) return cb();
 
     if (txid) {
       this.db.collection(collections.MASTERNODES).findOne(
-        {
-          txid,
-          walletId
-        },
-        (err, result) => {
-          if (err) return cb(err);
-          if (!result) return cb();
-          return cb(null, Masternodes.fromObj(result));
-        }
+          {
+            txid,
+            walletId
+          },
+          (err, result) => {
+            if (err) return cb(err);
+            if (!result) return cb();
+            return cb(null, Masternodes.fromObj(result));
+          }
       );
+    }else if (proTxHash) {
+        this.db.collection(collections.MASTERNODES).findOne(
+            {
+              proTxHash,
+              walletId
+            },
+            (err, result) => {
+              if (err) return cb(err);
+              if (!result) return cb();
+              return cb(null, Masternodes.fromObj(result));
+            }
+        );
     } else {
       this.db
         .collection(collections.MASTERNODES)

@@ -65,6 +65,12 @@ vclcore.atomicswap.RedeemContract = require('./lib/atomicswap/redeemcontract');
 vclcore.atomicswap.RefundContract = require('./lib/atomicswap/refundcontract');
 vclcore.atomicswap.ExtractContract = require('./lib/atomicswap/extractcontract');
 
+vclcore.masternode = {};
+vclcore.masternode.ProRegTx = require('./lib/masternode/proregtx');
+vclcore.masternode.ProUpRegTx = require('./lib/masternode/proupregtx');
+vclcore.masternode.ProUpServiceTx = require('./lib/masternode/proupservicetx');
+vclcore.masternode.ProRevokeTx = require('./lib/masternode/prorevoketx');
+
 
 // dependencies, subject to change
 vclcore.deps = {};

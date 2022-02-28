@@ -498,6 +498,11 @@ export class InternalStateProvider implements IChainStateService {
     return await this.getRPC(chain, network).getMasternodeStatus(utxo);
   }
 
+  // john 20220219
+  async getMasternodeBlsGenerate({chain , network}) {
+    return await this.getRPC(chain, network).getMasternodeBlsGenerate();
+  }
+
   // john 20210409
   async getRawTransaction(params: RawTransactionParams) {
     const { chain, network, txId } = params;

@@ -1689,6 +1689,19 @@ export class ExpressApp {
         });
       });
     });
+    
+    // john 20220219
+    router.get('/v1/masternode/blsgenerate/', (req, res) => {
+      getServerWithAuth(req, res, server => {
+        const opts: { coin?: string } = {};
+        if (req.query.coin) opts.coin = req.query.coin;
+        server.getMasternodeBlsGenerate(opts, (err, tx) => {
+          if (err) return returnError(err, res, req);
+          res.json(tx);
+        });
+      });
+    });
+
 
     // Set no-cache by default
     this.app.use((req, res, next) => {

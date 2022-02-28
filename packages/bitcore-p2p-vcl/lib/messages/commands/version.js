@@ -40,6 +40,9 @@ function VersionMessage(arg, options) {
   this.subversion = arg.subversion || '/bitcore:' + packageInfo.version + '/';
   this.startHeight = arg.startHeight || 0;
   this.relay = arg.relay === false ? false : true;
+
+  this.mnauthChallenge = arg.mnauthChallenge;
+  this.isMasternodeConnection = arg.isMasternodeConnection || 0;
 }
 inherits(VersionMessage, Message);
 
@@ -48,17 +51,19 @@ VersionMessage.prototype.setPayload = function(payload) {
   this.version = parser.readUInt32LE();
   this.services = parser.readUInt64LEBN();
   this.timestamp = new Date(parser.readUInt64LEBN().toNumber() * 1000);
-
+ 
   this.addrMe = {
     services: parser.readUInt64LEBN(),
     ip: utils.parseIP(parser),
     port: parser.readUInt16BE()
   };
+
   this.addrYou = {
     services: parser.readUInt64LEBN(),
     ip: utils.parseIP(parser),
     port: parser.readUInt16BE()
   };
+
   this.nonce = parser.read(8);
   this.subversion = parser.readVarLengthBuffer().toString();
   this.startHeight = parser.readUInt32LE();
@@ -68,6 +73,12 @@ VersionMessage.prototype.setPayload = function(payload) {
   } else {
     this.relay = !!parser.readUInt8();
   }
+  if(!parser.finished()){
+    this.mnauthChallenge = parser.read(32); 
+  }
+  if(!parser.finished()){
+    this.isMasternodeConnection = !! parser.readUInt8();
+  }  
   utils.checkFinished(parser);
 };
 

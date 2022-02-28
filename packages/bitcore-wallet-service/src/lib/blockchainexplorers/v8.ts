@@ -667,6 +667,23 @@ export class V8 {
       });
   }
 
+  // john 20220219
+  getMasternodeBlsGenerate(opts, cb) {
+    const url = this.baseUrl + '/masternode/blsgenerate';
+    this.request
+      .get(url, {})
+      .then(ret => {
+        try {
+          ret = JSON.parse(ret);
+          return cb(null, ret);
+        } catch (err) {
+          return cb(new Error('Could not get masternode blsgenerate from block explorer'));
+        }
+      })
+      .catch(cb);
+  }
+
+
   initSocket(callbacks) {
     logger.info('V8 connecting socket at:' + this.host);
     // sockets always use the first server on the pull
