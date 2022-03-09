@@ -6440,10 +6440,7 @@ export class WalletService {
     if (!bc) return cb(new Error('Could not get blockchain explorer instance'));
     bc.getMasternodeStatus(opts, (err, ret) => {
       if (err) return cb(err);
-      if (_.isArray(ret)) {
-        return cb(null, ret);
-      }
-      return cb(null, Masternodes.fromChain(ret));
+      return cb(null, ret);
     });
   }
 
