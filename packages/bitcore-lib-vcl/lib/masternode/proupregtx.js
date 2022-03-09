@@ -38,7 +38,7 @@ function ProUpRegTx(inputs, proTxHash, ownerPrivKey, masternodePubKey, voteAddr,
   this.voteAddr = voteAddr;
   this.payAddr = payAddr;
 
-  this.network = this.network;
+  this.network = network || NETWORK;
 }
 
 ProUpRegTx.prototype.get_proTxHash = function(writer) {

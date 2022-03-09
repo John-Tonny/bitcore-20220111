@@ -1,5 +1,5 @@
-import {forever} from 'async';
-import {BitcoreLibVcl, Transactions} from 'crypto-wallet-core';
+import { forever } from 'async';
+import { BitcoreLibVcl, Transactions } from 'crypto-wallet-core';
 import _ from 'lodash';
 import { ChainService } from '../chain/index';
 import logger from '../logger';
@@ -78,7 +78,7 @@ export interface ITxProposal {
   atomicswap?: any;
   atomicswapAddr?: string;
   atomicswapSecretHash?: string;
-  txExtends?: any;       // 20220219
+  txExtends?: any; // 20220219
 }
 
 export class TxProposal {
@@ -147,7 +147,7 @@ export class TxProposal {
   atomicswap?: any; // john 20210409
   atomicswapAddr?: string;
   atomicswapSecretHash?: string;
-  txExtends?: any;  // john 20220219
+  txExtends?: any; // john 20220219
 
   static create(opts) {
     opts = opts || {};
@@ -323,7 +323,7 @@ export class TxProposal {
     x.atomicswapAddr = obj.atomicswapAddr;
     x.atomicswapSecretHash = obj.atomicswapSecretHash;
 
-    x.txExtends = obj.txExtends// john 20220219
+    x.txExtends = obj.txExtends; // john 20220219
 
     return x;
   }
@@ -368,7 +368,7 @@ export class TxProposal {
     if (this.atomicswap && this.atomicswap.isAtomicSwap && this.atomicswap.redeem != undefined) {
       return t.uncheckedAtomicSwapSerialize();
     }
-    if(this.txExtends && this.txExtends.version && this.txExtends.outScripts){
+    if (this.txExtends && this.txExtends.version && this.txExtends.outScripts) {
       t.setVersion(this.txExtends.version);
       for (var i = 0; i < t.outputs.length; i++) {
         if (t.outputs[i]._satoshis == 0) {
@@ -383,7 +383,7 @@ export class TxProposal {
   // john
   getRawTx1() {
     const t = ChainService.getBitcoreTx(this);
-    if(this.txExtends && this.txExtends.version && this.txExtends.outScripts) {
+    if (this.txExtends && this.txExtends.version && this.txExtends.outScripts) {
       t.setVersion(this.txExtends.version);
       for (var i = 0; i < t.outputs.length; i++) {
         if (t.outputs[i]._satoshis == 0) {

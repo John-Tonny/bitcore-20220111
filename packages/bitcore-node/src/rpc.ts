@@ -118,12 +118,14 @@ export class RPC {
     }
     return ret;
   }
-  
-  // john 20220219
-  getMasternodeBlsGenerate(){
-    return  this.asyncCall<string>('bls_generate', []);
-  }
 
+  // john 20220219
+  getMasternodeBlsGenerate() {
+    return this.asyncCall<string>('bls_generate', []);
+  }
+  getMasternodeBlsSign(msgHash: string, masternodePrivateKey: string) {
+    return this.asyncCall<string>('bls_sign', [msgHash, masternodePrivateKey]);
+  }
 
   // john 20210409
   getRawTransaction(txid: string) {

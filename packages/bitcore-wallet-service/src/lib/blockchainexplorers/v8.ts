@@ -683,6 +683,33 @@ export class V8 {
       .catch(cb);
   }
 
+  getMasternodeBlsSign(opts, cb) {
+    var args = [];
+    if (typeof opts.msgHash !== 'undefined') {
+      args.push('msgHash=' + opts.msgHash);
+    }
+    if (typeof opts.masternodePrivateKey !== 'undefined') {
+      args.push('masternodePrivateKey=' + opts.masternodePrivateKey);
+      qs += '?msgHash=' + opts.msgHash;
+    }
+    var qs = '';
+    if (args.length > 0) {
+      qs = '?' + args.join('&');
+    }
+
+    const url = this.baseUrl + '/masternode/blssign/' + qs;
+    this.request
+      .get(url, {})
+      .then(ret => {
+        try {
+          ret = JSON.parse(ret);
+          return cb(null, ret);
+        } catch (err) {
+          return cb(new Error('Could not get masternode blssign from block explorer'));
+        }
+      })
+      .catch(cb);
+  }
 
   initSocket(callbacks) {
     logger.info('V8 connecting socket at:' + this.host);

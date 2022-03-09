@@ -37,8 +37,9 @@ function ProUpServiceTx(inputs, proTxHash, host, port, masternodePrivKey, payAdd
 
   this.masternodePrivKey = masternodePrivKey;
   this.payAddr = payAddr;
+  this.sig = undefined;
 
-  this.network = this.network;
+  this.network = network || NETWORK;
 }
 
 ProUpServiceTx.prototype.get_proTxHash = function(writer) {
@@ -113,13 +114,12 @@ ProUpServiceTx.prototype.get_signMessage = async function(writer, sigMode) {
     return writer;
   }
   
-  var privKey = Buffer.from(this.masternodePrivKey, 'hex');
-  var publicKey = bls12.getPublicKey(privKey);
+  var publicKey = bls12.getPublicKey(this.masternodePrivKey);
   var msgHash = this.get_message(writer);
   console.log("##########msg:", msgHash);
 
   try{
-    var signature = await bls12.sign(msgHash, privKey);
+    var signature = await bls12.sign(msgHash, this.masternodePrivKey);
   
     const isValid = bls12.verify(signature, msgHash, publicKey);
     if(!isValid){
@@ -149,6 +149,58 @@ ProUpServiceTx.prototype.getScript = async function(sigMode) {
   this.get_inputHash(writer);
 
   await this.get_signMessage(writer, sigMode);
+
+  var n = writer.toBuffer().length;
+  var writer1 = new BufferWriter();
+  writer1.writeUInt8(Opcode.OP_RETURN);
+  if (n < 253) {
+    writer1.writeUInt8(Opcode.OP_PUSHDATA1);
+    writer1.writeUInt8(n);
+  } else {
+    writer1.writeUInt8(Opcode.OP_PUSHDATA2);
+    writer1.writeUInt16LE(n);
+  }
+  writer1.write(writer.toBuffer(), n);
+  return writer1.toBuffer().toString('hex');
+}
+
+ProUpServiceTx.prototype.set_sig = function(sig) {
+  this.sig = sig.signature;
+  return this;
+}
+
+ProUpServiceTx.prototype.serialize = function(writer, bFull) {
+  if (!writer) {
+    writer = new BufferWriter();
+  }
+
+  writer.writeUInt16LE(this.version);
+  this.get_proTxHash(writer);
+  this.get_ip(writer);
+  this.get_address(writer, this.payAddr, true);
+  this.get_inputHash(writer);
+  if(this.sig && bFull){
+    writer.write(Buffer.from(this.sig, 'hex'), 96);
+  }
+
+  return writer.toBuffer().toString('hex');
+}
+
+ProUpServiceTx.prototype.getMessageHash = function() {
+  var writer = new BufferWriter();
+  var message = this.serialize(writer, false);
+
+  var msgHash = Hash.sha256sha256(Buffer.from(message, 'hex'));
+
+  var writer1 = new BufferWriter();
+  writer1.writeReverse(msgHash);
+
+  return writer1.toBuffer().toString('hex');
+}
+
+ProUpServiceTx.prototype.getScript1 = function() {
+  var writer = new BufferWriter();
+  var message = this.serialize(writer, true);
 
   var n = writer.toBuffer().length;
   var writer1 = new BufferWriter();

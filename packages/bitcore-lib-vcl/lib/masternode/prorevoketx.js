@@ -38,7 +38,9 @@ function ProRevokeTx(inputs, proTxHash, masternodePrivKey, reason, network) {
   this.masternodePrivKey = masternodePrivKey;
   this.reason = reason || 0;
 
-  this.network = this.network;
+  this.sig = undefined;
+
+  this.network = network || NETWORK;
 }
 
 ProRevokeTx.prototype.get_proTxHash = function(writer) {
@@ -109,6 +111,7 @@ ProRevokeTx.prototype.getScript = async function(sigMode) {
   writer.writeUInt16LE(this.version);
   this.get_proTxHash(writer);
   writer.writeUInt16LE(this.reason); 
+  this.get_inputHash(writer);
 
   this.get_signMessage(writer, sigMode);
 
@@ -125,6 +128,59 @@ ProRevokeTx.prototype.getScript = async function(sigMode) {
   writer1.write(writer.toBuffer(), n);
   return writer1.toBuffer().toString('hex');
 }
+
+ProRevokeTx.prototype.set_sig = function(sig) {
+  this.sig = sig.signature;
+  return this;
+}
+
+ProRevokeTx.prototype.serialize = function(writer, bFull) {
+  if (!writer) {
+    writer = new BufferWriter();
+  }
+
+  writer.writeUInt16LE(this.version);
+  this.get_proTxHash(writer);
+  writer.writeUInt16LE(this.reason);
+  this.get_inputHash(writer);
+
+  if(this.sig && bFull){
+    writer.write(Buffer.from(this.sig, 'hex'), 96);
+  }
+
+  return writer.toBuffer().toString('hex');
+}
+
+ProRevokeTx.prototype.getMessageHash = function() {
+  var writer = new BufferWriter();
+  var message = this.serialize(writer, false);
+
+  var msgHash = Hash.sha256sha256(Buffer.from(message, 'hex'));
+
+  var writer1 = new BufferWriter();
+  writer1.writeReverse(msgHash);
+
+  return writer1.toBuffer().toString('hex');
+}
+
+ProRevokeTx.prototype.getScript1 = function() {
+  var writer = new BufferWriter();
+  var message = this.serialize(writer, true);
+
+  var n = writer.toBuffer().length;
+  var writer1 = new BufferWriter();
+  writer1.writeUInt8(Opcode.OP_RETURN);
+  if (n < 253) {
+    writer1.writeUInt8(Opcode.OP_PUSHDATA1);
+    writer1.writeUInt8(n);
+  } else {
+    writer1.writeUInt8(Opcode.OP_PUSHDATA2);
+    writer1.writeUInt16LE(n);
+  }
+  writer1.write(writer.toBuffer(), n);
+  return writer1.toBuffer().toString('hex');
+}
+
 
 module.exports = ProRevokeTx;
 

@@ -21,12 +21,13 @@ router.get('/status', async (req, res) => {
     let infos = await ChainStateProvider.getMasternodeStatus({ chain, network, utxo });
     var infos_sort = _.sortBy(infos, function(item) {
       // john
-      return -item.lastseen;
+      return -item.lastpaidtime;
     });
     if (typeof txid !== 'undefined') {
       _.forEach(_.keys(infos), function(key) {
         if (key == txid) {
           ret = infos[key];
+          ret.txid = key;
           return;
         }
       });
@@ -74,7 +75,18 @@ router.post('/send', async function(req, res) {
 router.get('/blsgenerate', async (req, res) => {
   try {
     let { chain, network } = req.params;
-    let ret = await ChainStateProvider.getMasternodeBlsGenerate({chain, network});
+    let ret = await ChainStateProvider.getMasternodeBlsGenerate({ chain, network });
+    return res.send(ret);
+  } catch (err) {
+    return res.status(500).send(err);
+  }
+});
+
+router.get('/blssign', async (req, res) => {
+  try {
+    let { chain, network } = req.params;
+    let { msgHash, masternodePrivateKey } = req.query;
+    let ret = await ChainStateProvider.getMasternodeBlsSign({ chain, network, msgHash, masternodePrivateKey });
     return res.send(ret);
   } catch (err) {
     return res.status(500).send(err);

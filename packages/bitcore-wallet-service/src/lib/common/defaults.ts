@@ -293,6 +293,9 @@ module.exports = {
     vcl: 1 * 1e8 // 1 vcl john
   },
 
+  // john
+  MASTERNODE_STATUS_FETCH_INTERVAL: 5, // In minutes
+
   // ETH
   DEFAULT_GAS_LIMIT: 60000,
   DEFAULT_ERC20_GAS_LIMIT: 160000,

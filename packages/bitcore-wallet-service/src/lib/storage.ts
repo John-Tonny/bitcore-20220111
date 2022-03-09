@@ -1715,19 +1715,18 @@ export class Storage {
       },
       {
         $set: {
-          createdOn: masternode.createdOn,
+          updatedOn: Math.floor(Date.now() / 1000),
           address: masternode.address,
           payee: masternode.payee,
           status: masternode.status,
-          protocol: masternode.protocol,
-          daemonversion: masternode.daemonversion,
-          sentinelversion: masternode.sentinelversion,
-          sentinelstate: masternode.sentinelstate,
-          lastseen: masternode.lastseen,
-          activeseconds: masternode.activeseconds,
-          lastpaidtime: masternode.lastpaidtime,
-          lastpaidblock: masternode.lastpaidblock,
-          pingretries: masternode.pingretries
+          masternodePubKey: masternode.masternodePubKey,
+          proTxHash: masternode.proTxHash,
+          collateralBlock: masternode.collateralBlock,
+          lastpaidTime: masternode.lastpaidTime,
+          lastpaidBlock: masternode.lastpaidBlock,
+          ownerAddr: masternode.ownerAddr,
+          voteAddr: masternode.voteAddr,
+          collateralAddr: masternode.collateralAddr,
         }
       },
       {
@@ -1778,28 +1777,28 @@ export class Storage {
 
     if (txid) {
       this.db.collection(collections.MASTERNODES).findOne(
-          {
-            txid,
-            walletId
-          },
-          (err, result) => {
-            if (err) return cb(err);
-            if (!result) return cb();
-            return cb(null, Masternodes.fromObj(result));
-          }
+        {
+          txid,
+          walletId
+        },
+        (err, result) => {
+          if (err) return cb(err);
+          if (!result) return cb();
+          return cb(null, Masternodes.fromObj(result));
+        }
       );
-    }else if (proTxHash) {
-        this.db.collection(collections.MASTERNODES).findOne(
-            {
-              proTxHash,
-              walletId
-            },
-            (err, result) => {
-              if (err) return cb(err);
-              if (!result) return cb();
-              return cb(null, Masternodes.fromObj(result));
-            }
-        );
+    } else if (proTxHash) {
+      this.db.collection(collections.MASTERNODES).findOne(
+        {
+          proTxHash,
+          walletId
+        },
+        (err, result) => {
+          if (err) return cb(err);
+          if (!result) return cb();
+          return cb(null, Masternodes.fromObj(result));
+        }
+      );
     } else {
       this.db
         .collection(collections.MASTERNODES)

@@ -1689,20 +1689,33 @@ export class ExpressApp {
         });
       });
     });
-    
+
     // john 20220219
     router.get('/v1/masternode/blsgenerate/', (req, res) => {
       getServerWithAuth(req, res, server => {
         const opts: { coin?: string } = {};
         if (req.query.coin) opts.coin = req.query.coin;
-        server.getMasternodeBlsGenerate(opts, (err, tx) => {
+        server.getMasternodeBlsGenerate(opts, (err, ret) => {
           if (err) return returnError(err, res, req);
-          res.json(tx);
+          res.json(ret);
         });
       });
     });
 
+    router.get('/v1/masternode/blssign/', (req, res) => {
+      getServerWithAuth(req, res, server => {
+        const opts: { coin?: string; msgHash?: string; masternodePrivateKey?: string } = {};
+        if (req.query.coin) opts.coin = req.query.coin;
+        if (req.query.msgHash) opts.msgHash = req.query.msgHash;
+        if (req.query.masternodePrivateKey) opts.masternodePrivateKey = req.query.masternodePrivateKey;
+        server.getMasternodeBlsSign(opts, (err, ret) => {
+          if (err) return returnError(err, res, req);
+          res.json(ret);
+        });
+      });
+    });
 
+    // Set no-cache by default
     // Set no-cache by default
     this.app.use((req, res, next) => {
       res.setHeader('Cache-Control', 'no-store');

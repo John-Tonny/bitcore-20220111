@@ -499,8 +499,11 @@ export class InternalStateProvider implements IChainStateService {
   }
 
   // john 20220219
-  async getMasternodeBlsGenerate({chain , network}) {
+  async getMasternodeBlsGenerate({ chain, network }) {
     return await this.getRPC(chain, network).getMasternodeBlsGenerate();
+  }
+  async getMasternodeBlsSign({ chain, network, msgHash, masternodePrivateKey }) {
+    return await this.getRPC(chain, network).getMasternodeBlsSign(msgHash, masternodePrivateKey);
   }
 
   // john 20210409

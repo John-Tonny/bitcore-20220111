@@ -213,10 +213,10 @@ export class Verifier {
           t.nLockTime = txp.atomicswap.lockTime;
         }
       }
-      if(txp.txExtends && txp.txExtends.version && txp.txExtends.outScripts){
-	t.setVersion(txp.txExtends.version);
-        for(var i=0; i< t.outputs.length; i++){
-          if(t.outputs[i]._satoshis == 0){
+      if (txp.txExtends && txp.txExtends.version && txp.txExtends.outScripts) {
+        t.setVersion(txp.txExtends.version);
+        for (var i = 0; i < t.outputs.length; i++) {
+          if (t.outputs[i]._satoshis == 0) {
             t.outputs[i].setScript(txp.txExtends.outScripts);
             break;
           }

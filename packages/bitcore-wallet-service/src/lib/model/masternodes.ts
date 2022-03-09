@@ -4,6 +4,7 @@ const Uuid = require('uuid');
 
 export interface IMasternode {
   createdOn: number;
+  updatedOn: number;
   walletId: string;
   txid: string;
   masternodePrivKey: string;
@@ -14,18 +15,19 @@ export interface IMasternode {
   payee: string;
   status: string;
   proTxHash: string;
-  collateralblock: number;
-  lastpaidtime: number;
-  lastpaidblock: number;
-  owneraddress: string;
-  votingaddress: string;
-  collateraladdress: string;
-  payaddress: string;
+  collateralBlock: number;
+  lastpaidTime: number;
+  lastpaidBlock: number;
+  ownerAddr: string;
+  voteAddr: string;
+  collateralAddr: string;
+  payAddr: string;
   reward: number;
 }
 
 export class Masternodes {
   createdOn: number;
+  updatedOn: number;
   walletId: string;
   txid: string;
   masternodePrivKey: string;
@@ -36,12 +38,13 @@ export class Masternodes {
   payee: string;
   status: string;
   proTxHash?: string;
-  collateralblock?: number;
-  lastpaidtime?: number;
-  lastpaidblock?: number;
-  owneraddress: string;
-  votingaddress: string;
-  collateraladdress?: string;
+  collateralBlock?: number;
+  lastpaidTime?: number;
+  lastpaidBlock?: number;
+  ownerAddr: string;
+  voteAddr: string;
+  collateralAddr?: string;
+  payAddr?: string;
   reward: number;
 
   static create(opts) {
@@ -51,6 +54,7 @@ export class Masternodes {
 
     const now = Date.now();
     x.createdOn = Math.floor(now / 1000);
+    x.updatedOn = Math.floor(now / 1000);
     x.walletId = opts.walletId;
     x.txid = opts.txid;
     x.address = opts.address;
@@ -61,12 +65,12 @@ export class Masternodes {
     x.payee = opts.payee;
     x.status = opts.status;
     x.proTxHash = opts.proTxHash;
-    x.collateralblock = opts.collateralblock;
-    x.lastpaidtime = opts.lastpaidtime;
-    x.lastpaidblock = opts.lastpaidblock;
-    x.owneraddress = opts.owneraddress;
-    x.votingaddress = opts.votingaddress;
-    x.collateraladdress = opts.collateraladdress;
+    x.collateralBlock = opts.collateralBlock;
+    x.lastpaidTime = opts.lastpaidTime;
+    x.lastpaidBlock = opts.lastpaidBlock;
+    x.ownerAddr = opts.ownerAddr;
+    x.voteAddr = opts.voteAddr;
+    x.collateralAddr = opts.collateralAddr;
     x.reward = opts.reward;
     return x;
   }
@@ -75,6 +79,7 @@ export class Masternodes {
     const x = new Masternodes();
 
     x.createdOn = obj.createdOn;
+    x.updatedOn = obj.updatedOn;
     x.walletId = obj.walletId;
     x.txid = obj.txid;
     x.masternodePrivKey = obj.masternodePrivKey;
@@ -85,13 +90,31 @@ export class Masternodes {
     x.payee = obj.payee;
     x.status = obj.status;
     x.proTxHash = obj.proTxHash;
-    x.collateralblock = obj.collateralblock;
-    x.lastpaidtime = obj.lastpaidtime;
-    x.lastpaidblock = obj.lastpaidblock;
-    x.owneraddress = obj.owneraddress;
-    x.votingaddress =  obj.votingaddress;
-    x.collateraladdress = obj.collateraladdress;
+    x.collateralBlock = obj.collateralBlock;
+    x.lastpaidTime = obj.lastpaidTime;
+    x.lastpaidBlock = obj.lastpaidBlock;
+    x.ownerAddr = obj.ownerAddr;
+    x.voteAddr = obj.voteAddr;
+    x.collateralAddr = obj.collateralAddr;
+    x.payAddr = obj.payAddr;
     x.reward = obj.reward;
+    return x;
+  }
+
+  static fromChain(obj) {
+    const x = new Masternodes();
+    x.txid = obj.txid;
+    x.masternodePubKey = obj.pubkeyoperator;
+    x.address = obj.address;
+    x.payee = obj.payee;
+    x.status = obj.status;
+    x.proTxHash = obj.proTxHash;
+    x.collateralBlock = obj.collateralblock;
+    x.lastpaidTime = obj.lastpaidtime;
+    x.lastpaidBlock = obj.lastpaidblock;
+    x.ownerAddr = obj.owneraddress;
+    x.voteAddr = obj.votingaddress;
+    x.collateralAddr = obj.collateraladdress;
     return x;
   }
 }

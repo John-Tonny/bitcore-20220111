@@ -201,13 +201,7 @@ export class Client {
     });
   }
 
-  // john 20220219
-  async getMasternodeBlsGenerate() {
-    const url = `${this.baseUrl}/masternode/blsgenerate`;
-    console.log('GET MASTERNODE BLSGENERATE:', url);
-    return request.get(url, {
-      json: true
-    });
-  }
+
 
 }
+

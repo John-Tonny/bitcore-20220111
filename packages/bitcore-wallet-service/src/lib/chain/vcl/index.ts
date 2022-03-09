@@ -368,11 +368,11 @@ export class VclChain implements IChain {
       outputsSize = this.getEstimatedSizeForSingleOutput();
     }
 
-    if(txp.txExtends && txp.txExtends.version){
-        outputsSize += 300;
+    if (txp.txExtends && txp.txExtends.version) {
+      outputsSize += 300;
     }
 
-    const size = overhead + inputSize * nbInputs + outputsSize + Defaults.DATA_OUTPUT_LEN ; // john 20210606
+    const size = overhead + inputSize * nbInputs + outputsSize + Defaults.DATA_OUTPUT_LEN; // john 20210606
     return parseInt((size * (1 + this.feeSafetyMargin)).toFixed(0));
   }
 
@@ -473,10 +473,10 @@ export class VclChain implements IChain {
       }
     }
 
-    if(txp.txExtends && txp.txExtends.version && txp.txExtends.outScripts){
+    if (txp.txExtends && txp.txExtends.version && txp.txExtends.outScripts) {
       t.setVersion(txp.txExtends.version);
-      for(var i=0;i<t.outputs.length;i++){
-        if(t.outputs[i]._satoshis == 0){
+      for (var i = 0; i < t.outputs.length; i++) {
+        if (t.outputs[i]._satoshis == 0) {
           t.outputs[i].setScript(txp.txExtends.outScripts);
         }
       }
@@ -528,7 +528,7 @@ export class VclChain implements IChain {
 
     // john 20220219
     var disableDustOutput = false;
-    if(txp.txExtends){
+    if (txp.txExtends) {
       disableDustOutput = true;
     }
     const serializationOpts = {

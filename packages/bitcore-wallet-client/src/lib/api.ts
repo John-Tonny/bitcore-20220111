@@ -1,6 +1,5 @@
 'use strict';
 
-
 import * as CWC from 'crypto-wallet-core';
 import { EventEmitter } from 'events';
 import _ from 'lodash';
@@ -13,7 +12,6 @@ import { PayPro } from './paypro';
 import { PayProV2 } from './payproV2';
 import { Request } from './request';
 import { Verifier } from './verifier';
-
 
 var $ = require('preconditions').singleton();
 var util = require('util');
@@ -1498,9 +1496,9 @@ export class API extends EventEmitter {
       ) {
         return cb(new Errors.SERVER_COMPROMISED());
       }
-      await this._getTxProReg(txp, additionOpts);
-      
-      return cb(null, txp); 
+      await this._getTxProReg(txp, additionOpts, cb);
+
+      return cb(null, txp);
     } catch (error) {
       return cb(error);
     }
@@ -1849,12 +1847,24 @@ export class API extends EventEmitter {
         t.nLockTime = opts.txp.atomicswap.lockTime;
       }
     }
-    if(opts.txp.txExtends && opts.txp.txExtends.version && opts.txp.txExtends.outScripts){
+    if (
+      opts.txp.txExtends &&
+      opts.txp.txExtends.version &&
+      !opts.txp.txExtends.outScripts
+    ) {
+      return cb(new Error('txExtens.outScript is required'));
+    }    
+
+    if (
+      opts.txp.txExtends &&
+      opts.txp.txExtends.version &&
+      opts.txp.txExtends.outScripts
+    ) {
       t.setVersion(opts.txp.txExtends.version);
-      for(var i=0; i< t.outputs.length; i++){
-	if(t.outputs[i]._satoshis == 0){
+      for (var i = 0; i < t.outputs.length; i++) {
+        if (t.outputs[i]._satoshis == 0) {
           t.outputs[i].setScript(opts.txp.txExtends.outScripts);
-	  break;
+          break;
         }
       }
     }
@@ -1864,11 +1874,15 @@ export class API extends EventEmitter {
     } else {
       hash = t.uncheckedSerialize();
     }
-    
+
     // john 20220219
     let outScripts;
-    if(opts.txp.txExtends && opts.txp.txExtends.version && opts.txp.txExtends.outScripts){
-      outScripts  = opts.txp.txExtends.outScripts;
+    if (
+      opts.txp.txExtends &&
+      opts.txp.txExtends.version &&
+      opts.txp.txExtends.outScripts
+    ) {
+      outScripts = opts.txp.txExtends.outScripts;
     }
     var args = {
       proposalSignature: Utils.signMessage(
@@ -1877,7 +1891,6 @@ export class API extends EventEmitter {
       ),
       outScripts
     };
-    
 
     var url = '/v2/txproposals/' + opts.txp.id + '/publish/';
     this.request.post(url, args, (err, txp) => {
@@ -3993,7 +4006,7 @@ export class API extends EventEmitter {
       cb = opts;
       opts = {};
       log.warn(
-        'DEPRECATED WARN: getMasternodeStatus should receive 2 parameters.'
+        'DEPRECATED WARN: getMasternodeBlsGenerate should receive 2 parameters.'
       );
     }
 
@@ -4020,6 +4033,42 @@ export class API extends EventEmitter {
     this.request.get(url, cb);
   }
 
+  async getMasternodeBlsSign(opts) {
+    opts = opts || {};
+
+    $.checkState(this.credentials && this.credentials.isComplete());
+
+    var args = [];
+    if (opts.coin) {
+      if (!_.includes(Constants.COINS, opts.coin))
+        throw new Error('Invalid coin');
+      if (opts.coin != 'vcl') {
+        throw new Error('coin is not supported');
+      }
+      args.push('coin=' + opts.coin);
+    }
+
+    if (!opts.msgHash) throw new Error('Not msgHash');
+    if (!opts.masternodePrivateKey) throw new Error('Not masternodePrivateKey');
+
+    if (!JSUtil.isHexa(opts.msgHash) || opts.msgHash.length != 64) {
+      throw new Error('msgHash must be hex string');
+    }
+
+    if (!JSUtil.isHexa(opts.masternodePrivateKey) || opts.masternodePrivateKey.length != 64) {
+      throw new Error('masternodePrivateKey must be hex string');
+    }
+    args.push('msgHash=' + opts.msgHash);
+    args.push('masternodePrivateKey=' + opts.masternodePrivateKey);
+
+    var qs = '';
+    if (args.length > 0) {
+      qs = '?' + args.join('&');
+    }
+
+    var url = '/v1/masternode/blssign/' + qs;
+    return await this._getRequest(url);
+  }
 
   isValidAddress(opts, cb) {
     if (!cb) {
@@ -4099,6 +4148,12 @@ export class API extends EventEmitter {
   }
 
   createReward(opts, cb) {
+    $.checkArgument(_.isObject(opts), 'Argument should be an object');
+    $.checkArgument(opts.key, 'Invalid key');
+
+    const key = opts.key;
+    delete opts.key;
+
     async.waterfall(
       [
         next => {
@@ -4114,7 +4169,8 @@ export class API extends EventEmitter {
             return next(new Error('wallet no complete!'), walletStatus);
           }
           this.createTxProposal(
-            opts, function(err, createTxp){
+            opts,
+            function (err, createTxp) {
               if (err) {
                 return next(new Error('create TxProposal error!'), err);
               }
@@ -4133,7 +4189,7 @@ export class API extends EventEmitter {
           });
         },
         (publishTxp, next) => {
-          let signatures = opts.key.sign(this.getRootPath(), publishTxp);
+          let signatures = key.sign(this.getRootPath(), publishTxp);
           this.pushSignatures(
             publishTxp,
             signatures,
@@ -4186,13 +4242,13 @@ export class API extends EventEmitter {
   // */
   initAtomicSwap(initate, opts) {
     $.checkArgument(_.isObject(opts), 'Argument should be an object');
-    $.checkArgument(opts.address, 'no address not supported');
-    $.checkArgument(opts.amount, 'no amount not supported');
+    $.checkArgument(opts.address, 'Invalid address');
+    $.checkArgument(opts.amount, 'Invalid amount');
 
     let secret;
     let secretHash = opts.secretHash;
     if (!initate) {
-      $.checkArgument(opts.secretHash, 'no secretHash not supported');
+      $.checkArgument(opts.secretHash, 'Invalid secretHash');
       if (JSUtil.isHexa(secretHash)) {
         if (secretHash.length != 64) {
           throw new Error('The length at secretHash must be 64');
@@ -4247,8 +4303,8 @@ export class API extends EventEmitter {
   // */
   refundAtomicSwap(opts) {
     $.checkArgument(_.isObject(opts), 'Argument should be an object');
-    $.checkArgument(opts.address, 'no address not supported');
-    $.checkArgument(opts.contract, 'no contract not supported');
+    $.checkArgument(opts.address, 'Invalid address');
+    $.checkArgument(opts.contract, 'Invalid contract');
 
     var coin = opts.coin || 'vcl';
     if (coin != 'vcl') throw new Error('Invalid coin');
@@ -4284,9 +4340,9 @@ export class API extends EventEmitter {
   // */
   redeemAtomicSwap(opts) {
     $.checkArgument(_.isObject(opts), 'Argument should be an object');
-    $.checkArgument(opts.address, 'no address not supported');
-    $.checkArgument(opts.contract, 'no contract not supported');
-    $.checkArgument(opts.secret, 'no secret not supported');
+    $.checkArgument(opts.address, 'Invalid address');
+    $.checkArgument(opts.contract, 'Invalid contract');
+    $.checkArgument(opts.secret, 'Invalid secret');
 
     var coin = opts.coin || 'vcl';
     if (coin != 'vcl') throw new Error('Invalid coin');
@@ -4320,7 +4376,7 @@ export class API extends EventEmitter {
   // */
   getAtomicswapInfo(opts, cb) {
     $.checkArgument(_.isObject(opts), 'Argument should be an object');
-    $.checkArgument(opts.txid, 'no txid not supported');
+    $.checkArgument(opts.txid, 'Invalid txid');
     if (!cb) {
       cb = opts;
       opts = {};
@@ -4383,87 +4439,470 @@ export class API extends EventEmitter {
   }
 
   proRegTx(opts, cb) {
+    $.checkArgument(_.isObject(opts), 'Argument should be an object');
+    $.checkArgument(_.isObject(opts.key), 'key Argument should be an object');
+    $.checkArgument(_.isObject(opts.collateral), 'collateral Argument should be an object');
+    $.checkArgument(opts.key, 'Invalid key');
+    $.checkArgument(opts.collateral.txid, 'Invalid collateral.txid');
+    if (opts.collateral.vout == undefined) {
+      return cb(new Error('Invalid collateral.vout'));
+    }
+    const key = opts.key;
+    delete opts.key;
     async.waterfall(
       [
         next => {
-          this.getMasternodeBlsGenerate(opts, (err, bls) => {
+          if(opts.masternodePrivKey && opts.masternodePubKey) return next();
+          this.getMasternodeBlsGenerate({}, (err, bls) => {
             if (err) {
               return next(new Error('masternode bls generate error!'), err);
             }
-            return next(null, bls);
+            if (bls.secret && bls.secret.length != 64) {
+              return next(new Error('bls secret error!'), bls);
+            }
+            if (bls.public && bls.public.length != 96) {
+              return next(new Error('bls public error!'), bls);
+            }
+            opts.masternodePrivKey = bls.secret;
+            opts.masternodePubKey = bls.public;
+            next();
           });
         },
-        (bls, next) => {
-          if (bls.secret && bls.secret.length != 64) {
-            return next(new Error('bls secret error!'), bls);
-          }
-          if (bls.public && bls.public.length != 96) {
-            return next(new Error('bls public error!'), bls);
-          }
-
-          this.createAddress(
-            opts,
-            function (err, ownerAddr) {
-              if (err) {
-                return next(new Error('create address error!'), err);
+        next => {
+          if(opts.ownerAddr){
+            this.getMainAddresses({address: opts.ownerAddr}, function (err, ownerAddr) {
+              if (err || ownerAddr.length == 0) {
+                return next(new Error('get main address error! ' + err));
               }
-              return next(null, bls, ownerAddr);
+              next();
+            });
+          }else{
+            this.createAddress({ignoreMaxGap: true}, function (err, ownerAddr) {
+              if (err) {
+                return next(new Error('create owner address error! '+ err));
+              }
+              opts.ownerAddr = ownerAddr.address;
+              next();
+            });
+          }
+        },
+        next => {
+          if(opts.voteAddr){
+            this.getMainAddresses({address: opts.voteAddr}, function (err, voteAddr) {
+              if (err || voteAddr.length == 0) {
+                return next(new Error('get vote address error!' + err));
+              }
+              next();
+            });
+          }else{
+            opts.voteAddr = opts.ownerAddr;
+            next();
+          }
+        },
+        next => {
+          if(opts.payAddr){
+            this.getMainAddresses({address: opts.payAddr}, function (err, payAddr) {
+              if (err || payAddr.length == 0) {
+                return next(new Error('get pay address error! ' + err));
+              }
+              next();
+            });
+          }else{
+            this.createAddress({ignoreMaxGap: true}, function (err, payAddr) {
+              if (err) {
+                return next(new Error('create pay address error! ' + err));
+              }
+              opts.payAddr = payAddr.address;
+              next();
+            });
+          }
+        },
+        next => {
+          this.createAddress({ignoreMaxGap: true, isChange: true}, function (err, toAddr) {
+            if (err) {
+              return next(new Error('create toaddress error! ' + err));
+            }
+            delete opts.outputs;
+	    opts.outputs = [{
+                    toAddress: toAddr.address,
+                    amount: 0
+            }];
+            next();
+          });
+        },
+        next => {
+          var path = '';
+          if(opts.collateral && opts.collateral.address && opts.collateral.path){
+            var collateralPrivKey = key.getPrivateKeyofWif('', this.getRootPath(), opts.collateral.path);
+            opts.collateral.privKey = collateralPrivKey;
+	    next();
+          }else{
+            this.getMainAddresses({address: opts.collateral.address}, function (err, collateralAddr) {
+              if (err || collateralAddr.length == 0) {
+                return next(new Error('get collateral address error! ' + err));
+              }
+              opts.collateral.privKey = key.getPrivateKeyofWif('', this.getRootPath(), collateralAddr.path);
+              next();
+            });
+          }
+        },
+        next => {  
+          this.createTxProReg(
+            opts,
+            function (err, createTxp) {
+              if (err) {
+                return next(new Error('create TxProposal error! ' + err));
+              }
+              return next(null, createTxp);
             },
+            ''
           );
         },
-        (bls, ownerAddr, next) => {
-          this.createAddress(
-            opts,
-            function (err, voteAddr) {
+        (createTxp, next) => {
+          this.publishTxProposal({ txp: createTxp }, (err, publishTxp) => {
+            if (err) {
+              return next(new Error('publish TxProposal error!' + err));
+            }
+            return next(null, publishTxp);
+          });
+        },
+        (publishTxp, next) => {
+          let signatures = opts.key.sign(this.getRootPath(), publishTxp);
+          this.pushSignatures(
+            publishTxp,
+            signatures,
+            function (err, rawHex, paypro) {
               if (err) {
-                return next(new Error('create address error!'), err);
+                return next(new Error('push Signatures error! ' + err));
               }
-              return next(null, bls, ownerAddr, voteAddr);
+              return next(null, rawHex);
             },
+            ''
           );
         },
-        (bls, ownerAddr, voteAddr, next) => {
-          this.createAddress(
-            opts,
-            function (err, payAddr) {
-              if (err) {
-                return next(new Error('create address error!'), err);
-              }
-              return next(null, bls, ownerAddr, voteAddr, payAddr);
-            },
-	  );
-	},
-        (bls, ownerAddr, voteAddr, payAddr, next) => {
-          this.createAddress(
-            opts,
-            function (err, payAddr) {
-              if (err) {
-                return next(new Error('create address error!'), err);
-              }
-              return next(null, bls, ownerAddr, voteAddr, payAddr);
-            },
-	  );
-	},
-
+        (rawHex, next) => {
+          this.broadcastTxProposal(rawHex, (err, zz, memo) => {
+            if (err) {
+              return next(new Error('broadcast TxProposal error! ' + err));
+            }
+            return cb(null, zz.txid);
+          });
+        }
       ],
-      function (err, errMsg) {
-        cb(errMsg, null);
+      function (err, bls, ownerAddr, voteAddr, payAddr) {
+        if(err) cb(err);
+
       }
-    )
+    );
   }
+
+  proUpRegTx(opts, cb) {
+    $.checkArgument(_.isObject(opts), 'Argument should be an object');
+    $.checkArgument(_.isObject(opts.key), 'key Argument should be an object');
+    $.checkArgument(_.isObject(opts.masternode), 'masternode Argument should be an object');
+    $.checkArgument(opts.masternode.proTxHash, 'Invalid masternode.proTxHash');
+    $.checkArgument(opts.masternode.masternodePrivKey, 'Invalid masternode.masternodePrivKey');
+    $.checkArgument(opts.masternode.ownerAddr, 'Invalid masternode.ownerAddr');
+
+    if (
+      !JSUtil.isHexa(opts.masternode.masternodePrivKey) &&
+      opts.masternodePrivKey.length != 64
+    ) {
+      return cb(new Error('Invalid masternode.masternodePrivKey'));
+    }
+
+    if (!JSUtil.isHexa(opts.masternode.proTxHash) || opts.masternode.proTxHash.length != 64) {
+      return cb(new Error('Invalid masternode.proTxHash'));
+    }
+
+    const key = opts.key;
+    delete opts.key; 
+    async.waterfall(
+      [
+        next => {
+          if(!opts.masternode.voteAddr) return next();
+          this.getMainAddresses({address: opts.masternode.voteAddr}, function (err, voteAddr) {
+            if (err || voteAddr.length == 0) {
+              return next(new Error('get vote address error!' + err));
+            }
+            next();
+          });
+        },
+        next => {
+          if(!opts.masternode.payAddr) return next();
+          this.getMainAddresses({address: opts.masternode.payAddr}, function (err, payAddr) {
+            if (err || payAddr.length == 0) {
+              return next(new Error('get pay address error! ' + err));
+            }
+            next();
+          });
+        },
+        next => {
+          this.createAddress({ignoreMaxGap: true, isChange: true}, function (err, toAddr) {
+            if (err) {
+              return next(new Error('create toaddress error! ' + err));
+            }
+            delete opts.outputs;
+            opts.outputs = [{
+                    toAddress: toAddr.address,
+                    amount: 0
+            }];
+            next();
+          });
+        },
+        next => {
+          this.getMainAddresses({address: opts.masternode.ownerAddr}, function (err, ownerAddr) {
+            if (err || ownerAddr.length == 0) {
+              return next(new Error('get owner address error! ' + err));
+            }
+            next(null, ownerAddr[0]);
+          });
+        },
+        (ownerAddr, next) => {
+          opts.masternode.ownerPrivKey = opts.key.getPrivateKeyofWif('', this.getRootPath(), ownerAddr.path);
+          this.createTxProUpReg(
+            opts,
+            function (err, createTxp) {
+              if (err) {
+                return next(new Error('create TxProposal error! ' + err));
+              }
+              return next(null, createTxp);
+            },
+            ''
+          );
+        },
+        (createTxp, next) => {
+          this.publishTxProposal({ txp: createTxp }, (err, publishTxp) => {
+            if (err) {
+              return next(new Error('publish TxProposal error!' + err));
+            }
+            return next(null, publishTxp);
+          });
+        },
+        (publishTxp, next) => {
+          let signatures = opts.key.sign(this.getRootPath(), publishTxp);
+          this.pushSignatures(
+            publishTxp,
+            signatures,
+            function (err, rawHex, paypro) {
+              if (err) {
+                return next(new Error('push Signatures error! ' + err));
+              }
+              return next(null, rawHex);
+            },
+            ''
+          );
+        },
+        (rawHex, next) => {
+          this.broadcastTxProposal(rawHex, (err, zz, memo) => {
+            if (err) {
+              return next(new Error('broadcast TxProposal error! ' + err));
+            }
+            return cb(null, zz.txid);
+          });
+        }
+      ],
+      function (err, bls, ownerAddr, voteAddr, payAddr) {
+        if(err) cb(err);
+
+      }
+    );
+  }
+
+  proUpServiceTx(opts, cb) {
+    $.checkArgument(_.isObject(opts), 'Argument should be an object');
+    $.checkArgument(_.isObject(opts.key), 'key Argument should be an object');
+    $.checkArgument(_.isObject(opts.masternode), 'masternode Argument should be an object');
+    $.checkArgument(opts.masternode.proTxHash, 'Invalid masternode.proTxHash');
+    $.checkArgument(opts.masternode.masternodePrivKey, 'Invalid masternode.masternodePrivKey');
+    $.checkArgument(opts.host, 'Invalid host');
+    $.checkArgument(opts.port, 'Invalid port');
+
+    if (
+      !JSUtil.isHexa(opts.masternode.masternodePrivKey) &&
+      opts.masternodePrivKey.length != 64
+    ) {
+      return cb(new Error('Invalid masternode.masternodePrivKey'));
+    }
+
+    if (!JSUtil.isHexa(opts.masternode.proTxHash) || opts.masternode.proTxHash.length != 64) {
+      return cb(new Error('Invalid masternode.proTxHash'));
+    }
+ 
+    const key = opts.key;
+    delete opts.key;
+ 
+    async.waterfall(
+      [
+        next => {
+          this.createAddress({ignoreMaxGap: true, isChange: true}, function (err, toAddr) {
+            if (err) {
+              return next(new Error('create toaddress error! ' + err));
+            }
+            delete opts.outputs;
+            opts.outputs = [{
+                    toAddress: toAddr.address,
+                    amount: 0
+            }];
+            next();
+          });
+        },
+        next => {
+          this.createTxProUpService(
+            opts,
+            function (err, createTxp) {
+              if (err) {
+                return next(new Error('create TxProposal error! ' + err));
+              }
+              return next(null, createTxp);
+            },
+            ''
+          );
+        },
+        (createTxp, next) => {
+          this.publishTxProposal({ txp: createTxp }, (err, publishTxp) => {
+            if (err) {
+              return next(new Error('publish TxProposal error!' + err));
+            }
+            return next(null, publishTxp);
+          });
+        },
+        (publishTxp, next) => {
+          let signatures = opts.key.sign(this.getRootPath(), publishTxp);
+          this.pushSignatures(
+            publishTxp,
+            signatures,
+            function (err, rawHex, paypro) {
+              if (err) {
+                return next(new Error('push Signatures error! ' + err));
+              }
+              return next(null, rawHex);
+            },
+            ''
+          );
+        },
+        (rawHex, next) => {
+          this.broadcastTxProposal(rawHex, (err, zz, memo) => {
+            if (err) {
+              return next(new Error('broadcast TxProposal error! ' + err));
+            }
+            return cb(null, zz.txid);
+          });
+        }
+      ],
+      function (err, bls, ownerAddr, voteAddr, payAddr) {
+        if(err) cb(err);
+
+      }
+    );
+  }
+
+  proUpRevokeTx(opts, cb) {
+    $.checkArgument(_.isObject(opts), 'Argument should be an object');
+    $.checkArgument(_.isObject(opts.keys), 'key Argument should be an object');
+    $.checkArgument(_.isObject(opts.masternode), 'masternode Argument should be an object');
+    $.checkArgument(opts.masternode.proTxHash, 'Invalid masternode.proTxHash');
+    $.checkArgument(opts.masternode.masternodePrivKey, 'Invalid masternode.masternodePrivKey');
+
+    if (
+      !JSUtil.isHexa(opts.masternode.masternodePrivKey) &&
+      opts.masternodePrivKey.length != 64
+    ) {
+      return cb(new Error('Invalid masternode.masternodePrivKey'));
+    }
+
+    if (!JSUtil.isHexa(opts.masternode.proTxHash) || opts.masternode.proTxHash.length != 64) {
+      return cb(new Error('Invalid masternode.proTxHash'));
+    }
+
+    const key = opts.key;
+    delete opts.key;
+
+    async.waterfall(
+      [
+        next => {
+          this.createAddress({ignoreMaxGap: true, isChange: true}, function (err, toAddr) {
+            if (err) {
+              return next(new Error('create toaddress error! ' + err));
+            }
+            delete opts.outputs;
+            opts.outputs = [{
+                    toAddress: toAddr.address,
+                    amount: 0
+            }];
+            next();
+          });
+        },
+        next => {
+          this.createTxProUpRevoke(
+            opts,
+            function (err, createTxp) {
+              if (err) {
+                return next(new Error('create TxProposal error! ' + err));
+              }
+              return next(null, createTxp);
+            },
+            ''
+          );
+        },
+        (createTxp, next) => {
+          this.publishTxProposal({ txp: createTxp }, (err, publishTxp) => {
+            if (err) {
+              return next(new Error('publish TxProposal error!' + err));
+            }
+            return next(null, publishTxp);
+          });
+        },
+        (publishTxp, next) => {
+          let signatures = opts.key.sign(this.getRootPath(), publishTxp);
+          this.pushSignatures(
+            publishTxp,
+            signatures,
+            function (err, rawHex, paypro) {
+              if (err) {
+                return next(new Error('push Signatures error! ' + err));
+              }
+              return next(null, rawHex);
+            },
+            ''
+          );
+        },
+        (rawHex, next) => {
+          this.broadcastTxProposal(rawHex, (err, zz, memo) => {
+            if (err) {
+              return next(new Error('broadcast TxProposal error! ' + err));
+            }
+            return cb(null, zz.txid);
+          });
+        }
+      ],
+      function (err, bls, ownerAddr, voteAddr, payAddr) {
+        if(err) cb(err);
+
+      }
+    );
+  }
+
 
   async createTxProReg(opts, cb, baseUrl) {
     $.checkArgument(_.isObject(opts), 'Argument should be an object');
-    $.checkArgument(opts.masternodePrivKey, 'no masernodePrivKey not supported');
-    $.checkArgument(opts.masternodePubKey, 'no masernodePubKey not supported');
-    $.checkArgument(opts.collateralId, 'no collateralId not supported');
-    $.checkArgument(opts.collateralPrivKey, 'no collateralPrivKey not supported');
-    $.checkArgument(opts.host, 'no host not supported');
-    $.checkArgument(opts.port, 'no port not supported');
-    $.checkArgument(opts.payAddr, 'no payAddr not supported');
-    if(opts.collateralIndex == undefined){
-      return cb(new Error('no collateralIndex not supported'));
-    }        
+    $.checkArgument(_.isObject(opts.collateral), 'collateral Argument should be an object');
+    $.checkArgument(opts.collateral.txid, 'Invalid collateral.txid');
+    if (opts.collateral.vout == undefined) {
+      return cb(new Error('Invalid collateral.vout'));
+    }
+    $.checkArgument(
+      opts.collateral.privKey,
+      'no collateral.privKey not supported'
+    );
+
+    $.checkArgument(opts.masternodePrivKey, 'Invalid masternodePrivKey');
+    $.checkArgument(opts.masternodePubKey, 'Invalid masternodePubKey');
+    $.checkArgument(opts.host, 'Invalid host');
+    $.checkArgument(opts.port, 'Invalid port');
+    $.checkArgument(opts.ownerAddr, 'Invalid ownerAddr');
+    $.checkArgument(opts.voteAddr, 'Invalid voteAddr');
+    $.checkArgument(opts.payAddr, 'Invalid payAddr');
 
     if (
       !JSUtil.isHexa(opts.masternodePrivKey) ||
@@ -4479,34 +4918,33 @@ export class API extends EventEmitter {
       return cb(new Error('masternodePubKey is invalid'));
     }
 
-    if (
-      !JSUtil.isHexa(opts.collateralId) ||
-      opts.collateralId.length != 64
-    ) {
-      return cb(new Error('collateralId is invalid'));
+    if (!JSUtil.isHexa(opts.collateral.txid) || opts.collateral.txid.length != 64) {
+      return cb(new Error('collateral txid is invalid'));
     }
 
     delete opts.txExtends;
-    opts.txExtends = {}
+    opts.txExtends = {};
     opts.txExtends.version = TX_VERSION_MN_REGISTER;
     opts.txExtends.masternodePrivKey = opts.masternodePrivKey;
-    
+
     var additionOpts = {
       masternodePubKey: opts.masternodePubKey,
-      collateralId: opts.collateralId,
-      collateralIndex: opts.collateralIndex,
-      collateralPrivKey: opts.collateralPrivKey,
+      collateralId: opts.collateral.txid,
+      collateralIndex: opts.collateral.vout,
+      collateralPrivKey: opts.collateral.privKey,
       host: opts.host,
       port: opts.port,
+      ownerAddr: opts.ownerAddr,
+      voteAddr: opts.ownerAddr,
       payAddr: opts.payAddr
-    }
+    };
 
     delete opts.masternodePubKey;
-    delete opts.collateralId;
-    delete opts.collateralIndex;
-    delete opts.collateralPrivKey;
+    delete opts.collateral;
     delete opts.host;
     delete opts.port;
+    delete opts.ownerAddr;
+    delete opts.voteAddr;
     delete opts.payAddr;
 
     return this.createTxProposal(opts, cb, baseUrl, additionOpts);
@@ -4514,140 +4952,150 @@ export class API extends EventEmitter {
 
   async createTxProUpReg(opts, cb, baseUrl) {
     $.checkArgument(_.isObject(opts), 'Argument should be an object');
-    $.checkArgument(opts.proTxHash, 'no proTxHash not supported');
-    $.checkArgument(opts.ownerPrivKey, 'no ownerPrivKey not supported');
-
-    if (opts.masternodePubKey){
-      $.checkArgument(opts.masternodePrivKey, 'no masternodePrivKey not supported');
-      if (
-        !JSUtil.isHexa(opts.masternodePubKey) &&
-        opts.masternodePubKey.length != 96
-      ) {
-        return cb(new Error('masternodePubKey is invalid'));
-      }
-
-      if (
-        !JSUtil.isHexa(opts.masternodePrivKey) &&
-        opts.masternodePrivKey.length != 64
-      ) {
-        return cb(new Error('masternodePrivKey is invalid'));
-      }
-    }
+    $.checkArgument(_.isObject(opts.masternode), 'masternode Argument should be an object');
+    $.checkArgument(opts.masternode.proTxHash, 'Invalid masternode.proTxHash');
+    $.checkArgument(opts.masternode.masternodePrivKey, 'Invalid masternode.masternodePrivKey');
+    $.checkArgument(opts.masternode.voteAddr, 'Invalid masternode.voteAddr');
+    $.checkArgument(opts.masternode.payAddr, 'Invalid masternode.payAddr');
+    $.checkArgument(opts.masternode.ownerPrivKey, 'Invalid masternode.ownerPrivKey');
 
     if (
-      !JSUtil.isHexa(opts.proTxHash) ||
-      opts.proTxHash.length != 64
+      !JSUtil.isHexa(opts.masternode.masternodePrivKey) &&
+      opts.masternodePrivKey.length != 64
     ) {
-      return cb(new Error('opts proTxHash is invalid'));
-    }
-    
-    delete opts.txExtends;
-    opts.txExtends = {};   
-    opts.txExtends.version = TX_VERSION_MN_UPDATE_REGISTRAR;
-    opts.txExtends.proTxHash = opts.proTxHash;
-    if(opts.masternodePubKey){
-      opts.txExtends.masternodePubKey = opts.masternodePubKey;
-      opts.txExtends.masternodePrivKey = opts.masternodePrivKey;
-    }    
-   
-    if(opts.voteAddr){
-      opts.txExtends.voteAddr = opts.voteAddr;
-    }
-    if(opts.payAddr){
-      opts.txExtends.payAddr = opts.payAddr;
+      return cb(new Error('Invalid masternodePrivKey'));
     }
 
-    var additionOpts = {
-      ownerPrivKey: opts.ownerPrivKey
+    if (!JSUtil.isHexa(opts.masternode.proTxHash) || opts.masternode.proTxHash.length != 64) {
+      return cb(new Error('Invalid proTxHash'));
     }
-    delete opts.ownerPrivKey;
+
+
+    delete opts.txExtends;
+    opts.txExtends = {};
+    opts.txExtends.version = TX_VERSION_MN_UPDATE_REGISTRAR;
+
+    var additionOpts = opts.masternode;
+    delete opts.masternode;
 
     return this.createTxProposal(opts, cb, baseUrl, additionOpts);
   }
 
   async createTxProUpService(opts, cb, baseUrl) {
     $.checkArgument(_.isObject(opts), 'Argument should be an object');
-    $.checkArgument(opts.proTxHash, 'no proTxHash not supported');
-    $.checkArgument(opts.host, 'no host not supported');
-    $.checkArgument(opts.port, 'no port not supported');
+    $.checkArgument(_.isObject(opts.masternode), 'masternode Argument should be an object');
+    $.checkArgument(opts.masternode.proTxHash, 'no masternode.proTxHash');
+    $.checkArgument(opts.masternode.masternodePrivKey, 'no masternode.masternodePrivKey');
+    $.checkArgument(opts.host, 'Invalid host');
+    $.checkArgument(opts.port, 'Invalid port');
 
     if (
-      opts.masternodePrivKey &&
-      !JSUtil.isHexa(opts.masternodePrivKey) &&
-      opts.masternodePrivKey.length != 64
+      !JSUtil.isHexa(opts.masternode.masternodePrivKey) &&
+      opts.masternode.masternodePrivKey.length != 64
     ) {
-      return cb(new Error('masternodePrivKey is invalid'));
+      return cb(new Error('Invalid masternode.masternodePrivKey'));
     }
 
-    if (
-      !JSUtil.isHexa(opts.proTxHash) ||
-      opts.proTxHash.length != 64
-    ) {
-      return cb(new Error('proTxHash is invalid'));
+    if (!JSUtil.isHexa(opts.masternode.proTxHash) || opts.masternode.proTxHash.length != 64) {
+      return cb(new Error('Invalid masternode.proTxHash'));
     }
 
     delete opts.txExtends;
     opts.txExtends = {};
     opts.txExtends.version = TX_VERSION_MN_UPDATE_SERVICE;
-    opts.txExtends.proTxHash = opts.proTxHash;
-    if(opts.masternodePrivKey){
-      opts.txExtends.masternodePrivKey = opts.masternodePrivKey;
-    }
-    
-    var additionOpts = {
-      host: opts.host,
-      port: opts.port
-    };
+
+    var additionOpts = opts.masternode;
+    additionOpts.host = opts.host;
+    additionOpts.port = opts.port;
+    delete opts.masternode;
 
     return this.createTxProposal(opts, cb, baseUrl, additionOpts);
   }
 
   async createTxProUpRevoke(opts, cb, baseUrl) {
     $.checkArgument(_.isObject(opts), 'Argument should be an object');
-    $.checkArgument(opts.proTxHash, 'no proTxHash not supported');
-
+    $.checkArgument(_.isObject(opts.masternode), 'masternode Argument should be an object');
+    $.checkArgument(opts.masternode.proTxHash, 'Invalid masternode.proTxHash');
+    $.checkArgument(opts.masternode.masternodePrivKey, 'Invalid masternode.masternodePrivKey');
     if (
-      opts.masternodePrivKey &&
-      !JSUtil.isHexa(opts.masternodePrivKey) &&
+      !JSUtil.isHexa(opts.masternode.masternodePrivKey) &&
       opts.masternodePrivKey.length != 64
     ) {
-      return cb(new Error('masternodePrivKey is invalid'));
+      return cb(new Error('Invalid masternode.masternodePrivKey'));
     }
 
-    if (
-      !JSUtil.isHexa(opts.proTxHash) ||
-      opts.proTxHash.length != 64
-    ) {
-      return cb(new Error('proTxHash is invalid'));
+    if (!JSUtil.isHexa(opts.masternode.proTxHash) || opts.masternode.proTxHash.length != 64) {
+      return cb(new Error('Invalid masternode.proTxHash'));
     }
 
     delete opts.txExtends;
     opts.txExtends = {};
     opts.txExtends.version = TX_VERSION_MN_UPDATE_REVOKE;
-    opts.txExtends.proTxHash = opts.proTxHash;
-    if(opts.masternodePrivKey){
-      opts.txExtends.masternodePrivKey = opts.masternodePrivKey;
-    }
-    
-    var additionOpts = {};
+
+    var additionOpts = opts.masternode;
+    delete opts.masternode;
+
     return this.createTxProposal(opts, cb, baseUrl, additionOpts);
   }
 
-  async _getTxProReg(txp, opts){
-    if(!opts) return;
-    if(txp.txExtends && txp.txExtends.version){
-      if(txp.txExtends.version === TX_VERSION_MN_REGISTER){
-        let masternode = new Bitcore.masternode.ProRegTx(txp.inputs, opts.collateralId, opts.collateralIndex, opts.collateralPrivKey, opts.host, opts.port, opts.masternodePubKey, txp.txExtends.ownerAddr, txp.txExtends.voteAddr, opts.payAddr, opts.reward);
+  async _getTxProReg(txp, opts, cb) {
+    if (!opts) return;
+    if (txp.txExtends && txp.txExtends.version) {
+      if (txp.txExtends.version === TX_VERSION_MN_REGISTER) {
+        let masternode = new Bitcore.masternode.ProRegTx(
+          txp.inputs,
+          opts.collateralId,
+          opts.collateralIndex,
+          opts.collateralPrivKey,
+          opts.host,
+          opts.port,
+          opts.masternodePubKey,
+          opts.ownerAddr,
+          opts.voteAddr,
+          opts.payAddr,
+          opts.reward
+        );
         txp.txExtends.outScripts = masternode.getScript(true);
-      }else if(txp.txExtends.version === TX_VERSION_MN_UPDATE_REGISTRAR){
-        let masternode = new Bitcore.masternode.ProUpRegTx(txp.inputs, txp.txExtends.proTxHash, opts.ownerPrivKey, txp.txExtends.masternodePubKey, txp.txExtends.voteAddr, txp.txExtends.payAddr);
+      } else if (txp.txExtends.version === TX_VERSION_MN_UPDATE_REGISTRAR) {
+        let masternode = new Bitcore.masternode.ProUpRegTx(
+          txp.inputs,
+          opts.proTxHash,
+          opts.ownerPrivKey,
+          opts.masternodePubKey,
+          opts.voteAddr,
+          opts.payAddr
+        );
         txp.txExtends.outScripts = masternode.getScript(true);
-      }else if(txp.txExtends.version === TX_VERSION_MN_UPDATE_SERVICE){
-        let masternode = new Bitcore.masternode.ProUpServiceTx(txp.inputs, txp.txExtends.proTxHash, opts.host, opts.port, txp.txExtends.masternodePrivKey);
-        txp.txExtends.outScripts = await masternode.getScript(true);
-      }else if(txp.txExtends.version === TX_VERSION_MN_UPDATE_REVOKE){
-        let masternode = new Bitcore.masternode.ProRevokeTx(txp.inputs, txp.txExtends.proTxHash, txp.txExtends.masternodePrivKey);
-        txp.txExtends.outScripts = await masternode.getScript(true);
+      } else if (txp.txExtends.version === TX_VERSION_MN_UPDATE_SERVICE) {
+        let masternode = new Bitcore.masternode.ProUpServiceTx(
+          txp.inputs,
+          opts.proTxHash,
+          opts.host,
+          opts.port,
+          opts.masternodePrivKey
+        );
+        try{
+          var msgHash = masternode.getMessageHash();
+	  var sig = await this.getMasternodeBlsSign({msgHash: msgHash, masternodePrivateKey: opts.masternodePrivKey});
+          masternode.set_sig(sig);
+          txp.txExtends.outScripts = await masternode.getScript1();
+        }catch(ex) {
+          return cb(new Error('Could not bls sign' + ex));
+        }        
+      } else if (txp.txExtends.version === TX_VERSION_MN_UPDATE_REVOKE) {
+        let masternode = new Bitcore.masternode.ProRevokeTx(
+          txp.inputs,
+          opts.proTxHash,
+          opts.masternodePrivKey
+        );
+        try{
+          var msgHash = masternode.getMessageHash();
+	  var sig = await this.getMasternodeBlsSign({msgHash: msgHash, masternodePrivateKey: opts.masternodePrivKey});
+          masternode.set_sig(sig);
+          txp.txExtends.outScripts = await masternode.getScript1();
+        }catch(ex) {
+          return cb(new Error('Could not bls sign' + ex));
+        }        
       }
     }
     return;
@@ -4656,12 +5104,18 @@ export class API extends EventEmitter {
   _postRequest(baseUrl, args) {
     return new Promise((resolve, reject) => {
       this.request.post(baseUrl, args, (err, data) => {
-        if (err)
-          return reject(err);
+        if (err) return reject(err);
         return resolve(data);
       });
     });
   }
 
+  _getRequest(baseUrl) {
+    return new Promise((resolve, reject) => {
+      this.request.get(baseUrl, (err, data) => {
+        if (err) return reject(err);
+        return resolve(data);
+      });
+    });
+  }
 }
-

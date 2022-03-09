@@ -19,6 +19,7 @@ var Signature = require('../crypto/signature');
 var Script = require('../script');
 var Message = require('../message');
 
+const ADDRESS_TYPE = 'witnesspubkeyhash';
 const NETWORK = 'livenet';
 const CURRENT_VERSION = 1;
 
@@ -45,7 +46,7 @@ function ProRegTx(inputs, collateralId, collateralIndex, collateralPrivKey,  hos
 
   this.reward = reward || 0;
 
-  this.network = this.network;
+  this.network = network || NETWORK;
 }
 
 ProRegTx.prototype.get_collateral = function(writer) {
@@ -168,7 +169,55 @@ ProRegTx.prototype.getScript = function(sigMode) {
   }
   writer1.write(writer.toBuffer(), n);
   return writer1.toBuffer().toString('hex');
-  // return "6a4d0f01010000000000a628d72bf56d34149b2764ec24bdaefd744190fabb68ffeae1f14a035d108b6f0100000000000000000000000000ffff6a37b1c12382dc7d61737ec2d1bd1c237a0e2571702ddfbbea9f0163857e14c80a6063daaeb1ce4ca3457fcf2dc04ab8c5d7b5c7235966065ee5b1e1a7713426f9542d0ddd81b0f9e244dc7d61737ec2d1bd1c237a0e2571702ddfbbea9f0000160014218618a385ac4cd893e0ee3c6654dcb14a0453af8d3be309fba3bd4aaa841990c003a93218cbb31085bc5c9cb456e896672bb9c64120a698f6daae40475bca5498463aacc447596d75798dfe46ec059f0c9578ed67736e70db414274731a323586f38520baaa47cbd10bacb21aca1eed1573e5ed7d0a"
+}
+
+ProRegTx.fromString = function(strHex, network, addressType) {
+ 
+  var network = network || NETWORK;
+  var addressType = addressType || ADDRESS_TYPE;
+
+  if(!JSUtil.isHexa(strHex)) {
+    throw new TypeError('proRegTx must be string for hex');
+  }
+
+  if(strHex.length != 550){
+    throw new TypeError('The length at proRegTx must be 550');
+  }
+  
+  var s = new Script(strHex);
+  
+  if (s.chunks.length != 2 || s.chunks[0].opcodenum != Opcode.OP_RETURN || s.chunks[1].len != 271) {
+    throw new TypeError('proRegTx is invalid');
+  }
+
+  var reader = new BufferReader(s.chunks[1].buf);
+  var version = reader.readUInt16LE();
+  var type = reader.readUInt16LE();
+  var mode = reader.readUInt16LE();
+
+  var collateralId =  reader.readReverse(32).toString('hex');
+  var collateralIndex = reader.readUInt32LE();
+  
+  var ip = reader.read(16);
+  var host = '';
+  for( var i =0; i<4; i++) {
+    if(i<3){
+      host += ip[12+i] + '.';
+    }else{
+      host += ip[12+i];
+    }
+  }
+
+  var port = reader.readUInt16BE();
+  
+  var ownerAddr = new Address(reader.read(20), network, addressType).toString();
+  var masternodePubKey = reader.read(48).toString('hex');
+  var voteAddr = new Address(reader.read(20), network, addressType).toString();
+
+  var reward = reader.readUInt16LE();
+  var payAddr = new Address(reader.read(23).slice(3, 23), network, addressType).toString();
+
+  return new ProRegTx(undefined, collateralId, collateralIndex, undefined,  host, port, masternodePubKey, ownerAddr, voteAddr, payAddr, reward, network);
 }
 
 module.exports = ProRegTx;

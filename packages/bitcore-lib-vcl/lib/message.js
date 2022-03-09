@@ -225,7 +225,7 @@ Message.prototype.verify2 = function verify(bitcoinAddress, signatureString) {
     return false;
   }
 
-  return this._verify(publicKey, signature);
+  return this._verify1(publicKey, signature);
 };
 
 /**

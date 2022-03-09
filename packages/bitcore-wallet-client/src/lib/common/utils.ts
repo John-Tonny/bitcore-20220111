@@ -357,7 +357,7 @@ export class Utils {
       } else {
         t.setVersion(1);
       }
-      
+
       // john 20220219
       if (txp.txExtends && txp.txExtends.version) {
         t.setVersion(txp.txExtends.version);
