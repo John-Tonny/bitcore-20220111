@@ -905,12 +905,12 @@ export class WalletService {
     }
 
     const data = _.assign(
-        {
-          coin: masternode.coin,
-          network: masternode.network,
-          txid: masternode.txid,
-        },
-        extraArgs
+      {
+        coin: masternode.coin,
+        network: masternode.network,
+        txid: masternode.txid
+      },
+      extraArgs
     );
     this._notify(type, data, {}, cb);
   }
@@ -3778,13 +3778,13 @@ export class WalletService {
           });
         },
         next => {
-          if(!txp.txExtends) return next();
-          if(!txp.txExtends.version) return next();
-          if(txp.txExtends.version != Constants.TX_VERSION_MN_REGISTER) return next();
-          if(!txp.txExtends.outScripts) return next();
+          if (!txp.txExtends) return next();
+          if (!txp.txExtends.version) return next();
+          if (txp.txExtends.version != Constants.TX_VERSION_MN_REGISTER) return next();
+          if (!txp.txExtends.outScripts) return next();
           try {
             let txProReg = new Bitcore.masternode.ProRegTx.fromString(txp.txExtends.outScripts);
-            if(!txProReg.collateralId) return next();
+            if (!txProReg.collateralId) return next();
             let masternodeStatus: {
               coin?: string;
               network?: string;
@@ -3821,7 +3821,7 @@ export class WalletService {
               this._notifyMasternodeAction('NewMasternode', masternodes, extraArgs);
               next();
             });
-          }catch(ex){
+          } catch (ex) {
             next(ex);
           }
         }
@@ -6342,7 +6342,8 @@ export class WalletService {
       if (wallet.scanStatus == 'error') return cb(Errors.WALLET_NEED_SCAN);
       if (wallet.n != 1 && wallet.m != 1) return cb(Errors.WALLET_NOT_MASTERNODE);
       // john 20220219
-      if (wallet.addressType != Constants.SCRIPT_TYPES.P2PKH && wallet.addressType != Constants.SCRIPT_TYPES.P2WPKH) return cb(Errors.WALLET_NOT_MASTERNODE);
+      if (wallet.addressType != Constants.SCRIPT_TYPES.P2PKH && wallet.addressType != Constants.SCRIPT_TYPES.P2WPKH)
+        return cb(Errors.WALLET_NOT_MASTERNODE);
 
       this.getUtxosForCurrentWallet(
         {
@@ -6439,7 +6440,7 @@ export class WalletService {
     if (!bc) return cb(new Error('Could not get blockchain explorer instance'));
     bc.getMasternodeStatus(opts, (err, ret) => {
       if (err) return cb(err);
-      if(_.isArray(ret)){
+      if (_.isArray(ret)) {
         return cb(null, ret);
       }
       return cb(null, Masternodes.fromChain(ret));
@@ -6679,7 +6680,6 @@ export class WalletService {
       }
     }
   }
-
 }
 
 function checkRequired(obj, args, cb?: (e: any) => void) {

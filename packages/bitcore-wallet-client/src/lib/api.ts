@@ -1853,7 +1853,7 @@ export class API extends EventEmitter {
       !opts.txp.txExtends.outScripts
     ) {
       return cb(new Error('txExtens.outScript is required'));
-    }    
+    }
 
     if (
       opts.txp.txExtends &&
@@ -4055,7 +4055,10 @@ export class API extends EventEmitter {
       throw new Error('msgHash must be hex string');
     }
 
-    if (!JSUtil.isHexa(opts.masternodePrivateKey) || opts.masternodePrivateKey.length != 64) {
+    if (
+      !JSUtil.isHexa(opts.masternodePrivateKey) ||
+      opts.masternodePrivateKey.length != 64
+    ) {
       throw new Error('masternodePrivateKey must be hex string');
     }
     args.push('msgHash=' + opts.msgHash);
@@ -4441,7 +4444,10 @@ export class API extends EventEmitter {
   proRegTx(opts, cb) {
     $.checkArgument(_.isObject(opts), 'Argument should be an object');
     $.checkArgument(_.isObject(opts.key), 'key Argument should be an object');
-    $.checkArgument(_.isObject(opts.collateral), 'collateral Argument should be an object');
+    $.checkArgument(
+      _.isObject(opts.collateral),
+      'collateral Argument should be an object'
+    );
     $.checkArgument(opts.key, 'Invalid key');
     $.checkArgument(opts.collateral.txid, 'Invalid collateral.txid');
     if (opts.collateral.vout == undefined) {
@@ -4452,7 +4458,7 @@ export class API extends EventEmitter {
     async.waterfall(
       [
         next => {
-          if(opts.masternodePrivKey && opts.masternodePubKey) return next();
+          if (opts.masternodePrivKey && opts.masternodePubKey) return next();
           this.getMasternodeBlsGenerate({}, (err, bls) => {
             if (err) {
               return next(new Error('masternode bls generate error!'), err);
@@ -4469,46 +4475,58 @@ export class API extends EventEmitter {
           });
         },
         next => {
-          if(opts.ownerAddr){
-            this.getMainAddresses({address: opts.ownerAddr}, function (err, ownerAddr) {
-              if (err || ownerAddr.length == 0) {
-                return next(new Error('get main address error! ' + err));
+          if (opts.ownerAddr) {
+            this.getMainAddresses(
+              { address: opts.ownerAddr },
+              function (err, ownerAddr) {
+                if (err || ownerAddr.length == 0) {
+                  return next(new Error('get main address error! ' + err));
+                }
+                next();
               }
-              next();
-            });
-          }else{
-            this.createAddress({ignoreMaxGap: true}, function (err, ownerAddr) {
-              if (err) {
-                return next(new Error('create owner address error! '+ err));
+            );
+          } else {
+            this.createAddress(
+              { ignoreMaxGap: true },
+              function (err, ownerAddr) {
+                if (err) {
+                  return next(new Error('create owner address error! ' + err));
+                }
+                opts.ownerAddr = ownerAddr.address;
+                next();
               }
-              opts.ownerAddr = ownerAddr.address;
-              next();
-            });
+            );
           }
         },
         next => {
-          if(opts.voteAddr){
-            this.getMainAddresses({address: opts.voteAddr}, function (err, voteAddr) {
-              if (err || voteAddr.length == 0) {
-                return next(new Error('get vote address error!' + err));
+          if (opts.voteAddr) {
+            this.getMainAddresses(
+              { address: opts.voteAddr },
+              function (err, voteAddr) {
+                if (err || voteAddr.length == 0) {
+                  return next(new Error('get vote address error!' + err));
+                }
+                next();
               }
-              next();
-            });
-          }else{
+            );
+          } else {
             opts.voteAddr = opts.ownerAddr;
             next();
           }
         },
         next => {
-          if(opts.payAddr){
-            this.getMainAddresses({address: opts.payAddr}, function (err, payAddr) {
-              if (err || payAddr.length == 0) {
-                return next(new Error('get pay address error! ' + err));
+          if (opts.payAddr) {
+            this.getMainAddresses(
+              { address: opts.payAddr },
+              function (err, payAddr) {
+                if (err || payAddr.length == 0) {
+                  return next(new Error('get pay address error! ' + err));
+                }
+                next();
               }
-              next();
-            });
-          }else{
-            this.createAddress({ignoreMaxGap: true}, function (err, payAddr) {
+            );
+          } else {
+            this.createAddress({ ignoreMaxGap: true }, function (err, payAddr) {
               if (err) {
                 return next(new Error('create pay address error! ' + err));
               }
@@ -4518,35 +4536,57 @@ export class API extends EventEmitter {
           }
         },
         next => {
-          this.createAddress({ignoreMaxGap: true, isChange: true}, function (err, toAddr) {
-            if (err) {
-              return next(new Error('create toaddress error! ' + err));
+          this.createAddress(
+            { ignoreMaxGap: true, isChange: true },
+            function (err, toAddr) {
+              if (err) {
+                return next(new Error('create toaddress error! ' + err));
+              }
+              delete opts.outputs;
+              opts.outputs = [
+                {
+                  toAddress: toAddr.address,
+                  amount: 0
+                }
+              ];
+              next();
             }
-            delete opts.outputs;
-	    opts.outputs = [{
-                    toAddress: toAddr.address,
-                    amount: 0
-            }];
-            next();
-          });
+          );
         },
         next => {
           var path = '';
-          if(opts.collateral && opts.collateral.address && opts.collateral.path){
-            var collateralPrivKey = key.getPrivateKeyofWif('', this.getRootPath(), opts.collateral.path);
+          if (
+            opts.collateral &&
+            opts.collateral.address &&
+            opts.collateral.path
+          ) {
+            var collateralPrivKey = key.getPrivateKeyofWif(
+              '',
+              this.getRootPath(),
+              opts.collateral.path
+            );
             opts.collateral.privKey = collateralPrivKey;
-	    next();
-          }else{
-            this.getMainAddresses({address: opts.collateral.address}, function (err, collateralAddr) {
-              if (err || collateralAddr.length == 0) {
-                return next(new Error('get collateral address error! ' + err));
+            next();
+          } else {
+            this.getMainAddresses(
+              { address: opts.collateral.address },
+              function (err, collateralAddr) {
+                if (err || collateralAddr.length == 0) {
+                  return next(
+                    new Error('get collateral address error! ' + err)
+                  );
+                }
+                opts.collateral.privKey = key.getPrivateKeyofWif(
+                  '',
+                  this.getRootPath(),
+                  collateralAddr.path
+                );
+                next();
               }
-              opts.collateral.privKey = key.getPrivateKeyofWif('', this.getRootPath(), collateralAddr.path);
-              next();
-            });
+            );
           }
         },
-        next => {  
+        next => {
           this.createTxProReg(
             opts,
             function (err, createTxp) {
@@ -4590,8 +4630,7 @@ export class API extends EventEmitter {
         }
       ],
       function (err, bls, ownerAddr, voteAddr, payAddr) {
-        if(err) cb(err);
-
+        if (err) cb(err);
       }
     );
   }
@@ -4599,9 +4638,15 @@ export class API extends EventEmitter {
   proUpRegTx(opts, cb) {
     $.checkArgument(_.isObject(opts), 'Argument should be an object');
     $.checkArgument(_.isObject(opts.key), 'key Argument should be an object');
-    $.checkArgument(_.isObject(opts.masternode), 'masternode Argument should be an object');
+    $.checkArgument(
+      _.isObject(opts.masternode),
+      'masternode Argument should be an object'
+    );
     $.checkArgument(opts.masternode.proTxHash, 'Invalid masternode.proTxHash');
-    $.checkArgument(opts.masternode.masternodePrivKey, 'Invalid masternode.masternodePrivKey');
+    $.checkArgument(
+      opts.masternode.masternodePrivKey,
+      'Invalid masternode.masternodePrivKey'
+    );
     $.checkArgument(opts.masternode.ownerAddr, 'Invalid masternode.ownerAddr');
 
     if (
@@ -4611,55 +4656,76 @@ export class API extends EventEmitter {
       return cb(new Error('Invalid masternode.masternodePrivKey'));
     }
 
-    if (!JSUtil.isHexa(opts.masternode.proTxHash) || opts.masternode.proTxHash.length != 64) {
+    if (
+      !JSUtil.isHexa(opts.masternode.proTxHash) ||
+      opts.masternode.proTxHash.length != 64
+    ) {
       return cb(new Error('Invalid masternode.proTxHash'));
     }
 
     const key = opts.key;
-    delete opts.key; 
+    delete opts.key;
     async.waterfall(
       [
         next => {
-          if(!opts.masternode.voteAddr) return next();
-          this.getMainAddresses({address: opts.masternode.voteAddr}, function (err, voteAddr) {
-            if (err || voteAddr.length == 0) {
-              return next(new Error('get vote address error!' + err));
+          if (!opts.masternode.voteAddr) return next();
+          this.getMainAddresses(
+            { address: opts.masternode.voteAddr },
+            function (err, voteAddr) {
+              if (err || voteAddr.length == 0) {
+                return next(new Error('get vote address error!' + err));
+              }
+              next();
             }
-            next();
-          });
+          );
         },
         next => {
-          if(!opts.masternode.payAddr) return next();
-          this.getMainAddresses({address: opts.masternode.payAddr}, function (err, payAddr) {
-            if (err || payAddr.length == 0) {
-              return next(new Error('get pay address error! ' + err));
+          if (!opts.masternode.payAddr) return next();
+          this.getMainAddresses(
+            { address: opts.masternode.payAddr },
+            function (err, payAddr) {
+              if (err || payAddr.length == 0) {
+                return next(new Error('get pay address error! ' + err));
+              }
+              next();
             }
-            next();
-          });
+          );
         },
         next => {
-          this.createAddress({ignoreMaxGap: true, isChange: true}, function (err, toAddr) {
-            if (err) {
-              return next(new Error('create toaddress error! ' + err));
+          this.createAddress(
+            { ignoreMaxGap: true, isChange: true },
+            function (err, toAddr) {
+              if (err) {
+                return next(new Error('create toaddress error! ' + err));
+              }
+              delete opts.outputs;
+              opts.outputs = [
+                {
+                  toAddress: toAddr.address,
+                  amount: 0
+                }
+              ];
+              next();
             }
-            delete opts.outputs;
-            opts.outputs = [{
-                    toAddress: toAddr.address,
-                    amount: 0
-            }];
-            next();
-          });
+          );
         },
         next => {
-          this.getMainAddresses({address: opts.masternode.ownerAddr}, function (err, ownerAddr) {
-            if (err || ownerAddr.length == 0) {
-              return next(new Error('get owner address error! ' + err));
+          this.getMainAddresses(
+            { address: opts.masternode.ownerAddr },
+            function (err, ownerAddr) {
+              if (err || ownerAddr.length == 0) {
+                return next(new Error('get owner address error! ' + err));
+              }
+              next(null, ownerAddr[0]);
             }
-            next(null, ownerAddr[0]);
-          });
+          );
         },
         (ownerAddr, next) => {
-          opts.masternode.ownerPrivKey = opts.key.getPrivateKeyofWif('', this.getRootPath(), ownerAddr.path);
+          opts.masternode.ownerPrivKey = opts.key.getPrivateKeyofWif(
+            '',
+            this.getRootPath(),
+            ownerAddr.path
+          );
           this.createTxProUpReg(
             opts,
             function (err, createTxp) {
@@ -4703,8 +4769,7 @@ export class API extends EventEmitter {
         }
       ],
       function (err, bls, ownerAddr, voteAddr, payAddr) {
-        if(err) cb(err);
-
+        if (err) cb(err);
       }
     );
   }
@@ -4712,9 +4777,15 @@ export class API extends EventEmitter {
   proUpServiceTx(opts, cb) {
     $.checkArgument(_.isObject(opts), 'Argument should be an object');
     $.checkArgument(_.isObject(opts.key), 'key Argument should be an object');
-    $.checkArgument(_.isObject(opts.masternode), 'masternode Argument should be an object');
+    $.checkArgument(
+      _.isObject(opts.masternode),
+      'masternode Argument should be an object'
+    );
     $.checkArgument(opts.masternode.proTxHash, 'Invalid masternode.proTxHash');
-    $.checkArgument(opts.masternode.masternodePrivKey, 'Invalid masternode.masternodePrivKey');
+    $.checkArgument(
+      opts.masternode.masternodePrivKey,
+      'Invalid masternode.masternodePrivKey'
+    );
     $.checkArgument(opts.host, 'Invalid host');
     $.checkArgument(opts.port, 'Invalid port');
 
@@ -4725,27 +4796,35 @@ export class API extends EventEmitter {
       return cb(new Error('Invalid masternode.masternodePrivKey'));
     }
 
-    if (!JSUtil.isHexa(opts.masternode.proTxHash) || opts.masternode.proTxHash.length != 64) {
+    if (
+      !JSUtil.isHexa(opts.masternode.proTxHash) ||
+      opts.masternode.proTxHash.length != 64
+    ) {
       return cb(new Error('Invalid masternode.proTxHash'));
     }
- 
+
     const key = opts.key;
     delete opts.key;
- 
+
     async.waterfall(
       [
         next => {
-          this.createAddress({ignoreMaxGap: true, isChange: true}, function (err, toAddr) {
-            if (err) {
-              return next(new Error('create toaddress error! ' + err));
+          this.createAddress(
+            { ignoreMaxGap: true, isChange: true },
+            function (err, toAddr) {
+              if (err) {
+                return next(new Error('create toaddress error! ' + err));
+              }
+              delete opts.outputs;
+              opts.outputs = [
+                {
+                  toAddress: toAddr.address,
+                  amount: 0
+                }
+              ];
+              next();
             }
-            delete opts.outputs;
-            opts.outputs = [{
-                    toAddress: toAddr.address,
-                    amount: 0
-            }];
-            next();
-          });
+          );
         },
         next => {
           this.createTxProUpService(
@@ -4791,8 +4870,7 @@ export class API extends EventEmitter {
         }
       ],
       function (err, bls, ownerAddr, voteAddr, payAddr) {
-        if(err) cb(err);
-
+        if (err) cb(err);
       }
     );
   }
@@ -4800,9 +4878,15 @@ export class API extends EventEmitter {
   proUpRevokeTx(opts, cb) {
     $.checkArgument(_.isObject(opts), 'Argument should be an object');
     $.checkArgument(_.isObject(opts.keys), 'key Argument should be an object');
-    $.checkArgument(_.isObject(opts.masternode), 'masternode Argument should be an object');
+    $.checkArgument(
+      _.isObject(opts.masternode),
+      'masternode Argument should be an object'
+    );
     $.checkArgument(opts.masternode.proTxHash, 'Invalid masternode.proTxHash');
-    $.checkArgument(opts.masternode.masternodePrivKey, 'Invalid masternode.masternodePrivKey');
+    $.checkArgument(
+      opts.masternode.masternodePrivKey,
+      'Invalid masternode.masternodePrivKey'
+    );
 
     if (
       !JSUtil.isHexa(opts.masternode.masternodePrivKey) &&
@@ -4811,7 +4895,10 @@ export class API extends EventEmitter {
       return cb(new Error('Invalid masternode.masternodePrivKey'));
     }
 
-    if (!JSUtil.isHexa(opts.masternode.proTxHash) || opts.masternode.proTxHash.length != 64) {
+    if (
+      !JSUtil.isHexa(opts.masternode.proTxHash) ||
+      opts.masternode.proTxHash.length != 64
+    ) {
       return cb(new Error('Invalid masternode.proTxHash'));
     }
 
@@ -4821,17 +4908,22 @@ export class API extends EventEmitter {
     async.waterfall(
       [
         next => {
-          this.createAddress({ignoreMaxGap: true, isChange: true}, function (err, toAddr) {
-            if (err) {
-              return next(new Error('create toaddress error! ' + err));
+          this.createAddress(
+            { ignoreMaxGap: true, isChange: true },
+            function (err, toAddr) {
+              if (err) {
+                return next(new Error('create toaddress error! ' + err));
+              }
+              delete opts.outputs;
+              opts.outputs = [
+                {
+                  toAddress: toAddr.address,
+                  amount: 0
+                }
+              ];
+              next();
             }
-            delete opts.outputs;
-            opts.outputs = [{
-                    toAddress: toAddr.address,
-                    amount: 0
-            }];
-            next();
-          });
+          );
         },
         next => {
           this.createTxProUpRevoke(
@@ -4877,16 +4969,17 @@ export class API extends EventEmitter {
         }
       ],
       function (err, bls, ownerAddr, voteAddr, payAddr) {
-        if(err) cb(err);
-
+        if (err) cb(err);
       }
     );
   }
 
-
   async createTxProReg(opts, cb, baseUrl) {
     $.checkArgument(_.isObject(opts), 'Argument should be an object');
-    $.checkArgument(_.isObject(opts.collateral), 'collateral Argument should be an object');
+    $.checkArgument(
+      _.isObject(opts.collateral),
+      'collateral Argument should be an object'
+    );
     $.checkArgument(opts.collateral.txid, 'Invalid collateral.txid');
     if (opts.collateral.vout == undefined) {
       return cb(new Error('Invalid collateral.vout'));
@@ -4918,7 +5011,10 @@ export class API extends EventEmitter {
       return cb(new Error('masternodePubKey is invalid'));
     }
 
-    if (!JSUtil.isHexa(opts.collateral.txid) || opts.collateral.txid.length != 64) {
+    if (
+      !JSUtil.isHexa(opts.collateral.txid) ||
+      opts.collateral.txid.length != 64
+    ) {
       return cb(new Error('collateral txid is invalid'));
     }
 
@@ -4952,12 +5048,21 @@ export class API extends EventEmitter {
 
   async createTxProUpReg(opts, cb, baseUrl) {
     $.checkArgument(_.isObject(opts), 'Argument should be an object');
-    $.checkArgument(_.isObject(opts.masternode), 'masternode Argument should be an object');
+    $.checkArgument(
+      _.isObject(opts.masternode),
+      'masternode Argument should be an object'
+    );
     $.checkArgument(opts.masternode.proTxHash, 'Invalid masternode.proTxHash');
-    $.checkArgument(opts.masternode.masternodePrivKey, 'Invalid masternode.masternodePrivKey');
+    $.checkArgument(
+      opts.masternode.masternodePrivKey,
+      'Invalid masternode.masternodePrivKey'
+    );
     $.checkArgument(opts.masternode.voteAddr, 'Invalid masternode.voteAddr');
     $.checkArgument(opts.masternode.payAddr, 'Invalid masternode.payAddr');
-    $.checkArgument(opts.masternode.ownerPrivKey, 'Invalid masternode.ownerPrivKey');
+    $.checkArgument(
+      opts.masternode.ownerPrivKey,
+      'Invalid masternode.ownerPrivKey'
+    );
 
     if (
       !JSUtil.isHexa(opts.masternode.masternodePrivKey) &&
@@ -4966,10 +5071,12 @@ export class API extends EventEmitter {
       return cb(new Error('Invalid masternodePrivKey'));
     }
 
-    if (!JSUtil.isHexa(opts.masternode.proTxHash) || opts.masternode.proTxHash.length != 64) {
+    if (
+      !JSUtil.isHexa(opts.masternode.proTxHash) ||
+      opts.masternode.proTxHash.length != 64
+    ) {
       return cb(new Error('Invalid proTxHash'));
     }
-
 
     delete opts.txExtends;
     opts.txExtends = {};
@@ -4983,9 +5090,15 @@ export class API extends EventEmitter {
 
   async createTxProUpService(opts, cb, baseUrl) {
     $.checkArgument(_.isObject(opts), 'Argument should be an object');
-    $.checkArgument(_.isObject(opts.masternode), 'masternode Argument should be an object');
+    $.checkArgument(
+      _.isObject(opts.masternode),
+      'masternode Argument should be an object'
+    );
     $.checkArgument(opts.masternode.proTxHash, 'no masternode.proTxHash');
-    $.checkArgument(opts.masternode.masternodePrivKey, 'no masternode.masternodePrivKey');
+    $.checkArgument(
+      opts.masternode.masternodePrivKey,
+      'no masternode.masternodePrivKey'
+    );
     $.checkArgument(opts.host, 'Invalid host');
     $.checkArgument(opts.port, 'Invalid port');
 
@@ -4996,7 +5109,10 @@ export class API extends EventEmitter {
       return cb(new Error('Invalid masternode.masternodePrivKey'));
     }
 
-    if (!JSUtil.isHexa(opts.masternode.proTxHash) || opts.masternode.proTxHash.length != 64) {
+    if (
+      !JSUtil.isHexa(opts.masternode.proTxHash) ||
+      opts.masternode.proTxHash.length != 64
+    ) {
       return cb(new Error('Invalid masternode.proTxHash'));
     }
 
@@ -5014,9 +5130,15 @@ export class API extends EventEmitter {
 
   async createTxProUpRevoke(opts, cb, baseUrl) {
     $.checkArgument(_.isObject(opts), 'Argument should be an object');
-    $.checkArgument(_.isObject(opts.masternode), 'masternode Argument should be an object');
+    $.checkArgument(
+      _.isObject(opts.masternode),
+      'masternode Argument should be an object'
+    );
     $.checkArgument(opts.masternode.proTxHash, 'Invalid masternode.proTxHash');
-    $.checkArgument(opts.masternode.masternodePrivKey, 'Invalid masternode.masternodePrivKey');
+    $.checkArgument(
+      opts.masternode.masternodePrivKey,
+      'Invalid masternode.masternodePrivKey'
+    );
     if (
       !JSUtil.isHexa(opts.masternode.masternodePrivKey) &&
       opts.masternodePrivKey.length != 64
@@ -5024,7 +5146,10 @@ export class API extends EventEmitter {
       return cb(new Error('Invalid masternode.masternodePrivKey'));
     }
 
-    if (!JSUtil.isHexa(opts.masternode.proTxHash) || opts.masternode.proTxHash.length != 64) {
+    if (
+      !JSUtil.isHexa(opts.masternode.proTxHash) ||
+      opts.masternode.proTxHash.length != 64
+    ) {
       return cb(new Error('Invalid masternode.proTxHash'));
     }
 
@@ -5074,28 +5199,34 @@ export class API extends EventEmitter {
           opts.port,
           opts.masternodePrivKey
         );
-        try{
+        try {
           var msgHash = masternode.getMessageHash();
-	  var sig = await this.getMasternodeBlsSign({msgHash: msgHash, masternodePrivateKey: opts.masternodePrivKey});
+          var sig = await this.getMasternodeBlsSign({
+            msgHash,
+            masternodePrivateKey: opts.masternodePrivKey
+          });
           masternode.set_sig(sig);
           txp.txExtends.outScripts = await masternode.getScript1();
-        }catch(ex) {
+        } catch (ex) {
           return cb(new Error('Could not bls sign' + ex));
-        }        
+        }
       } else if (txp.txExtends.version === TX_VERSION_MN_UPDATE_REVOKE) {
         let masternode = new Bitcore.masternode.ProRevokeTx(
           txp.inputs,
           opts.proTxHash,
           opts.masternodePrivKey
         );
-        try{
+        try {
           var msgHash = masternode.getMessageHash();
-	  var sig = await this.getMasternodeBlsSign({msgHash: msgHash, masternodePrivateKey: opts.masternodePrivKey});
+          var sig = await this.getMasternodeBlsSign({
+            msgHash,
+            masternodePrivateKey: opts.masternodePrivKey
+          });
           masternode.set_sig(sig);
           txp.txExtends.outScripts = await masternode.getScript1();
-        }catch(ex) {
+        } catch (ex) {
           return cb(new Error('Could not bls sign' + ex));
-        }        
+        }
       }
     }
     return;

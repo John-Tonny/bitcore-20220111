@@ -232,7 +232,7 @@ export class MasternodeService {
                     ownerAddr: imasternode.ownerAddr,
                     voteAddr: imasternode.voteAddr,
                     collateralAddr: imasternode.collateralAddr,
-                    reward: res.reward,
+                    reward: res.reward
                   };
                   const notification = Notification.create({
                     type: 'UpdateMasternode',
@@ -256,7 +256,6 @@ export class MasternodeService {
       if (cb) return cb();
     });
   }
-
 }
 
 module.exports = MasternodeService;
