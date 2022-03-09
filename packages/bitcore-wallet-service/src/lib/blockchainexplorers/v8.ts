@@ -167,7 +167,8 @@ export class V8 {
           vout: x.mintIndex,
           locked: false,
           confirmations: x.mintHeight > 0 && bcheight >= x.mintHeight ? bcheight - x.mintHeight + 1 : 0,
-          spent: !!x.spentTxid
+          spent: !!x.spentTxid,
+          coinbase: x.coinbase
         };
 
         // v8 field name differences

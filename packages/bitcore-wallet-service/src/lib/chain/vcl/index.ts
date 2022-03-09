@@ -583,18 +583,21 @@ export class VclChain implements IChain {
   }
 
   totalizeUtxos(utxos) {
-    // john
-    var totalUnConfirmedAmount = _.sumBy(
-      _.filter(utxos, x => {
-        return x.coinbase && x.confirmations < Defaults.COINBASE_MATURITY_VCL;
-      }),
-      'satoshis'
-    );
+    // john 20220219
     const balance = {
       totalAmount: _.sumBy(utxos, 'satoshis'),
       lockedAmount: _.sumBy(_.filter(utxos, 'locked'), 'satoshis'),
-      totalConfirmedAmount: _.sumBy(_.filter(utxos, 'confirmations'), 'satoshis'),
-      lockedConfirmedAmount: _.sumBy(_.filter(_.filter(utxos, 'locked'), 'confirmations'), 'satoshis'),
+      totalConfirmedAmount: _.sumBy(
+          _.filter(utxos, x => {
+            return (x.coinbase && x.confirmations >= Defaults.COINBASE_MATURITY_VCL) || (!x.coinbase && x.confirmations);
+          }),
+          'satoshis'
+      ),
+      lockedConfirmedAmount: _.sumBy(_.filter(_.filter(utxos, 'locked'), x => {
+            return (x.coinbase && x.confirmations >= Defaults.COINBASE_MATURITY_VCL) || (!x.coinbase && x.confirmations);
+          }),
+          'satoshis'
+      ),
       availableAmount: undefined,
       availableConfirmedAmount: undefined,
       availableAmountExcludeMasternode: undefined,
@@ -604,8 +607,7 @@ export class VclChain implements IChain {
     balance.availableConfirmedAmountExcludeMasternode = balance.totalConfirmedAmount - balance.lockedConfirmedAmount;
     var lockedMasternodeAmount = _.sumBy(_.filter(utxos, 'isMasternode'), 'satoshis');
     balance.availableAmount = balance.totalAmount - balance.lockedAmount + lockedMasternodeAmount;
-    balance.availableConfirmedAmount =
-      balance.totalConfirmedAmount - balance.lockedConfirmedAmount + lockedMasternodeAmount;
+    balance.availableConfirmedAmount = balance.totalConfirmedAmount - balance.lockedConfirmedAmount + lockedMasternodeAmount;
 
     return balance;
   }
