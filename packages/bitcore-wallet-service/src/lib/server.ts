@@ -3786,13 +3786,12 @@ export class WalletService {
             let txProReg = new Bitcore.masternode.ProRegTx.fromString(txp.txExtends.outScripts);
             if (!txProReg.collateralId) return next();
             let masternodeStatus: {
+              createdOn?: number;
               coin?: string;
               network?: string;
               address?: string;
               txid?: string;
               masternodePrivKey?: string;
-              host?: string;
-              port?: number;
               masternodePubKey?: string;
               ownerAddr?: string;
               voteAddr?: string;
@@ -3806,14 +3805,13 @@ export class WalletService {
             masternodeStatus.payAddr = txProReg.payAddr;
             masternodeStatus.voteAddr = txProReg.voteAddr;
             masternodeStatus.ownerAddr = txProReg.ownerAddr;
-            masternodeStatus.host = txProReg.host;
-            masternodeStatus.port = txProReg.port;
+            masternodeStatus.address = txProReg.host + ':' + parseInt(txProReg.port);
             masternodeStatus.reward = txProReg.reward;
             masternodeStatus.masternodePubKey = txProReg.masternodePubKey;
             masternodeStatus.masternodePrivKey = txp.txExtends.masternodePrivKey;
             masternodeStatus.walletId = this.walletId;
             let masternodes = Masternodes.create(masternodeStatus);
-            this.storage.storeMasternode(this.walletId, masternodeStatus, err => {
+            this.storage.storeMasternode(this.walletId, masternodes, err => {
               if (err) return next(err);
               const extraArgs = {
                 txid: txp.txid

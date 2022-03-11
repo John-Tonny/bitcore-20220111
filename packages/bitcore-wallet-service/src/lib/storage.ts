@@ -1726,7 +1726,7 @@ export class Storage {
           lastpaidBlock: masternode.lastpaidBlock,
           ownerAddr: masternode.ownerAddr,
           voteAddr: masternode.voteAddr,
-          collateralAddr: masternode.collateralAddr
+          payAddr: masternode.payAddr
         }
       },
       {

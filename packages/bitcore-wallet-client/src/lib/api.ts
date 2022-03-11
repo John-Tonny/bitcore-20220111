@@ -4554,7 +4554,6 @@ export class API extends EventEmitter {
           );
         },
         next => {
-          var path = '';
           if (
             opts.collateral &&
             opts.collateral.address &&
@@ -4607,7 +4606,7 @@ export class API extends EventEmitter {
           });
         },
         (publishTxp, next) => {
-          let signatures = opts.key.sign(this.getRootPath(), publishTxp);
+          let signatures = key.sign(this.getRootPath(), publishTxp);
           this.pushSignatures(
             publishTxp,
             signatures,
@@ -4746,7 +4745,7 @@ export class API extends EventEmitter {
           });
         },
         (publishTxp, next) => {
-          let signatures = opts.key.sign(this.getRootPath(), publishTxp);
+          let signatures = key.sign(this.getRootPath(), publishTxp);
           this.pushSignatures(
             publishTxp,
             signatures,
@@ -4847,7 +4846,7 @@ export class API extends EventEmitter {
           });
         },
         (publishTxp, next) => {
-          let signatures = opts.key.sign(this.getRootPath(), publishTxp);
+          let signatures = key.sign(this.getRootPath(), publishTxp);
           this.pushSignatures(
             publishTxp,
             signatures,
@@ -4946,7 +4945,7 @@ export class API extends EventEmitter {
           });
         },
         (publishTxp, next) => {
-          let signatures = opts.key.sign(this.getRootPath(), publishTxp);
+          let signatures = key.sign(this.getRootPath(), publishTxp);
           this.pushSignatures(
             publishTxp,
             signatures,

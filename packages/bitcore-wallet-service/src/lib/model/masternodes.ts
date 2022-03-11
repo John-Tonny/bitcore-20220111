@@ -20,7 +20,6 @@ export interface IMasternode {
   lastpaidBlock: number;
   ownerAddr: string;
   voteAddr: string;
-  collateralAddr: string;
   payAddr: string;
   reward: number;
 }
@@ -43,7 +42,6 @@ export class Masternodes {
   lastpaidBlock?: number;
   ownerAddr: string;
   voteAddr: string;
-  collateralAddr?: string;
   payAddr?: string;
   reward: number;
 
@@ -70,8 +68,8 @@ export class Masternodes {
     x.lastpaidBlock = opts.lastpaidBlock;
     x.ownerAddr = opts.ownerAddr;
     x.voteAddr = opts.voteAddr;
-    x.collateralAddr = opts.collateralAddr;
     x.reward = opts.reward;
+    x.payAddr = opts.payAddr;
     return x;
   }
 
@@ -95,7 +93,6 @@ export class Masternodes {
     x.lastpaidBlock = obj.lastpaidBlock;
     x.ownerAddr = obj.ownerAddr;
     x.voteAddr = obj.voteAddr;
-    x.collateralAddr = obj.collateralAddr;
     x.payAddr = obj.payAddr;
     x.reward = obj.reward;
     return x;
@@ -106,7 +103,7 @@ export class Masternodes {
     x.txid = obj.txid;
     x.masternodePubKey = obj.pubkeyoperator;
     x.address = obj.address;
-    x.payee = obj.payee;
+    x.payee = obj.collateraladdress;
     x.status = obj.status;
     x.proTxHash = obj.proTxHash;
     x.collateralBlock = obj.collateralblock;
@@ -114,7 +111,6 @@ export class Masternodes {
     x.lastpaidBlock = obj.lastpaidblock;
     x.ownerAddr = obj.owneraddress;
     x.voteAddr = obj.votingaddress;
-    x.collateralAddr = obj.collateraladdress;
     return x;
   }
 }

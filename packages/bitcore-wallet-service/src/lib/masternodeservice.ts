@@ -179,7 +179,6 @@ export class MasternodeService {
         lastpaidBlock?: number;
         ownerAddr?: string;
         voteAddr?: string;
-        collateralAddr?: string;
         payAddr?: string;
         reward?: number;
       } = {};
@@ -188,7 +187,7 @@ export class MasternodeService {
       masternodeStatus.network = network;
       masternodeStatus.txid = key;
       masternodeStatus.address = masternodes[key].address;
-      masternodeStatus.payee = masternodes[key].payee;
+      masternodeStatus.payAddr = masternodes[key].payee;
       masternodeStatus.status = masternodes[key].status;
       masternodeStatus.proTxHash = masternodes[key].proTxHash;
 
@@ -197,7 +196,7 @@ export class MasternodeService {
       masternodeStatus.lastpaidBlock = masternodes[key].lastpaidblock;
       masternodeStatus.ownerAddr = masternodes[key].owneraddress;
       masternodeStatus.voteAddr = masternodes[key].votingaddress;
-      masternodeStatus.collateralAddr = masternodes[key].collateraladdress;
+      masternodeStatus.payee = masternodes[key].collateraladdress;
       masternodeStatus.masternodePubKey = masternodes[key].pubkeyoperator;
 
       let imasternode = Masternodes.create(masternodeStatus);
@@ -216,7 +215,7 @@ export class MasternodeService {
               } else {
                 if (oldStatus != imasternode.status) {
                   const args = {
-                    updateOn: imasternode.createdOn,
+                    updateOn: imasternode.updatedOn,
                     txid: imasternode.txid,
                     masternodePrivKey: res.masternodePrivKey,
                     masternodePubKey: res.masternodePubKey,
@@ -231,7 +230,7 @@ export class MasternodeService {
                     lastpaidBlock: imasternode.lastpaidBlock,
                     ownerAddr: imasternode.ownerAddr,
                     voteAddr: imasternode.voteAddr,
-                    collateralAddr: imasternode.collateralAddr,
+                    payAddr: imasternode.payAddr,
                     reward: res.reward
                   };
                   const notification = Notification.create({
