@@ -39,13 +39,13 @@ const BCHAddressTranslator = require('./bchaddresstranslator');
 
 const EmailValidator = require('email-validator');
 
-import { BitcoreLibVcl, Validation } from 'crypto-wallet-core';
-const Bitcore = require('bitcore-lib-vcl');
+import { Validation } from 'crypto-wallet-core';
+const Bitcore = require('bitcore-lib');
 const Bitcore_ = {
-  btc: Bitcore,
+  btc: require('bitcore-lib'),
   bch: require('bitcore-lib-cash'),
-  eth: Bitcore,
-  xrp: Bitcore,
+  eth: require('bitcore-lib'),
+  xrp: require('bitcore-lib'),
   doge: require('bitcore-lib-doge'),
   ltc: require('bitcore-lib-ltc'),
   vcl: require('bitcore-lib-vcl')
@@ -522,7 +522,7 @@ export class WalletService {
     }
 
     try {
-      pubKey = new Bitcore.PublicKey.fromString(opts.pubKey);
+      pubKey = new Bitcore_[opts.coin].PublicKey.fromString(opts.pubKey);
     } catch (ex) {
       return cb(new ClientError('Invalid public key'));
     }
@@ -790,9 +790,9 @@ export class WalletService {
    * @param signature
    * @param xPubKey
    */
-  _verifyRequestPubKey(requestPubKey, signature, xPubKey) {
-    const pub = new Bitcore.HDPublicKey(xPubKey).deriveChild(Constants.PATHS.REQUEST_KEY_AUTH).publicKey;
-    return Utils.verifyMessage(requestPubKey, signature, pub.toString());
+  _verifyRequestPubKey(requestPubKey, signature, xPubKey, coin) {
+    const pub = new Bitcore_[coin].HDPublicKey(xPubKey).deriveChild(Constants.PATHS.REQUEST_KEY_AUTH).publicKey;
+    return Utils.verifyMessage(requestPubKey, signature, pub.toString(), coin);
   }
 
   /*
@@ -1010,6 +1010,7 @@ export class WalletService {
   addAccess(opts, cb) {
     if (!checkRequired(opts, ['copayerId', 'requestPubKey', 'signature'], cb)) return;
 
+    opts.coin = opts.coin || Defaults.COIN;
     this.storage.fetchCopayerLookup(opts.copayerId, (err, copayer) => {
       if (err) return cb(err);
       if (!copayer) return cb(Errors.NOT_AUTHORIZED);
@@ -1019,7 +1020,7 @@ export class WalletService {
 
         const xPubKey = wallet.copayers.find(c => c.id === opts.copayerId).xPubKey;
 
-        if (!this._verifyRequestPubKey(opts.requestPubKey, opts.signature, xPubKey)) {
+        if (!this._verifyRequestPubKey(opts.requestPubKey, opts.signature, xPubKey, opts.coin)) {
           return cb(Errors.NOT_AUTHORIZED);
         }
 
@@ -2538,6 +2539,15 @@ export class WalletService {
                       txOptsFee = opts.fee;
                     }
                   }
+		  // john 20220219
+		  var txType;
+                  var maxPriorityFeePerGas;
+		  var maxFeePerGas;
+		  if(opts.coin === 'eth'){
+		    txType = opts.txType || 2;
+		    maxPriorityFeePerGas = opts.maxPriorityFeePerGas || 1000000007;
+                    maxFeePerGas = opts.maxFeePerGas || 1000000007;
+		  }
 
                   const txOpts = {
                     id: opts.txProposalId,
@@ -2575,7 +2585,11 @@ export class WalletService {
                     isTokenSwap: opts.isTokenSwap,
                     enableRBF: opts.enableRBF,
                     replaceTxByFee: opts.replaceTxByFee,
-                    txExtends: opts.txExtends // 20220219
+                    txExtends: opts.txExtends, // 20220219
+                    txType: txType,
+  		    maxPriorityFeePerGas: maxPriorityFeePerGas,
+  		    maxFeePerGas: maxFeePerGas,
+  		    accessList: opts.accessList || []
                   };
                   txp = TxProposal.create(txOpts);
                   next();
@@ -2666,6 +2680,7 @@ export class WalletService {
   createRedeemTx(opts, cb) {
     opts = opts ? _.clone(opts) : {};
 
+    opts.coin = opts.coin || Defaults.COIN;
     const checkTxpAlreadyExists = (txProposalId, cb) => {
       if (!txProposalId) return cb();
       this.storage.fetchTx(this.walletId, txProposalId, cb);
@@ -2707,7 +2722,7 @@ export class WalletService {
                     delete opts.outputs[0].amount;
                   }
                   opts.sendMax = true;
-                  let cnt = new Bitcore.atomicswap.AuditContract(opts.atomicswap.contract);
+                  let cnt = new Bitcore_[txp.coin].atomicswap.AuditContract(opts.atomicswap.contract);
                   if (!cnt.isAtomicSwap) return next(new Error('atomicswap contract is invalid'));
                   opts.atomicswap.lockTime = cnt.lockTime;
                   opts.atomicswap.isAtomicSwap = true;
@@ -2948,6 +2963,7 @@ export class WalletService {
   createAtomicSwapTx(opts, cb) {
     opts = opts ? _.clone(opts) : {};
 
+    opts.coin = opts.coin || Defaults.COIN;;
     const checkTxpAlreadyExists = (txProposalId, cb) => {
       if (!txProposalId) return cb();
       this.storage.fetchTx(this.walletId, txProposalId, cb);
@@ -3019,13 +3035,13 @@ export class WalletService {
                 },
                 async next => {
                   try {
-                    let contract = Bitcore.atomicswap.CreateContract(
+                    let contract = Bitcore_[opts.coin].atomicswap.CreateContract(
                       opts.atomicswap.secretHash,
                       opts.outputs[0].toAddress,
                       changeAddress.address,
                       opts.atomicswap.initiate
                     );
-                    let cnt = Bitcore.atomicswap.AuditContract(contract.hex);
+                    let cnt = Bitcore_[opts.coin].atomicswap.AuditContract(contract.hex);
                     if (!cnt.isAtomicSwap) next(new Error('An error occurred in atomicswap contract creation'));
                     opts.outputs[0].toAddress = cnt.contractAddr;
                     opts.atomicswap.contract = contract.hex;
@@ -3210,7 +3226,7 @@ export class WalletService {
           if (txp.atomicswap) {
             if (txp.atomicswap.contract) {
               txp.atomicswap.isAtomicSwap = false;
-              let cnt = Bitcore.atomicswap.AuditContract(txp.atomicswap.contract);
+              let cnt = Bitcore_[opts.coin].atomicswap.AuditContract(txp.atomicswap.contract);
               if (cnt.isAtomicSwap) {
                 txp.atomicswap.isAtomicSwap = cnt.isAtomicSwap;
                 txp.atomicswapAddr = cnt.contractAddr;
@@ -3474,7 +3490,7 @@ export class WalletService {
       if (!rawHex || _.isEmpty(rawHex)) {
         return cb(new Error('failed to get txid'));
       }
-      let info = Bitcore.atomicswap.ExtractContract(rawHex);
+      let info = Bitcore_[opts.coin].atomicswap.ExtractContract(rawHex);
       return cb(null, info);
     });
   }
@@ -3651,7 +3667,7 @@ export class WalletService {
           if (txp.atomicswap) {
             if (txp.atomicswap.contract) {
               txp.atomicswap.isAtomicSwap = false;
-              let cnt = Bitcore.atomicswap.AuditContract(txp.atomicswap.contract);
+              let cnt = Bitcore_[opts.coin].atomicswap.AuditContract(txp.atomicswap.contract);
               if (cnt.isAtomicSwap) {
                 txp.atomicswap.isAtomicSwap = cnt.isAtomicSwap;
                 txp.atomicswapAddr = cnt.contractAddr;
@@ -3668,7 +3684,7 @@ export class WalletService {
             if (opts.atomicswapSecret && opts.atomicswapSecret.length == 64) {
               if (
                 txp.atomicswapSecretHash !=
-                new Bitcore.crypto.Hash.sha256(Buffer.from(opts.atomicswapSecret, 'hex')).toString('hex')
+                new Bitcore_[opts.coin].crypto.Hash.sha256(Buffer.from(opts.atomicswapSecret, 'hex')).toString('hex')
               ) {
                 cb(new Error('atomicswap secret is invalid'));
               }
@@ -3783,7 +3799,7 @@ export class WalletService {
           if (txp.txExtends.version != Constants.TX_VERSION_MN_REGISTER) return next();
           if (!txp.txExtends.outScripts) return next();
           try {
-            let txProReg = new Bitcore.masternode.ProRegTx.fromString(txp.txExtends.outScripts);
+            let txProReg = new Bitcore_[txp.coin].masternode.ProRegTx.fromString(txp.txExtends.outScripts);
             if (!txProReg.collateralId) return next();
             let masternodeStatus: {
               createdOn?: number;
@@ -3891,7 +3907,7 @@ export class WalletService {
           //  john 20210409
           if (txp.atomicswap) {
             if (txp.atomicswap.contract) {
-              let cnt = Bitcore.atomicswap.AuditContract(txp.atomicswap.contract);
+              let cnt = Bitcore_[txp.coin].atomicswap.AuditContract(txp.atomicswap.contract);
               txp.atomicswap.isAtomicSwap = cnt.isAtomicSwap;
             }
             if (!txp.atomicswap.isAtomicSwap) {
@@ -4125,7 +4141,7 @@ export class WalletService {
         _.each(txps, txp => {
           txp.deleteLockTime = this.getRemainingDeleteLockTime(txp);
           if (txp.atomicswap) {
-            let cnt = new Bitcore.atomicswap.AuditContract(txp.atomicswap.contract);
+            let cnt = new Bitcore_[txp.coin].atomicswap.AuditContract(txp.atomicswap.contract);
             txp.atomicswap.isAtomicSwap = cnt.isAtomicSwap;
           }
         });

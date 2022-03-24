@@ -50,9 +50,9 @@ export class Request {
   //  @param {String} url - The URL for the request
   //  @param {Object} args - The arguments in case this is a POST/PUT request
   //  @param {String} privKey - Private key to sign the request
-  static _signRequest(method, url, args, privKey) {
+  static _signRequest(method, url, args, privKey, coin) {
     var message = [method.toLowerCase(), url, JSON.stringify(args)].join('|');
-    return Utils.signMessage(message, privKey);
+    return Utils.signMessage(message, privKey, coin);
   }
 
   //  Do an HTTP request
@@ -75,7 +75,7 @@ export class Request {
         var key = args._requestPrivKey || this.credentials.requestPrivKey;
         if (key) {
           delete args['_requestPrivKey'];
-          reqSignature = Request._signRequest(method, url, args, key);
+          reqSignature = Request._signRequest(method, url, args, key, this.credentials.coin);
         }
         headers['x-signature'] = reqSignature;
       }

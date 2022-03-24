@@ -298,9 +298,9 @@ export class API extends EventEmitter {
       var message =
         'Lorem ipsum dolor sit amet, ne amet urbanitas percipitur vim, libris disputando his ne, et facer suavitate qui. Ei quidam laoreet sea. Cu pro dico aliquip gubergren, in mundi postea usu. Ad labitur posidonium interesset duo, est et doctus molestie adipiscing.';
       var priv = xpriv.deriveChild(nonHardenedPath).privateKey;
-      var signature = Utils.signMessage(message, priv);
+      var signature = Utils.signMessage(message, priv, c.coin);
       var pub = xpub.deriveChild(nonHardenedPath).publicKey;
-      return Utils.verifyMessage(message, signature, pub);
+      return Utils.verifyMessage(message, signature, pub, c.coin);
     };
 
     var testHardcodedKeys = () => {
@@ -817,7 +817,7 @@ export class API extends EventEmitter {
       args.xPubKey,
       args.requestPubKey
     );
-    args.copayerSignature = Utils.signMessage(hash, walletPrivKey);
+    args.copayerSignature = Utils.signMessage(hash, walletPrivKey, opts.coin);
 
     var url = '/v2/wallets/' + walletId + '/copayers';
     this.request.post(url, args, (err, body) => {
@@ -1484,7 +1484,13 @@ export class API extends EventEmitter {
     baseUrl = baseUrl || '/v3/txproposals/';
     // baseUrl = baseUrl || '/v4/txproposals/'; // DISABLED 2020-04-07
 
+    opts.coin = opts.coin || 'vcl';
+
     try {
+      if(opts.txExtends){
+        await this._getChangeAddress(opts);      
+      }
+
       var txp = await this._postRequest(baseUrl, args);
       this._processTxps(txp);
       if (
@@ -1887,7 +1893,8 @@ export class API extends EventEmitter {
     var args = {
       proposalSignature: Utils.signMessage(
         hash,
-        this.credentials.requestPrivKey
+        this.credentials.requestPrivKey,
+        opts.coin
       ),
       outScripts
     };
@@ -3975,7 +3982,7 @@ export class API extends EventEmitter {
     if (!opts.pingHeight) return cb(new Error('Not ping block height'));
     if (!opts.pingHash) return cb(new Error('Not ping blockhash'));
     if (!opts.privKey) return cb(new Error('Not masternode private key'));
-    if (!Utils.isPrivateKey(opts.privKey)) {
+    if (!Utils.isPrivateKey(opts.privKey, opts.coin)) {
       return cb(new Error('Invalid masternode private key'));
     }
 
@@ -4536,24 +4543,6 @@ export class API extends EventEmitter {
           }
         },
         next => {
-          this.createAddress(
-            { ignoreMaxGap: true, isChange: true },
-            function (err, toAddr) {
-              if (err) {
-                return next(new Error('create toaddress error! ' + err));
-              }
-              delete opts.outputs;
-              opts.outputs = [
-                {
-                  toAddress: toAddr.address,
-                  amount: 0
-                }
-              ];
-              next();
-            }
-          );
-        },
-        next => {
           if (
             opts.collateral &&
             opts.collateral.address &&
@@ -4691,24 +4680,6 @@ export class API extends EventEmitter {
           );
         },
         next => {
-          this.createAddress(
-            { ignoreMaxGap: true, isChange: true },
-            function (err, toAddr) {
-              if (err) {
-                return next(new Error('create toaddress error! ' + err));
-              }
-              delete opts.outputs;
-              opts.outputs = [
-                {
-                  toAddress: toAddr.address,
-                  amount: 0
-                }
-              ];
-              next();
-            }
-          );
-        },
-        next => {
           this.getMainAddresses(
             { address: opts.masternode.ownerAddr },
             function (err, ownerAddr) {
@@ -4808,24 +4779,6 @@ export class API extends EventEmitter {
     async.waterfall(
       [
         next => {
-          this.createAddress(
-            { ignoreMaxGap: true, isChange: true },
-            function (err, toAddr) {
-              if (err) {
-                return next(new Error('create toaddress error! ' + err));
-              }
-              delete opts.outputs;
-              opts.outputs = [
-                {
-                  toAddress: toAddr.address,
-                  amount: 0
-                }
-              ];
-              next();
-            }
-          );
-        },
-        next => {
           this.createTxProUpService(
             opts,
             function (err, createTxp) {
@@ -4906,24 +4859,6 @@ export class API extends EventEmitter {
 
     async.waterfall(
       [
-        next => {
-          this.createAddress(
-            { ignoreMaxGap: true, isChange: true },
-            function (err, toAddr) {
-              if (err) {
-                return next(new Error('create toaddress error! ' + err));
-              }
-              delete opts.outputs;
-              opts.outputs = [
-                {
-                  toAddress: toAddr.address,
-                  amount: 0
-                }
-              ];
-              next();
-            }
-          );
-        },
         next => {
           this.createTxProUpRevoke(
             opts,
@@ -5229,6 +5164,27 @@ export class API extends EventEmitter {
       }
     }
     return;
+  }
+
+  _getChangeAddress(opts){
+    return new Promise((resolve, reject) => {
+      this.createAddress(
+        { ignoreMaxGap: true, isChange: true },
+        function (err, toAddr) {
+          if (err) {
+            return reject(err);
+          }
+          delete opts.outputs;
+          opts.outputs = [
+            {
+              toAddress: toAddr.address,
+              amount: 0
+            }
+          ];
+          return resolve();
+        }
+      );
+    });
   }
 
   _postRequest(baseUrl, args) {

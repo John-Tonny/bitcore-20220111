@@ -18,19 +18,15 @@ const $ = require('preconditions').singleton();
 const sjcl = require('sjcl');
 const Stringify = require('json-stable-stringify');
 
-const Bitcore = BitcoreLibVcl;
 const Bitcore_ = {
-  btc: Bitcore,
+  btc: BitcoreLib,
   bch: BitcoreLibCash,
-  eth: Bitcore,
-  xrp: Bitcore,
+  eth: BitcoreLib,
+  xrp: BitcoreLib,
   doge: BitcoreLibDoge,
   ltc: BitcoreLibLtc,
   vcl: BitcoreLibVcl
 };
-const PrivateKey = Bitcore.PrivateKey;
-const PublicKey = Bitcore.PublicKey;
-const crypto = Bitcore.crypto;
 
 let SJCL = {};
 
@@ -104,47 +100,51 @@ export class Utils {
   }
   /* TODO: It would be nice to be compatible with bitcoind signmessage. How
    * the hash is calculated there? */
-  static hashMessage(text) {
+  static hashMessage(text, coin) {
     $.checkArgument(text);
+    coin = coin || 'vcl';
     var buf = Buffer.from(text);
-    var ret = crypto.Hash.sha256sha256(buf);
-    ret = new Bitcore.encoding.BufferReader(ret).readReverse();
+    var ret = Bitcore_[coin].crypto.Hash.sha256sha256(buf);
+    ret = new Bitcore_[coin].encoding.BufferReader(ret).readReverse();
     return ret;
   }
 
-  static signMessage(message, privKey) {
+  static signMessage(message, privKey, coin) {
     $.checkArgument(message);
-    var priv = new PrivateKey(privKey);
+    coin = coin || 'vcl';
+    var priv = new Bitcore_[coin].PrivateKey(privKey);
     const flattenedMessage = _.isArray(message) ? _.join(message) : message;
-    var hash = this.hashMessage(flattenedMessage);
-    return crypto.ECDSA.sign(hash, priv, 'little').toString();
+    var hash = this.hashMessage(flattenedMessage, coin);
+    return Bitcore_[coin].crypto.ECDSA.sign(hash, priv, 'little').toString();
   }
 
-  static verifyMessage(message: Array<string> | string, signature, pubKey) {
+  static verifyMessage(message: Array<string> | string, signature, pubKey, coin) {
     $.checkArgument(message);
     $.checkArgument(pubKey);
+    coin = coin || 'vcl';
 
     if (!signature) return false;
 
-    var pub = new PublicKey(pubKey);
+    var pub = new Bitcore_[coin].PublicKey(pubKey);
     const flattenedMessage = _.isArray(message) ? _.join(message) : message;
-    const hash = this.hashMessage(flattenedMessage);
+    const hash = this.hashMessage(flattenedMessage, coin);
     try {
-      var sig = new crypto.Signature.fromString(signature);
-      return crypto.ECDSA.verify(hash, sig, pub, 'little');
+      var sig = new Bitcore_[coin].crypto.Signature.fromString(signature);
+      return Bitcore_[coin].crypto.ECDSA.verify(hash, sig, pub, 'little');
     } catch (e) {
       return false;
     }
   }
 
-  static privateKeyToAESKey(privKey) {
+  static privateKeyToAESKey(privKey, coin) {
+    coin = coin || 'vcl';
     $.checkArgument(privKey && _.isString(privKey));
     $.checkArgument(
-      Bitcore.PrivateKey.isValid(privKey),
+      Bitcore_[coin].PrivateKey.isValid(privKey),
       'The private key received is invalid'
     );
-    var pk = Bitcore.PrivateKey.fromString(privKey);
-    return Bitcore.crypto.Hash.sha256(pk.toBuffer())
+    var pk = Bitcore_[coin].PrivateKey.fromString(privKey);
+    return Bitcore_[coin].crypto.Hash.sha256(pk.toBuffer())
       .slice(0, 16)
       .toString('base64');
   }
@@ -279,18 +279,20 @@ export class Utils {
     return sjcl.codec.hex.fromBits(hash);
   }
 
-  static signRequestPubKey(requestPubKey, xPrivKey) {
-    var priv = new Bitcore.HDPrivateKey(xPrivKey).deriveChild(
+  static signRequestPubKey(requestPubKey, xPrivKey, coin) {
+    coin = coin || 'vcl';
+    var priv = new Bitcore_[coin].HDPrivateKey(xPrivKey).deriveChild(
       Constants.PATHS.REQUEST_KEY_AUTH
     ).privateKey;
-    return this.signMessage(requestPubKey, priv);
+    return this.signMessage(requestPubKey, priv, coin);
   }
 
-  static verifyRequestPubKey(requestPubKey, signature, xPubKey) {
-    var pub = new Bitcore.HDPublicKey(xPubKey).deriveChild(
+  static verifyRequestPubKey(requestPubKey, signature, xPubKey, coin) {
+    coin = coin || 'vcl';
+    var pub = new Bitcore_[coin].HDPublicKey(xPubKey).deriveChild(
       Constants.PATHS.REQUEST_KEY_AUTH
     ).publicKey;
-    return this.verifyMessage(requestPubKey, signature, pub.toString());
+    return this.verifyMessage(requestPubKey, signature, pub.toString(), coin);
   }
 
   static formatAmount(satoshis, unit, opts?) {
@@ -508,9 +510,10 @@ export class Utils {
     }
   }
 
-  static isPrivateKey(privKey) {
+  static isPrivateKey(privKey, coin) {
+    coin = coin || 'vcl';
     try {
-      var privkey = new PrivateKey(privKey);
+      var privkey = new Bitcore_[coin].PrivateKey(privKey);
       return true;
     } catch (e) {
       return false;

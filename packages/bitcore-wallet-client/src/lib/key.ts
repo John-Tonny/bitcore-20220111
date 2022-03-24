@@ -4,6 +4,8 @@ var $ = require('preconditions').singleton();
 import {
   BitcoreLib,
   BitcoreLibCash,
+  BitcoreLibDoge,
+  BitcoreLibLtc,
   BitcoreLibVcl,
   Deriver,
   Transactions
@@ -13,7 +15,16 @@ import 'source-map-support/register';
 import { Constants, Utils } from './common';
 import { Credentials } from './credentials';
 
-var Bitcore = BitcoreLibVcl;
+const Bitcore_ = {
+  btc: BitcoreLib,
+  bch: BitcoreLibCash,
+  eth: BitcoreLib,
+  xrp: BitcoreLib,
+  doge: BitcoreLibDoge,
+  ltc: BitcoreLibLtc,
+  vcl: BitcoreLibVcl
+};
+
 var Mnemonic = require('bitcore-mnemonic');
 var sjcl = require('sjcl');
 var log = require('./log');
@@ -53,6 +64,7 @@ export class Key {
 
   public fingerPrint: string;
 
+  public coin: string;
   /*
    *  public readonly exportFields = {
    *    'xPrivKey': '#xPrivKey',
@@ -91,8 +103,11 @@ export class Key {
       nonCompliantDerivation?: boolean;
       useMulti?: boolean;
       language?: string;
+      coin?: string;
     } = { seedType: 'new' }
   ) {
+    this.coin = opts.coin || 'vcl';
+
     this.version = 1;
     this.id = Uuid.v4();
 
@@ -130,7 +145,7 @@ export class Key {
 
         let xpriv;
         try {
-          xpriv = new Bitcore.HDPrivateKey(x);
+          xpriv = new Bitcore_[this.coin].HDPrivateKey(x);
         } catch (e) {
           throw new Error('Invalid argument');
         }
@@ -279,7 +294,7 @@ export class Key {
     coin = coin || 'vcl';
 
     var derived = this.derive(password, rootPath, coin);
-    var xpriv = new Bitcore.HDPrivateKey(derived);
+    var xpriv = new Bitcore_[coin].HDPrivateKey(derived);
 
     if (!derived[path]) {
       return xpriv.deriveChild(path).privateKey;
@@ -294,14 +309,14 @@ export class Key {
     network = network || NETWORK;
 
     var derived = this.derive(password, rootPath, coin);
-    var xPrivKey = new Bitcore.HDPrivateKey(derived);
+    var xPrivKey = new Bitcore_[coin].HDPrivateKey(derived);
     if (network == 'testnet') {
       var x = derived.toObject();
       x.network = 'testnet';
       delete x.xprivkey;
       delete x.checksum;
       x.privateKey = _.padStart(x.privateKey, 64, '0');
-      xPrivKey = new Bitcore.HDPrivateKey(x);
+      xPrivKey = new Bitcore_[coin].HDPrivateKey(x);
     }
 
     if (!derived[path]) {
@@ -323,7 +338,7 @@ export class Key {
     var derived: any = {};
     coin = coin || 'vcl';
     var derived = this.derive(password, rootPath, coin);
-    var xpriv = new Bitcore.HDPrivateKey(derived);
+    var xpriv = new Bitcore_[coin].HDPrivateKey(derived);
 
     start = start || 0;
     stop = stop || start + 100;
@@ -359,6 +374,7 @@ export class Key {
   };
 
   get = function (password) {
+
     let keys: any = {};
     let fingerPrintUpdated = false;
 
@@ -372,7 +388,7 @@ export class Key {
 
         // update fingerPrint if not set.
         if (!this.fingerPrint) {
-          let xpriv = new Bitcore.HDPrivateKey(keys.xPrivKey);
+          let xpriv = new Bitcore_[this.coin].HDPrivateKey(keys.xPrivKey);
           this.fingerPrint = xpriv.fingerPrint.toString('hex');
           fingerPrintUpdated = true;
         }
@@ -427,9 +443,10 @@ export class Key {
     }
   };
 
-  derive = function (password, path) {
+  derive = function (password, path, coin) {
+    coin = coin || this.coin;
     $.checkArgument(path, 'no path at derive()');
-    var xPrivKey = new Bitcore.HDPrivateKey(
+    var xPrivKey = new Bitcore_[coin].HDPrivateKey(
       this.get(password).xPrivKey,
       NETWORK
     );
@@ -538,7 +555,7 @@ export class Key {
       delete x.xprivkey;
       delete x.checksum;
       x.privateKey = _.padStart(x.privateKey, 64, '0');
-      xPrivKey = new Bitcore.HDPrivateKey(x);
+      xPrivKey = new Bitcore_[this.coin].HDPrivateKey(x);
     }
 
     return Credentials.fromDerivedKey({
@@ -565,11 +582,11 @@ export class Key {
     opts = opts || {};
     $.shouldBeString(opts.path);
 
-    var requestPrivKey = new Bitcore.PrivateKey(opts.requestPrivKey || null);
+    var requestPrivKey = new Bitcore_[this.coin].PrivateKey(opts.requestPrivKey || null);
     var requestPubKey = requestPrivKey.toPublicKey().toString();
 
     var xPriv = this.derive(password, opts.path);
-    var signature = Utils.signRequestPubKey(requestPubKey, xPriv);
+    var signature = Utils.signRequestPubKey(requestPubKey, xPriv, this.coin);
     requestPrivKey = requestPrivKey.toString();
 
     return {
@@ -586,8 +603,8 @@ export class Key {
     var privs = [];
     var derived: any = {};
 
-    var derived = this.derive(password, rootPath);
-    var xpriv = new Bitcore.HDPrivateKey(derived);
+    var derived = this.derive(password, rootPath, txp.coin);
+    var xpriv = new Bitcore_[txp.coin].HDPrivateKey(derived);
 
     var t = Utils.buildTx(txp);
     if (
@@ -673,7 +690,7 @@ export class Key {
     var privs = [];
 
     if (Constants.UTXO_COINS.includes(txp.coin)) {
-      privs.push(new Bitcore.PrivateKey(privKey));
+      privs.push(new Bitcore_[txp.coin].PrivateKey(privKey));
 
       var signatures = _.map(privs, function (priv, i) {
         return t.getSignatures(priv, undefined, txp.signingMethod);

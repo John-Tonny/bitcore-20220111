@@ -2,7 +2,15 @@ import * as _ from 'lodash';
 import { Constants, Utils } from './common';
 var $ = require('preconditions').singleton();
 
-import { BitcoreLib, BitcoreLibCash, BitcoreLibVcl } from 'crypto-wallet-core';
+import {
+  BitcoreLib,
+  BitcoreLibCash,
+  BitcoreLibDoge,
+  BitcoreLibLtc,
+  BitcoreLibVcl,
+  Deriver,
+  Transactions
+} from 'crypto-wallet-core';
 
 var Bitcore = BitcoreLibVcl;
 var BCHAddress = BitcoreLibCash.Address;
@@ -90,7 +98,7 @@ export class Verifier {
           copayer.xPubKey,
           copayer.requestPubKey
         );
-        if (!Utils.verifyMessage(hash, copayer.signature, walletPubKey)) {
+        if (!Utils.verifyMessage(hash, copayer.signature, walletPubKey, credentials.coin)) {
           log.error('Invalid signatures in server response');
           error = true;
         }
@@ -186,7 +194,8 @@ export class Verifier {
         !Utils.verifyRequestPubKey(
           txp.proposalSignaturePubKey,
           txp.proposalSignaturePubKeySig,
-          creatorKeys.xPubKey
+          creatorKeys.xPubKey,
+          txp.coin
         )
       )
         return false;
@@ -238,7 +247,7 @@ export class Verifier {
       ' Signature: ',
       txp.proposalSignature
     );
-    if (!Utils.verifyMessage(hash, txp.proposalSignature, creatorSigningPubKey))
+    if (!Utils.verifyMessage(hash, txp.proposalSignature, creatorSigningPubKey, txp.coin))
       return false;
 
     if (Constants.UTXO_COINS.includes(txp.coin)) {

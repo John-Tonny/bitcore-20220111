@@ -15,8 +15,11 @@ export class ETHTxProvider {
     network: string;
     chainId?: number;
     contractAddress?: string;
+    txType?: number;
+    maxPriorityFeePerGas?: number;
+    maxFeePerGas?: number;
   }) {
-    const { recipients, nonce, gasPrice, gasLimit, network, contractAddress } = params;
+    const { recipients, nonce, gasPrice, gasLimit, network, contractAddress, txType, maxPriorityFeePerGas, maxFeePerGas } = params;
     let { data } = params;
     let to;
     let amount;
@@ -41,15 +44,32 @@ export class ETHTxProvider {
     }
     let { chainId } = params;
     chainId = chainId || this.getChainId(network);
-    const txData = {
-      nonce: utils.toHex(nonce),
-      gasLimit: utils.toHex(gasLimit),
-      gasPrice: utils.toHex(gasPrice),
-      to,
-      data,
-      value: utils.toHex(amount),
-      chainId
-    };
+    // john 20220219
+    var txData;
+    if(txType == undefined){
+      txData = {
+        nonce: utils.toHex(nonce),
+        gasLimit: utils.toHex(gasLimit),
+        gasPrice: utils.toHex(gasPrice),
+        to,
+        data,
+        value: utils.toHex(amount),
+        chainId
+      };
+    }else{
+      txData = {
+        nonce: utils.toHex(nonce),
+        gasLimit: utils.toHex(gasLimit),
+        to,
+        data,
+        value: utils.toHex(amount),
+        chainId,
+        type: txType,
+        maxPriorityFeePerGas: utils.toHex(maxPriorityFeePerGas),
+        maxFeePerGas: utils.toHex(maxFeePerGas)
+      };
+    
+    }
     return ethers.utils.serializeTransaction(txData);
   }
 
@@ -75,7 +95,7 @@ export class ETHTxProvider {
         chainId = 17;
         break;
       default:
-        chainId = 1;
+        chainId = 90;
         break;
     }
     return chainId;
@@ -108,8 +128,14 @@ export class ETHTxProvider {
   applySignature(params: { tx: string; signature: any }) {
     let { tx, signature } = params;
     const parsedTx = ethers.utils.parseTransaction(tx);
-    const { nonce, gasPrice, gasLimit, to, value, data, chainId } = parsedTx;
-    const txData = { nonce, gasPrice, gasLimit, to, value, data, chainId };
+    // john 20220219
+    const { nonce, gasPrice, gasLimit, to, value, data, chainId, type, maxPriorityFeePerGas, maxFeePerGas } = parsedTx;
+    var txData;
+    if (type == undefined){
+      txData = { nonce, gasPrice, gasLimit, to, value, data, chainId };
+    }else {
+      txData = {nonce, gasLimit, to, value, data, chainId, type, maxPriorityFeePerGas, maxFeePerGas};
+    }
     if (typeof signature == 'string') {
       signature = ethers.utils.splitSignature(signature);
     }

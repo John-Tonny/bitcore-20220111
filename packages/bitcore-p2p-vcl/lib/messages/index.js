@@ -40,6 +40,7 @@ Messages.builder = require('./builder');
  */
 Messages.prototype.parseBuffer = function(dataBuffer) {
   /* jshint maxstatements: 18 */
+
   if (dataBuffer.length < Messages.MINIMUM_LENGTH) {
     return;
   }
@@ -70,7 +71,6 @@ Messages.prototype.parseBuffer = function(dataBuffer) {
   }
 
   dataBuffer.skip(messageLength);
-
   return this._buildFromBuffer(command, payload);
 };
 

@@ -63,6 +63,11 @@ export interface ITxProposal {
   signingMethod: string;
   lowFees: boolean;
   nonce?: number;
+  // john 20220219
+  txType?: number;
+  maxFeePerGas?: number;
+  maxPriorityFeePerGas?: number;
+  accessList?: [];
   gasPrice?: number;
   gasLimit?: number; // Backward compatibility for BWC <= 8.9.0
   data?: string; // Backward compatibility for BWC <= 8.9.0
@@ -131,6 +136,11 @@ export class TxProposal {
   signingMethod: string;
   raw?: Array<string> | string;
   nonce?: number;
+  // john 20220219
+  txType?: number;
+  maxFeePerGas?: number;
+  maxPriorityFeePerGas?: number;
+  accessList?: [];
   gasPrice?: number;
   gasLimit?: number; // Backward compatibility for BWC <= 8.9.0
   data?: string; // Backward compatibility for BWC <= 8.9.0
@@ -243,6 +253,11 @@ export class TxProposal {
 
     x.txExtends = opts.txExtends;
 
+    x.txType = opts.txType;
+    x.maxFeePerGas = opts.maxFeePerGas;
+    x.maxPriorityFeePerGas = opts.maxPriorityFeePerGas;
+    x.accessList = opts.accessList;
+
     return x;
   }
 
@@ -324,6 +339,11 @@ export class TxProposal {
     x.atomicswapSecretHash = obj.atomicswapSecretHash;
 
     x.txExtends = obj.txExtends; // john 20220219
+
+    x.txType = obj.txType;
+    x.maxFeePerGas = obj.maxFeePerGas;
+    x.maxPriorityFeePerGas = obj.maxPriorityFeePerGas;
+    x.accessList = obj.accessList;
 
     return x;
   }

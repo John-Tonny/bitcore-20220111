@@ -1,12 +1,30 @@
 'use strict';
 
-import { BitcoreLib, BitcoreLibVcl } from 'crypto-wallet-core';
+import {
+  BitcoreLib,
+  BitcoreLibCash,
+  BitcoreLibDoge,
+  BitcoreLibLtc,
+  BitcoreLibVcl,
+  Deriver,
+  Transactions
+} from 'crypto-wallet-core';
+
 
 import { Constants, Utils } from './common';
 const $ = require('preconditions').singleton();
 const _ = require('lodash');
 
-const Bitcore = BitcoreLibVcl;
+const Bitcore_ = {
+  btc: BitcoreLib,
+  bch: BitcoreLibCash,
+  eth: BitcoreLib,
+  xrp: BitcoreLib,
+  doge: BitcoreLibDoge,
+  ltc: BitcoreLibLtc,
+  vcl: BitcoreLibVcl
+};
+
 const sjcl = require('sjcl');
 
 export class Credentials {
@@ -91,7 +109,7 @@ export class Credentials {
     opts = opts || {};
 
     var x: any = new Credentials();
-    x.coin = opts.coin;
+    x.coin = opts.coin || 'vcl';
     x.network = opts.network;
     x.account = opts.account;
     x.n = opts.n;
@@ -116,15 +134,15 @@ export class Credentials {
     }
     x.requestPrivKey = opts.requestPrivKey;
 
-    const priv = Bitcore.PrivateKey(x.requestPrivKey);
+    const priv = Bitcore_[x.coin].PrivateKey(x.requestPrivKey);
     x.requestPubKey = priv.toPublicKey().toString();
 
     const prefix = 'personalKey';
-    const entropySource = Bitcore.crypto.Hash.sha256(priv.toBuffer()).toString(
+    const entropySource = Bitcore_[x.coin].crypto.Hash.sha256(priv.toBuffer()).toString(
       'hex'
     );
     const b = Buffer.from(entropySource, 'hex');
-    const b2 = Bitcore.crypto.Hash.sha256hmac(b, Buffer.from(prefix));
+    const b2 = Bitcore_[x.coin].crypto.Hash.sha256hmac(b, Buffer.from(prefix));
     x.personalEncryptingKey = b2.slice(0, 16).toString('base64');
     x.copayerId = Utils.xPubToCopayerId(x.coin, x.xPubKey);
     x.publicKeyRing = [
@@ -265,7 +283,7 @@ export class Credentials {
   }
   addWalletPrivateKey(walletPrivKey) {
     this.walletPrivKey = walletPrivKey;
-    this.sharedEncryptingKey = Utils.privateKeyToAESKey(walletPrivKey);
+    this.sharedEncryptingKey = Utils.privateKeyToAESKey(walletPrivKey, this.coin);
   }
 
   addWalletInfo(walletId, walletName, m, n, copayerName, opts) {

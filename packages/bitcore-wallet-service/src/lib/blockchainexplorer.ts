@@ -16,8 +16,8 @@ const PROVIDERS = {
       testnet: 'https://api.bitpay.com'
     },
     eth: {
-      livenet: 'https://api-eth.bitcore.io',
-      testnet: 'https://api-eth.bitcore.io'
+      livenet: 'http://127.0.0.1:8200',
+      testnet: 'http://127.0.0.1:8200'
     },
     xrp: {
       livenet: 'https://api-xrp.bitcore.io',
