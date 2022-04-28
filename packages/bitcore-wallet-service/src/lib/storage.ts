@@ -327,7 +327,15 @@ export class Storage {
           action.copayerName = wallet.getCopayer(action.copayerId).name;
         });
 
-        if (tx.status == 'accepted') tx.raw = tx.getRawTx();
+        if (tx.status == 'accepted') {
+          // john 20220219
+          var rawTx = tx.getRawTx();
+          if(_.isArray(rawTx)){
+            tx.raw = rawTx;
+          }else{
+            tx.raw = [rawTx];
+          }
+        }
       });
       return cb(null, txs);
     });
@@ -1736,6 +1744,68 @@ export class Storage {
       cb
     );
   }
+
+  // TODO: update part masternode 
+  updateMasternodePart(walletId, masternode, cb) {
+    let updates: {
+                updatedOn?: number;
+                masternodePrivKey?: string;
+                masternodePubKey?: string;
+                address?: string;
+                voteAddr?: string;
+                payAddr?: string;
+              } = {};
+    if(!masternode.proTxHash){
+      return cb(null);
+    }
+    updates.updatedOn = Math.floor(Date.now() / 1000);
+    if(masternode.masternodePrivKey){
+      updates.masternodePrivKey = masternode.masternodePrivKey;
+    }else{
+      delete updates.masternodePrivKey;
+    }
+
+    if(masternode.masternodePubKey){
+      updates.masternodePubKey = masternode.masternodePubKey;
+    }else{
+      delete updates.masternodePubKey;
+    }
+
+    if(masternode.voteAddr){
+      updates.voteAddr = masternode.voteAddr;
+    }else{
+      delete updates.voteAddr;
+    }
+
+    if(masternode.address){
+      updates.address = masternode.address;
+    }else{
+      delete updates.address;
+    }
+
+    if(masternode.payAddr){
+      updates.payAddr = masternode.payAddr;     
+    }else{
+      delete updates.payAddr;
+    }
+
+    this.db.collection(collections.MASTERNODES).update(
+      {
+        proTxHash: masternode.proTxHash,
+        walletId
+      },
+      {
+        $set: updates
+      },
+      {
+        w: 1,
+        upsert: false
+      },
+      cb
+    );
+  }
+
+
 
   // TODO: remove masternode
   removeMasternodes(walletId, txid, cb) {

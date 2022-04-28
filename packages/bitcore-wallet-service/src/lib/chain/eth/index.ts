@@ -6,6 +6,7 @@ import { IChain, INotificationData } from '..';
 import { ClientError } from '../../errors/clienterror';
 import logger from '../../logger';
 import { ERC20Abi } from './abi-erc20';
+import { ERC721Abi } from './abi-erc721';
 import { InvoiceAbi } from './abi-invoice';
 
 const Common = require('../../common');
@@ -22,6 +23,12 @@ const Erc20Decoder = requireUncached('abi-decoder');
 Erc20Decoder.addABI(ERC20Abi);
 function getErc20Decoder() {
   return Erc20Decoder;
+}
+
+const Erc721Decoder = requireUncached('abi-decoder');
+Erc721Decoder.addABI(ERC721Abi);
+function getErc721Decoder() {
+    return Erc721Decoder;
 }
 
 const InvoiceDecoder = requireUncached('abi-decoder');
@@ -190,10 +197,11 @@ export class EthChain implements IChain {
   }
 
   getBitcoreTx(txp, opts = { signed: true }) {
-    const { data, outputs, payProUrl, tokenAddress, multisigContractAddress, isTokenSwap } = txp;
+    const { data, outputs, payProUrl, tokenAddress, multisigContractAddress, isTokenSwap, tokenId } = txp;
     const isERC20 = tokenAddress && !payProUrl && !isTokenSwap;
+    const isERC721 = tokenAddress && tokenId;
     const isETHMULTISIG = multisigContractAddress;
-    const chain = isETHMULTISIG ? 'ETHMULTISIG' : isERC20 ? 'ERC20' : 'ETH';
+    const chain = isETHMULTISIG ? 'ETHMULTISIG' :isERC721 ? 'ERC721' :isERC20 ? 'ERC20' : 'ETH';
     const recipients = outputs.map(output => {
       return {
         amount: output.amount,
@@ -377,9 +385,13 @@ export class EthChain implements IChain {
   checkUtxos(opts) {}
 
   checkValidTxAmount(output): boolean {
-    if (!_.isNumber(output.amount) || _.isNaN(output.amount) || output.amount < 0) {
-      return false;
+    // john 20220219
+    var amount = Number(output.amount);
+    if (!_.isNumber(amount) || _.isNaN(amount) || amount <= 0) {
+        return false;
     }
+    output.amount = amount;
+
     return true;
   }
 

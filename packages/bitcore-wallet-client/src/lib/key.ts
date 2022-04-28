@@ -374,7 +374,6 @@ export class Key {
   };
 
   get = function (password) {
-
     let keys: any = {};
     let fingerPrintUpdated = false;
 
@@ -582,7 +581,9 @@ export class Key {
     opts = opts || {};
     $.shouldBeString(opts.path);
 
-    var requestPrivKey = new Bitcore_[this.coin].PrivateKey(opts.requestPrivKey || null);
+    var requestPrivKey = new Bitcore_[this.coin].PrivateKey(
+      opts.requestPrivKey || null
+    );
     var requestPubKey = requestPrivKey.toPublicKey().toString();
 
     var xPriv = this.derive(password, opts.path);

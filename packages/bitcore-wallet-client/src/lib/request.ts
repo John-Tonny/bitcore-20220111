@@ -75,7 +75,13 @@ export class Request {
         var key = args._requestPrivKey || this.credentials.requestPrivKey;
         if (key) {
           delete args['_requestPrivKey'];
-          reqSignature = Request._signRequest(method, url, args, key, this.credentials.coin);
+          reqSignature = Request._signRequest(
+            method,
+            url,
+            args,
+            key,
+            this.credentials.coin
+          );
         }
         headers['x-signature'] = reqSignature;
       }

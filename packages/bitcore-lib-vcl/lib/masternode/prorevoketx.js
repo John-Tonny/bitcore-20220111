@@ -21,6 +21,7 @@ var Signature = require('../crypto/signature');
 var Script = require('../script');
 var Message = require('../message');
 
+const ADDRESS_TYPE = 'witnesspubkeyhash';
 const NETWORK = 'livenet';
 const CURRENT_VERSION = 1;
 const LAST_SEASON = 5;
@@ -165,7 +166,7 @@ ProRevokeTx.prototype.getMessageHash = function() {
 
 ProRevokeTx.prototype.getScript1 = function() {
   var writer = new BufferWriter();
-  var message = this.serialize(writer, true);
+  this.serialize(writer, true);
 
   var n = writer.toBuffer().length;
   var writer1 = new BufferWriter();

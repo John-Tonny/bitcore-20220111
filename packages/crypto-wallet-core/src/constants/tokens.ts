@@ -40,5 +40,17 @@ export let TOKEN_OPTS = {
     decimal: 18,
     name: 'SHIBA INU',
     symbol: 'SHIB'
-  }
+  },
+  '0x8ffb6ceeb3c41f6286eedbc97df6d711ae00bff6': {
+    address: '0x8ffb6ceeb3c41f6286eedbc97df6d711ae00bff6',
+    decimal: 18,
+    name: 'EVCL',
+    symbol: 'EVCL'
+  },
+  '0x9243A89a90Bf1d386A411a56Bb0072CE52143c8b': {
+    address: '0x9243A89a90Bf1d386A411a56Bb0072CE52143c8b',
+    decimal: 1,
+    name: 'NVCL',
+    symbol: 'NVCL'
+  },
 };

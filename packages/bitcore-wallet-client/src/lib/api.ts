@@ -1480,16 +1480,16 @@ export class API extends EventEmitter {
       opts.signingMethod = 'schnorr';
     }
 
-    var args = this._getCreateTxProposalArgs(opts);
-    baseUrl = baseUrl || '/v3/txproposals/';
-    // baseUrl = baseUrl || '/v4/txproposals/'; // DISABLED 2020-04-07
-
     opts.coin = opts.coin || 'vcl';
 
     try {
-      if(opts.txExtends){
-        await this._getChangeAddress(opts);      
+      if (opts.txExtends) {
+        await this._getChangeAddress(opts);
       }
+
+      var args = this._getCreateTxProposalArgs(opts);
+      baseUrl = baseUrl || '/v3/txproposals/';
+      // baseUrl = baseUrl || '/v4/txproposals/'; // DISABLED 2020-04-07
 
       var txp = await this._postRequest(baseUrl, args);
       this._processTxps(txp);
@@ -4613,12 +4613,13 @@ export class API extends EventEmitter {
             if (err) {
               return next(new Error('broadcast TxProposal error! ' + err));
             }
-            return cb(null, zz.txid);
+            return cb(null, zz);
           });
         }
       ],
-      function (err, bls, ownerAddr, voteAddr, payAddr) {
+      function (err, ret) {
         if (err) cb(err);
+	return cb(null, ret);
       }
     );
   }
@@ -4635,6 +4636,10 @@ export class API extends EventEmitter {
       opts.masternode.masternodePrivKey,
       'Invalid masternode.masternodePrivKey'
     );
+    $.checkArgument(
+      opts.masternode.masternodePubKey,
+      'Invalid masternode.masternodePubKey'
+    );
     $.checkArgument(opts.masternode.ownerAddr, 'Invalid masternode.ownerAddr');
 
     if (
@@ -4642,6 +4647,12 @@ export class API extends EventEmitter {
       opts.masternodePrivKey.length != 64
     ) {
       return cb(new Error('Invalid masternode.masternodePrivKey'));
+    }
+    if (
+      !JSUtil.isHexa(opts.masternode.masternodePubKey) &&
+      opts.masternodePubKey.length != 96
+    ) {
+      return cb(new Error('Invalid masternode.masternodePubKey'));
     }
 
     if (
@@ -4691,7 +4702,7 @@ export class API extends EventEmitter {
           );
         },
         (ownerAddr, next) => {
-          opts.masternode.ownerPrivKey = opts.key.getPrivateKeyofWif(
+          opts.masternode.ownerPrivKey = key.getPrivateKeyofWif(
             '',
             this.getRootPath(),
             ownerAddr.path
@@ -4734,12 +4745,13 @@ export class API extends EventEmitter {
             if (err) {
               return next(new Error('broadcast TxProposal error! ' + err));
             }
-            return cb(null, zz.txid);
+            return next(null, zz);
           });
         }
       ],
-      function (err, bls, ownerAddr, voteAddr, payAddr) {
+      function (err, ret) {
         if (err) cb(err);
+	return cb(null, ret);
       }
     );
   }
@@ -4817,12 +4829,13 @@ export class API extends EventEmitter {
             if (err) {
               return next(new Error('broadcast TxProposal error! ' + err));
             }
-            return cb(null, zz.txid);
+            return next(null, zz);
           });
         }
       ],
-      function (err, bls, ownerAddr, voteAddr, payAddr) {
+      function (err, ret) {
         if (err) cb(err);
+	return cb(null, ret);
       }
     );
   }
@@ -4898,12 +4911,13 @@ export class API extends EventEmitter {
             if (err) {
               return next(new Error('broadcast TxProposal error! ' + err));
             }
-            return cb(null, zz.txid);
+            return cb(null, zz);
           });
         }
       ],
-      function (err, bls, ownerAddr, voteAddr, payAddr) {
+      function (err, ret) {
         if (err) cb(err);
+	return cb(null, ret);
       }
     );
   }
@@ -4991,6 +5005,10 @@ export class API extends EventEmitter {
       opts.masternode.masternodePrivKey,
       'Invalid masternode.masternodePrivKey'
     );
+    $.checkArgument(
+      opts.masternode.masternodePubKey,
+      'Invalid masternode.masternodePubKey'
+    );
     $.checkArgument(opts.masternode.voteAddr, 'Invalid masternode.voteAddr');
     $.checkArgument(opts.masternode.payAddr, 'Invalid masternode.payAddr');
     $.checkArgument(
@@ -5015,6 +5033,7 @@ export class API extends EventEmitter {
     delete opts.txExtends;
     opts.txExtends = {};
     opts.txExtends.version = TX_VERSION_MN_UPDATE_REGISTRAR;
+    opts.txExtends.masternodePrivKey = opts.masternode.masternodePrivKey;
 
     var additionOpts = opts.masternode;
     delete opts.masternode;
@@ -5166,7 +5185,7 @@ export class API extends EventEmitter {
     return;
   }
 
-  _getChangeAddress(opts){
+  _getChangeAddress(opts) {
     return new Promise((resolve, reject) => {
       this.createAddress(
         { ignoreMaxGap: true, isChange: true },

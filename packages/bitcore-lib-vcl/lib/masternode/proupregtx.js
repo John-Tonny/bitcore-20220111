@@ -19,6 +19,7 @@ var Signature = require('../crypto/signature');
 var Script = require('../script');
 var Message = require('../message');
 
+const ADDRESS_TYPE = 'witnesspubkeyhash';
 const NETWORK = 'livenet';
 const CURRENT_VERSION = 1;
 
@@ -39,6 +40,38 @@ function ProUpRegTx(inputs, proTxHash, ownerPrivKey, masternodePubKey, voteAddr,
   this.payAddr = payAddr;
 
   this.network = network || NETWORK;
+}
+
+ProUpRegTx.fromString = function(strHex, network, addressType) {
+
+  var network = network || NETWORK;
+  var addressType = addressType || ADDRESS_TYPE;
+
+  if(!JSUtil.isHexa(strHex)) {
+    throw new TypeError('proUpRegTx must be string for hex');
+  }
+
+  if(strHex.length != 456){
+    throw new TypeError('The length at proUpRegTx must be 456');
+  }
+
+  var s = new Script(strHex);
+
+  if (s.chunks.length != 2 || s.chunks[0].opcodenum != Opcode.OP_RETURN || s.chunks[1].len != 225) {
+    throw new TypeError('proUpRegTx is invalid');
+  }
+
+  var reader = new BufferReader(s.chunks[1].buf);
+  var version = reader.readUInt16LE();
+  var proTxHash =  reader.readReverse(32).toString('hex');
+  var mode = reader.readUInt16LE();
+
+  var masternodePubKey = reader.read(48).toString('hex');
+  var voteAddr = new Address(reader.read(20), network, addressType).toString();
+  var prefix = reader.read(3);  
+  var payAddr = new Address(reader.read(20), network, addressType).toString();
+
+  return new ProUpRegTx(undefined, proTxHash, undefined, masternodePubKey, voteAddr, payAddr, network);
 }
 
 ProUpRegTx.prototype.get_proTxHash = function(writer) {

@@ -10,7 +10,6 @@ import {
   Transactions
 } from 'crypto-wallet-core';
 
-
 import { Constants, Utils } from './common';
 const $ = require('preconditions').singleton();
 const _ = require('lodash');
@@ -138,9 +137,9 @@ export class Credentials {
     x.requestPubKey = priv.toPublicKey().toString();
 
     const prefix = 'personalKey';
-    const entropySource = Bitcore_[x.coin].crypto.Hash.sha256(priv.toBuffer()).toString(
-      'hex'
-    );
+    const entropySource = Bitcore_[x.coin].crypto.Hash.sha256(
+      priv.toBuffer()
+    ).toString('hex');
     const b = Buffer.from(entropySource, 'hex');
     const b2 = Bitcore_[x.coin].crypto.Hash.sha256hmac(b, Buffer.from(prefix));
     x.personalEncryptingKey = b2.slice(0, 16).toString('base64');
@@ -283,7 +282,10 @@ export class Credentials {
   }
   addWalletPrivateKey(walletPrivKey) {
     this.walletPrivKey = walletPrivKey;
-    this.sharedEncryptingKey = Utils.privateKeyToAESKey(walletPrivKey, this.coin);
+    this.sharedEncryptingKey = Utils.privateKeyToAESKey(
+      walletPrivKey,
+      this.coin
+    );
   }
 
   addWalletInfo(walletId, walletName, m, n, copayerName, opts) {

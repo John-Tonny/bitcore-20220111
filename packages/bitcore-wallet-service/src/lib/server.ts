@@ -908,7 +908,7 @@ export class WalletService {
       {
         coin: masternode.coin,
         network: masternode.network,
-        txid: masternode.txid
+        txid: masternode.txid || masternode.proTxHash
       },
       extraArgs
     );
@@ -2427,6 +2427,7 @@ export class WalletService {
    * @param {Boolean} opts.noShuffleOutputs - Optional. If set, TX outputs won't be shuffled. Defaults to false
    * @param {Boolean} opts.noCashAddr - do not use cashaddress for bch
    * @param {Boolean} opts.signingMethod[=ecdsa] - do not use cashaddress for bch
+   * @param {number} opts.tokenId - optional. ETH ERC721 Contract TokenID
    * @param {string} opts.tokenAddress - optional. ERC20 Token Contract Address
    * @param {string} opts.multisigContractAddress - optional. MULTISIG ETH Contract Address
    * @param {Boolean} opts.isTokenSwap - Optional. To specify if we are trying to make a token swap
@@ -2539,15 +2540,15 @@ export class WalletService {
                       txOptsFee = opts.fee;
                     }
                   }
-		  // john 20220219
-		  var txType;
+                  // john 20220219
+                  var txType;
                   var maxPriorityFeePerGas;
-		  var maxFeePerGas;
-		  if(opts.coin === 'eth'){
-		    txType = opts.txType || 2;
-		    maxPriorityFeePerGas = opts.maxPriorityFeePerGas || 1000000007;
+                  var maxFeePerGas;
+                  if (opts.coin === 'eth') {
+                    txType = opts.txType || 2;
+                    maxPriorityFeePerGas = opts.maxPriorityFeePerGas || 1000000007;
                     maxFeePerGas = opts.maxFeePerGas || 1000000007;
-		  }
+                  }
 
                   const txOpts = {
                     id: opts.txProposalId,
@@ -2586,10 +2587,11 @@ export class WalletService {
                     enableRBF: opts.enableRBF,
                     replaceTxByFee: opts.replaceTxByFee,
                     txExtends: opts.txExtends, // 20220219
-                    txType: txType,
-  		    maxPriorityFeePerGas: maxPriorityFeePerGas,
-  		    maxFeePerGas: maxFeePerGas,
-  		    accessList: opts.accessList || []
+                    txType,
+                    maxPriorityFeePerGas,
+                    maxFeePerGas,
+                    accessList: opts.accessList || [],
+                    tokenId: opts.tokenId   // 20220423
                   };
                   txp = TxProposal.create(txOpts);
                   next();
@@ -2694,6 +2696,14 @@ export class WalletService {
       return cb(new ClientError('Only one output allowed'));
     }
 
+    // john 20220219
+    if (opts.outputs.length == 1 && opts.outputs[0].toAddress) {
+      var addr = new new Bitcore_[opts.coin].Address(opts.outputs[0].toAddress, opts.network);
+      if(addr.type != Bitcore_[opts.coin].Address.PayToPublicKeyHash){
+        return cb(new ClientError('This address type is not supported'));
+      }
+    }
+
     this._runLocked(
       cb,
       cb => {
@@ -2701,6 +2711,10 @@ export class WalletService {
         this.getWallet({}, (err, wallet) => {
           if (err) return cb(err);
           if (!wallet.isComplete()) return cb(Errors.WALLET_NOT_COMPLETE);
+	  // john 20220219
+          if (wallet.n != 1 && wallet.m != 1) return cb(Errors.WALLET_NOT_SUPPORT);
+          if (wallet.addressType != Constants.SCRIPT_TYPES.P2PKH) return cb(Errors.WALLET_NOT_SUPPORT);
+
 
           if (wallet.scanStatus == 'error') return cb(Errors.WALLET_NEED_SCAN);
 
@@ -2963,11 +2977,24 @@ export class WalletService {
   createAtomicSwapTx(opts, cb) {
     opts = opts ? _.clone(opts) : {};
 
-    opts.coin = opts.coin || Defaults.COIN;;
+    opts.coin = opts.coin || Defaults.COIN;
     const checkTxpAlreadyExists = (txProposalId, cb) => {
       if (!txProposalId) return cb();
       this.storage.fetchTx(this.walletId, txProposalId, cb);
     };
+
+    // john 20220113
+    if (!_.isArray(opts.outputs) || opts.outputs.length > 1) {
+      return cb(new ClientError('Only one output allowed'));
+    }
+
+    // john 20220219
+    if (opts.outputs.length == 1 && opts.outputs[0].toAddress) {
+      var addr = new new Bitcore_[opts.coin].Address(opts.outputs[0].toAddress, opts.network);
+      if(addr.type != Bitcore_[opts.coin].Address.PayToPublicKeyHash){
+        return cb(new ClientError('This address type is not supported'));
+      }
+    }
 
     this._runLocked(
       cb,
@@ -2976,6 +3003,10 @@ export class WalletService {
         this.getWallet({}, (err, wallet) => {
           if (err) return cb(err);
           if (!wallet.isComplete()) return cb(Errors.WALLET_NOT_COMPLETE);
+          // john 20220219
+          if (wallet.n != 1 && wallet.m != 1) return cb(Errors.WALLET_NOT_SUPPORT);
+          if (wallet.addressType != Constants.SCRIPT_TYPES.P2PKH) return cb(Errors.WALLET_NOT_SUPPORT);
+       
 
           if (wallet.scanStatus == 'error') return cb(Errors.WALLET_NEED_SCAN);
 
@@ -3796,47 +3827,110 @@ export class WalletService {
         next => {
           if (!txp.txExtends) return next();
           if (!txp.txExtends.version) return next();
-          if (txp.txExtends.version != Constants.TX_VERSION_MN_REGISTER) return next();
           if (!txp.txExtends.outScripts) return next();
-          try {
-            let txProReg = new Bitcore_[txp.coin].masternode.ProRegTx.fromString(txp.txExtends.outScripts);
-            if (!txProReg.collateralId) return next();
-            let masternodeStatus: {
-              createdOn?: number;
-              coin?: string;
-              network?: string;
-              address?: string;
-              txid?: string;
-              masternodePrivKey?: string;
-              masternodePubKey?: string;
-              ownerAddr?: string;
-              voteAddr?: string;
-              payAddr?: string;
-              reward?: number;
-              walletId?: string;
-            } = {};
-            masternodeStatus.coin = txp.coin;
-            masternodeStatus.network = txp.network;
-            masternodeStatus.txid = txProReg.collateralId + '-' + txProReg.collateralIndex;
-            masternodeStatus.payAddr = txProReg.payAddr;
-            masternodeStatus.voteAddr = txProReg.voteAddr;
-            masternodeStatus.ownerAddr = txProReg.ownerAddr;
-            masternodeStatus.address = txProReg.host + ':' + parseInt(txProReg.port);
-            masternodeStatus.reward = txProReg.reward;
-            masternodeStatus.masternodePubKey = txProReg.masternodePubKey;
-            masternodeStatus.masternodePrivKey = txp.txExtends.masternodePrivKey;
-            masternodeStatus.walletId = this.walletId;
-            let masternodes = Masternodes.create(masternodeStatus);
-            this.storage.storeMasternode(this.walletId, masternodes, err => {
-              if (err) return next(err);
-              const extraArgs = {
-                txid: txp.txid
-              };
-              this._notifyMasternodeAction('NewMasternode', masternodes, extraArgs);
-              next();
-            });
-          } catch (ex) {
-            next(ex);
+
+          if (txp.txExtends.version == Constants.TX_VERSION_MN_REGISTER){
+            try {
+              let txProReg = new Bitcore_[txp.coin].masternode.ProRegTx.fromString(txp.txExtends.outScripts);
+              if (!txProReg.collateralId) return next();
+              let masternodeStatus: {
+                createdOn?: number;
+                coin?: string;
+                network?: string;
+                address?: string;
+                txid?: string;
+                masternodePrivKey?: string;
+                masternodePubKey?: string;
+                ownerAddr?: string;
+                voteAddr?: string;
+                payAddr?: string;
+                reward?: number;
+                walletId?: string;
+              } = {};
+              masternodeStatus.coin = txp.coin;
+              masternodeStatus.network = txp.network;
+              masternodeStatus.txid = txProReg.collateralId + '-' + txProReg.collateralIndex;
+              masternodeStatus.payAddr = txProReg.payAddr;
+              masternodeStatus.voteAddr = txProReg.voteAddr;
+              masternodeStatus.ownerAddr = txProReg.ownerAddr;
+              masternodeStatus.address = txProReg.host + ':' + parseInt(txProReg.port);
+              masternodeStatus.reward = txProReg.reward;
+              masternodeStatus.masternodePubKey = txProReg.masternodePubKey;
+              masternodeStatus.masternodePrivKey = txp.txExtends.masternodePrivKey;
+              masternodeStatus.walletId = this.walletId;
+              let masternodes = Masternodes.create(masternodeStatus);
+              this.storage.storeMasternode(this.walletId, masternodes, err => {
+                if (err) return next(err);
+                const extraArgs = {
+                  txid: txp.txid
+                };
+                this._notifyMasternodeAction('NewMasternode', masternodes, extraArgs);
+                next();
+              });
+            } catch (ex) {
+              next(ex);
+            }
+          }else if (txp.txExtends.version == Constants.TX_VERSION_MN_UPDATE_SERVICE){
+            try {
+              let txProUpService = new Bitcore_[txp.coin].masternode.ProUpServiceTx.fromString(txp.txExtends.outScripts);
+              if (!txProUpService.proTxHash) return next();
+              if (!txProUpService.host || !txProUpService.port) return next();
+	          let masternode: {
+                coin?: string;
+                network?: string;
+                address?: string;
+                payAddr?: string;
+		        proTxHash?: string;
+	          } = {};
+	          masternode.address = txProUpService.host + ':' + txProUpService.port;
+              masternode.payAddr = txProUpService.payAddr;
+              masternode.coin = txp.coin;
+              masternode.network = txp.network;
+              masternode.proTxHash = txProUpService.proTxHash;
+              this.storage.updateMasternodePart(this.walletId, masternode, err => {
+                if (err) return next(err);
+                const extraArgs = {
+                  txid: txp.txid
+                };
+                this._notifyMasternodeAction('MasternodeUpService', masternode, extraArgs);
+                next();
+              });
+            } catch (ex) {
+              next(ex);
+            }
+          }else if (txp.txExtends.version == Constants.TX_VERSION_MN_UPDATE_REGISTRAR){
+            try {
+              let txProUpReg = new Bitcore_[txp.coin].masternode.ProUpRegTx.fromString(txp.txExtends.outScripts);
+              if (!txProUpReg.proTxHash) return next();
+              if (!txp.txExtends.masternodePrivKey || !txProUpReg.masternodePubKey ) return next();
+              if (!txProUpReg.voteAddr || !txProUpReg.payAddr) return next();
+	          let masternode: {
+                coin?: string;
+                network?: string;
+                masternodePrivKey?: string;
+                masternodePubKey?: string;
+                voteAddr?: string;
+                payAddr?: string;
+		        proTxHash?: string;
+              } = {};
+              masternode.masternodePrivKey = txp.txExtends.masternodePrivKey;
+	          masternode.masternodePubKey = txProUpReg.masternodePubKey;
+              masternode.voteAddr = txProUpReg.voteAddr;
+              masternode.payAddr = txProUpReg.payAddr;
+              masternode.coin = txp.coin;
+              masternode.network = txp.network;
+              masternode.proTxHash = txProUpReg.proTxHash;
+              this.storage.updateMasternodePart(this.walletId, masternode, err => {
+                if (err) return next(err);
+                const extraArgs = {
+                  txid: txp.txid
+                };
+                this._notifyMasternodeAction('MasternodeUpService', masternode, extraArgs);
+                next();
+              });
+            } catch (ex) {
+              next(ex);
+            }
           }
         }
       ],
@@ -6354,10 +6448,10 @@ export class WalletService {
 
       if (!wallet.isComplete()) return cb(Errors.WALLET_NOT_COMPLETE);
       if (wallet.scanStatus == 'error') return cb(Errors.WALLET_NEED_SCAN);
-      if (wallet.n != 1 && wallet.m != 1) return cb(Errors.WALLET_NOT_MASTERNODE);
+      if (wallet.n != 1 && wallet.m != 1) return cb(Errors.WALLET_NOT_SUPPORT);
       // john 20220219
       if (wallet.addressType != Constants.SCRIPT_TYPES.P2PKH && wallet.addressType != Constants.SCRIPT_TYPES.P2WPKH)
-        return cb(Errors.WALLET_NOT_MASTERNODE);
+        return cb(Errors.WALLET_NOT_SUPPORT);
 
       this.getUtxosForCurrentWallet(
         {

@@ -203,9 +203,13 @@ export class XrpChain implements IChain {
   checkUtxos(opts) {}
 
   checkValidTxAmount(output): boolean {
-    if (!_.isNumber(output.amount) || _.isNaN(output.amount) || output.amount < 0) {
+    // john 20220219
+    var amount = Number(output.amount);
+    if (!_.isNumber(amount) || _.isNaN(amount) || amount <= 0) {
       return false;
     }
+    output.amount = amount;
+
     return true;
   }
 

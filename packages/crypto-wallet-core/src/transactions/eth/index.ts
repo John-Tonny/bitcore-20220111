@@ -19,7 +19,17 @@ export class ETHTxProvider {
     maxPriorityFeePerGas?: number;
     maxFeePerGas?: number;
   }) {
-    const { recipients, nonce, gasPrice, gasLimit, network, contractAddress, txType, maxPriorityFeePerGas, maxFeePerGas } = params;
+    const {
+      recipients,
+      nonce,
+      gasPrice,
+      gasLimit,
+      network,
+      contractAddress,
+      txType,
+      maxPriorityFeePerGas,
+      maxFeePerGas
+    } = params;
     let { data } = params;
     let to;
     let amount;
@@ -46,7 +56,7 @@ export class ETHTxProvider {
     chainId = chainId || this.getChainId(network);
     // john 20220219
     var txData;
-    if(txType == undefined){
+    if (txType == undefined) {
       txData = {
         nonce: utils.toHex(nonce),
         gasLimit: utils.toHex(gasLimit),
@@ -56,7 +66,7 @@ export class ETHTxProvider {
         value: utils.toHex(amount),
         chainId
       };
-    }else{
+    } else {
       txData = {
         nonce: utils.toHex(nonce),
         gasLimit: utils.toHex(gasLimit),
@@ -68,7 +78,6 @@ export class ETHTxProvider {
         maxPriorityFeePerGas: utils.toHex(maxPriorityFeePerGas),
         maxFeePerGas: utils.toHex(maxFeePerGas)
       };
-    
     }
     return ethers.utils.serializeTransaction(txData);
   }
@@ -131,10 +140,10 @@ export class ETHTxProvider {
     // john 20220219
     const { nonce, gasPrice, gasLimit, to, value, data, chainId, type, maxPriorityFeePerGas, maxFeePerGas } = parsedTx;
     var txData;
-    if (type == undefined){
+    if (type == undefined) {
       txData = { nonce, gasPrice, gasLimit, to, value, data, chainId };
-    }else {
-      txData = {nonce, gasLimit, to, value, data, chainId, type, maxPriorityFeePerGas, maxFeePerGas};
+    } else {
+      txData = { nonce, gasLimit, to, value, data, chainId, type, maxPriorityFeePerGas, maxFeePerGas };
     }
     if (typeof signature == 'string') {
       signature = ethers.utils.splitSignature(signature);

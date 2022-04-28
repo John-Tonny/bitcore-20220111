@@ -84,6 +84,7 @@ export interface ITxProposal {
   atomicswapAddr?: string;
   atomicswapSecretHash?: string;
   txExtends?: any; // 20220219
+  tokenId?: number; // 20220423
 }
 
 export class TxProposal {
@@ -158,6 +159,7 @@ export class TxProposal {
   atomicswapAddr?: string;
   atomicswapSecretHash?: string;
   txExtends?: any; // john 20220219
+  tokenId?: string; // john 20220423
 
   static create(opts) {
     opts = opts || {};
@@ -258,6 +260,9 @@ export class TxProposal {
     x.maxPriorityFeePerGas = opts.maxPriorityFeePerGas;
     x.accessList = opts.accessList;
 
+    // john 20220423
+    x.tokenId = opts.tokenId;
+
     return x;
   }
 
@@ -344,6 +349,9 @@ export class TxProposal {
     x.maxFeePerGas = obj.maxFeePerGas;
     x.maxPriorityFeePerGas = obj.maxPriorityFeePerGas;
     x.accessList = obj.accessList;
+
+    // john 20220423
+    x.tokenId = obj.tokenId;
 
     return x;
   }
@@ -493,15 +501,13 @@ export class TxProposal {
       this.addAction(copayerId, 'accept', null, signatures, xpub);
 
       if (this.status == 'accepted') {
-        /*
-        if (this.atomicswap && this.atomicswap.isAtomicSwap && this.atomicswap.redeem != undefined) {
-          this.raw = tx.uncheckedAtomicSwapSerialize();
-        } else {
-          this.raw = this.getRawTx();
-          // tx.uncheckedSerialize();
+        // john 20220219
+        var rawTx = this.getRawTx();
+        if(_.isArray(rawTx)){
+          this.raw = rawTx;
+        }else{
+          this.raw = [rawTx];
         }
-        */
-        this.raw = this.getRawTx();
         this.txid = tx.id;
       }
 

@@ -118,7 +118,12 @@ export class Utils {
     return Bitcore_[coin].crypto.ECDSA.sign(hash, priv, 'little').toString();
   }
 
-  static verifyMessage(message: Array<string> | string, signature, pubKey, coin) {
+  static verifyMessage(
+    message: Array<string> | string,
+    signature,
+    pubKey,
+    coin
+  ) {
     $.checkArgument(message);
     $.checkArgument(pubKey);
     coin = coin || 'vcl';
@@ -470,7 +475,8 @@ export class Utils {
         payProUrl,
         tokenAddress,
         multisigContractAddress,
-        isTokenSwap
+        isTokenSwap,
+        tokenId
       } = txp;
       const recipients = outputs.map(output => {
         return {
@@ -487,9 +493,12 @@ export class Utils {
       const unsignedTxs = [];
       // If it is a token swap its an already created ERC20 transaction so we skip it and go directly to ETH transaction create
       const isERC20 = tokenAddress && !payProUrl && !isTokenSwap;
+      const isERC721 = tokenAddress && tokenId;
       const isETHMULTISIG = multisigContractAddress;
       const chain = isETHMULTISIG
         ? 'ETHMULTISIG'
+        : isERC721
+        ? 'ERC721'
         : isERC20
         ? 'ERC20'
         : txp.chain

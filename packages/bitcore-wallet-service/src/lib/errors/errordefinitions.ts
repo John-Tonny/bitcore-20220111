@@ -41,6 +41,7 @@ const errors = {
   WALLET_NOT_COMPLETE: 'Wallet is not complete',
   WALLET_NOT_FOUND: 'Wallet not found',
   WALLET_NEED_SCAN: 'Wallet needs addresses scan',
+  WALLET_NOT_SUPPORT: 'The address type of the wallet does not support such transactions',
   WRONG_SIGNING_METHOD: 'Wrong signed method for coin/network'
 };
 

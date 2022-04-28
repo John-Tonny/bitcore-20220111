@@ -98,7 +98,14 @@ export class Verifier {
           copayer.xPubKey,
           copayer.requestPubKey
         );
-        if (!Utils.verifyMessage(hash, copayer.signature, walletPubKey, credentials.coin)) {
+        if (
+          !Utils.verifyMessage(
+            hash,
+            copayer.signature,
+            walletPubKey,
+            credentials.coin
+          )
+        ) {
           log.error('Invalid signatures in server response');
           error = true;
         }
@@ -247,7 +254,14 @@ export class Verifier {
       ' Signature: ',
       txp.proposalSignature
     );
-    if (!Utils.verifyMessage(hash, txp.proposalSignature, creatorSigningPubKey, txp.coin))
+    if (
+      !Utils.verifyMessage(
+        hash,
+        txp.proposalSignature,
+        creatorSigningPubKey,
+        txp.coin
+      )
+    )
       return false;
 
     if (Constants.UTXO_COINS.includes(txp.coin)) {
