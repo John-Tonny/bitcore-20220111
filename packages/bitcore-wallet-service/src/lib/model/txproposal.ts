@@ -503,9 +503,9 @@ export class TxProposal {
       if (this.status == 'accepted') {
         // john 20220219
         var rawTx = this.getRawTx();
-        if(_.isArray(rawTx)){
+        if (_.isArray(rawTx)) {
           this.raw = rawTx;
-        }else{
+        } else {
           this.raw = [rawTx];
         }
         this.txid = tx.id;

@@ -28,7 +28,7 @@ function getErc20Decoder() {
 const Erc721Decoder = requireUncached('abi-decoder');
 Erc721Decoder.addABI(ERC721Abi);
 function getErc721Decoder() {
-    return Erc721Decoder;
+  return Erc721Decoder;
 }
 
 const InvoiceDecoder = requireUncached('abi-decoder');
@@ -201,7 +201,7 @@ export class EthChain implements IChain {
     const isERC20 = tokenAddress && !payProUrl && !isTokenSwap;
     const isERC721 = tokenAddress && tokenId;
     const isETHMULTISIG = multisigContractAddress;
-    const chain = isETHMULTISIG ? 'ETHMULTISIG' :isERC721 ? 'ERC721' :isERC20 ? 'ERC20' : 'ETH';
+    const chain = isETHMULTISIG ? 'ETHMULTISIG' : isERC721 ? 'ERC721' : isERC20 ? 'ERC20' : 'ETH';
     const recipients = outputs.map(output => {
       return {
         amount: output.amount,
@@ -388,7 +388,7 @@ export class EthChain implements IChain {
     // john 20220219
     var amount = Number(output.amount);
     if (!_.isNumber(amount) || _.isNaN(amount) || amount <= 0) {
-        return false;
+      return false;
     }
     output.amount = amount;
 

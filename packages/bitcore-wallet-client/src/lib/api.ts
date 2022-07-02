@@ -13,6 +13,8 @@ import { PayProV2 } from './payproV2';
 import { Request } from './request';
 import { Verifier } from './verifier';
 
+import loadBls from 'blssignatures';
+
 var $ = require('preconditions').singleton();
 var util = require('util');
 var async = require('async');
@@ -4012,32 +4014,47 @@ export class API extends EventEmitter {
     if (!cb) {
       cb = opts;
       opts = {};
-      log.warn(
-        'DEPRECATED WARN: getMasternodeBlsGenerate should receive 2 parameters.'
-      );
+      log.warn('DEPRECATED WARN: isValidAddress should receive 2 parameters.');
     }
 
-    opts = opts || {};
+    if(false){
+      opts = opts || {};
 
-    $.checkState(this.credentials && this.credentials.isComplete());
+      $.checkState(this.credentials && this.credentials.isComplete());
 
-    var args = [];
-    if (opts.coin) {
-      if (!_.includes(Constants.COINS, opts.coin))
-        return cb(new Error('Invalid coin'));
-      if (opts.coin != 'vcl') {
-        return cb(new Error('coin is not supported'));
+      var args = [];
+      if (opts.coin) {
+        if (!_.includes(Constants.COINS, opts.coin))
+          return cb(new Error('Invalid coin'));
+        if (opts.coin != 'vcl') {
+          return cb(new Error('coin is not supported'));
+        }
+        args.push('coin=' + opts.coin);
       }
-      args.push('coin=' + opts.coin);
-    }
 
-    var qs = '';
-    if (args.length > 0) {
-      qs = '?' + args.join('&');
-    }
+      var qs = '';
+      if (args.length > 0) {
+        qs = '?' + args.join('&');
+      }
 
-    var url = '/v1/masternode/blsgenerate/' + qs;
-    this.request.get(url, cb);
+      var url = '/v1/masternode/blsgenerate/' + qs;
+      this.request.get(url, cb);
+    }else{
+      loadBls().then(BLS => {
+      
+        var seed = new Bitcore.PrivateKey().toString();
+        var sk = BLS.LegacySchemeMPL.key_gen(Buffer.from(seed, 'hex'));
+        var pk = BLS.LegacySchemeMPL.get_public_key(sk);
+	
+        var bls = {
+	  secret: BLS.Util.hex_str(sk.serialize()),
+	  public: BLS.Util.hex_str(pk)
+        };
+
+	sk.delete();
+        return cb(null, bls);
+      });     
+    }
   }
 
   async getMasternodeBlsSign(opts) {
@@ -4068,16 +4085,38 @@ export class API extends EventEmitter {
     ) {
       throw new Error('masternodePrivateKey must be hex string');
     }
-    args.push('msgHash=' + opts.msgHash);
-    args.push('masternodePrivateKey=' + opts.masternodePrivateKey);
 
-    var qs = '';
-    if (args.length > 0) {
-      qs = '?' + args.join('&');
+    if(false){
+      args.push('msgHash=' + opts.msgHash);
+      args.push('masternodePrivateKey=' + opts.masternodePrivateKey);
+
+      var qs = '';
+      if (args.length > 0) {
+        qs = '?' + args.join('&');
+      }
+
+      var url = '/v1/masternode/blssign/' + qs;
+      return await this._getRequest(url);
+    }else{
+        var BLS = await loadBls();
+
+        var sk = BLS.PrivateKey.from_bytes(Buffer.from(opts.masternodePrivateKey, 'hex'), false);
+        var pk = sk.get_g1();
+        var msg = Buffer.from(opts.msgHash, 'hex');
+	var signature = BLS.LegacySchemeMPL.sign(sk, msg);
+	var isValid = BLS.LegacySchemeMPL.verify(pk, msg, signature);
+	if(!isValid){
+	  throw new Error('not signed');
+        }
+
+	var sig = BLS.Util.hex_str(signature.serialize(true));
+
+        sk.delete();
+	pk.delete();
+	signature.delete()
+
+ 	return sig;
     }
-
-    var url = '/v1/masternode/blssign/' + qs;
-    return await this._getRequest(url);
   }
 
   isValidAddress(opts, cb) {
@@ -4466,7 +4505,8 @@ export class API extends EventEmitter {
       [
         next => {
           if (opts.masternodePrivKey && opts.masternodePubKey) return next();
-          this.getMasternodeBlsGenerate({}, (err, bls) => {
+          
+	  this.getMasternodeBlsGenerate({}, (err, bls) => {
             if (err) {
               return next(new Error('masternode bls generate error!'), err);
             }
@@ -4619,7 +4659,7 @@ export class API extends EventEmitter {
       ],
       function (err, ret) {
         if (err) cb(err);
-	return cb(null, ret);
+        return cb(null, ret);
       }
     );
   }
@@ -4751,7 +4791,7 @@ export class API extends EventEmitter {
       ],
       function (err, ret) {
         if (err) cb(err);
-	return cb(null, ret);
+        return cb(null, ret);
       }
     );
   }
@@ -4835,7 +4875,7 @@ export class API extends EventEmitter {
       ],
       function (err, ret) {
         if (err) cb(err);
-	return cb(null, ret);
+        return cb(null, ret);
       }
     );
   }
@@ -4917,7 +4957,7 @@ export class API extends EventEmitter {
       ],
       function (err, ret) {
         if (err) cb(err);
-	return cb(null, ret);
+        return cb(null, ret);
       }
     );
   }

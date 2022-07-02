@@ -52,5 +52,5 @@ export let TOKEN_OPTS = {
     decimal: 1,
     name: 'NVCL',
     symbol: 'NVCL'
-  },
+  }
 };

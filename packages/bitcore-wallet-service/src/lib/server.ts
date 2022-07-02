@@ -2591,7 +2591,7 @@ export class WalletService {
                     maxPriorityFeePerGas,
                     maxFeePerGas,
                     accessList: opts.accessList || [],
-                    tokenId: opts.tokenId   // 20220423
+                    tokenId: opts.tokenId // 20220423
                   };
                   txp = TxProposal.create(txOpts);
                   next();
@@ -2698,8 +2698,8 @@ export class WalletService {
 
     // john 20220219
     if (opts.outputs.length == 1 && opts.outputs[0].toAddress) {
-      var addr = new new Bitcore_[opts.coin].Address(opts.outputs[0].toAddress, opts.network);
-      if(addr.type != Bitcore_[opts.coin].Address.PayToPublicKeyHash){
+      var addr = new new Bitcore_[opts.coin].Address(opts.outputs[0].toAddress, opts.network)();
+      if (addr.type != Bitcore_[opts.coin].Address.PayToPublicKeyHash) {
         return cb(new ClientError('This address type is not supported'));
       }
     }
@@ -2711,10 +2711,9 @@ export class WalletService {
         this.getWallet({}, (err, wallet) => {
           if (err) return cb(err);
           if (!wallet.isComplete()) return cb(Errors.WALLET_NOT_COMPLETE);
-	  // john 20220219
+          // john 20220219
           if (wallet.n != 1 && wallet.m != 1) return cb(Errors.WALLET_NOT_SUPPORT);
           if (wallet.addressType != Constants.SCRIPT_TYPES.P2PKH) return cb(Errors.WALLET_NOT_SUPPORT);
-
 
           if (wallet.scanStatus == 'error') return cb(Errors.WALLET_NEED_SCAN);
 
@@ -2990,8 +2989,8 @@ export class WalletService {
 
     // john 20220219
     if (opts.outputs.length == 1 && opts.outputs[0].toAddress) {
-      var addr = new new Bitcore_[opts.coin].Address(opts.outputs[0].toAddress, opts.network);
-      if(addr.type != Bitcore_[opts.coin].Address.PayToPublicKeyHash){
+      var addr = new new Bitcore_[opts.coin].Address(opts.outputs[0].toAddress, opts.network)();
+      if (addr.type != Bitcore_[opts.coin].Address.PayToPublicKeyHash) {
         return cb(new ClientError('This address type is not supported'));
       }
     }
@@ -3006,7 +3005,6 @@ export class WalletService {
           // john 20220219
           if (wallet.n != 1 && wallet.m != 1) return cb(Errors.WALLET_NOT_SUPPORT);
           if (wallet.addressType != Constants.SCRIPT_TYPES.P2PKH) return cb(Errors.WALLET_NOT_SUPPORT);
-       
 
           if (wallet.scanStatus == 'error') return cb(Errors.WALLET_NEED_SCAN);
 
@@ -3829,7 +3827,7 @@ export class WalletService {
           if (!txp.txExtends.version) return next();
           if (!txp.txExtends.outScripts) return next();
 
-          if (txp.txExtends.version == Constants.TX_VERSION_MN_REGISTER){
+          if (txp.txExtends.version == Constants.TX_VERSION_MN_REGISTER) {
             try {
               let txProReg = new Bitcore_[txp.coin].masternode.ProRegTx.fromString(txp.txExtends.outScripts);
               if (!txProReg.collateralId) return next();
@@ -3870,19 +3868,21 @@ export class WalletService {
             } catch (ex) {
               next(ex);
             }
-          }else if (txp.txExtends.version == Constants.TX_VERSION_MN_UPDATE_SERVICE){
+          } else if (txp.txExtends.version == Constants.TX_VERSION_MN_UPDATE_SERVICE) {
             try {
-              let txProUpService = new Bitcore_[txp.coin].masternode.ProUpServiceTx.fromString(txp.txExtends.outScripts);
+              let txProUpService = new Bitcore_[txp.coin].masternode.ProUpServiceTx.fromString(
+                txp.txExtends.outScripts
+              );
               if (!txProUpService.proTxHash) return next();
               if (!txProUpService.host || !txProUpService.port) return next();
-	          let masternode: {
+              let masternode: {
                 coin?: string;
                 network?: string;
                 address?: string;
                 payAddr?: string;
-		        proTxHash?: string;
-	          } = {};
-	          masternode.address = txProUpService.host + ':' + txProUpService.port;
+                proTxHash?: string;
+              } = {};
+              masternode.address = txProUpService.host + ':' + txProUpService.port;
               masternode.payAddr = txProUpService.payAddr;
               masternode.coin = txp.coin;
               masternode.network = txp.network;
@@ -3898,23 +3898,23 @@ export class WalletService {
             } catch (ex) {
               next(ex);
             }
-          }else if (txp.txExtends.version == Constants.TX_VERSION_MN_UPDATE_REGISTRAR){
+          } else if (txp.txExtends.version == Constants.TX_VERSION_MN_UPDATE_REGISTRAR) {
             try {
               let txProUpReg = new Bitcore_[txp.coin].masternode.ProUpRegTx.fromString(txp.txExtends.outScripts);
               if (!txProUpReg.proTxHash) return next();
-              if (!txp.txExtends.masternodePrivKey || !txProUpReg.masternodePubKey ) return next();
+              if (!txp.txExtends.masternodePrivKey || !txProUpReg.masternodePubKey) return next();
               if (!txProUpReg.voteAddr || !txProUpReg.payAddr) return next();
-	          let masternode: {
+              let masternode: {
                 coin?: string;
                 network?: string;
                 masternodePrivKey?: string;
                 masternodePubKey?: string;
                 voteAddr?: string;
                 payAddr?: string;
-		        proTxHash?: string;
+                proTxHash?: string;
               } = {};
               masternode.masternodePrivKey = txp.txExtends.masternodePrivKey;
-	          masternode.masternodePubKey = txProUpReg.masternodePubKey;
+              masternode.masternodePubKey = txProUpReg.masternodePubKey;
               masternode.voteAddr = txProUpReg.voteAddr;
               masternode.payAddr = txProUpReg.payAddr;
               masternode.coin = txp.coin;

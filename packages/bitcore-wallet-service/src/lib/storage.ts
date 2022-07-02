@@ -330,9 +330,9 @@ export class Storage {
         if (tx.status == 'accepted') {
           // john 20220219
           var rawTx = tx.getRawTx();
-          if(_.isArray(rawTx)){
+          if (_.isArray(rawTx)) {
             tx.raw = rawTx;
-          }else{
+          } else {
             tx.raw = [rawTx];
           }
         }
@@ -1745,47 +1745,47 @@ export class Storage {
     );
   }
 
-  // TODO: update part masternode 
+  // TODO: update part masternode
   updateMasternodePart(walletId, masternode, cb) {
     let updates: {
-                updatedOn?: number;
-                masternodePrivKey?: string;
-                masternodePubKey?: string;
-                address?: string;
-                voteAddr?: string;
-                payAddr?: string;
-              } = {};
-    if(!masternode.proTxHash){
+      updatedOn?: number;
+      masternodePrivKey?: string;
+      masternodePubKey?: string;
+      address?: string;
+      voteAddr?: string;
+      payAddr?: string;
+    } = {};
+    if (!masternode.proTxHash) {
       return cb(null);
     }
     updates.updatedOn = Math.floor(Date.now() / 1000);
-    if(masternode.masternodePrivKey){
+    if (masternode.masternodePrivKey) {
       updates.masternodePrivKey = masternode.masternodePrivKey;
-    }else{
+    } else {
       delete updates.masternodePrivKey;
     }
 
-    if(masternode.masternodePubKey){
+    if (masternode.masternodePubKey) {
       updates.masternodePubKey = masternode.masternodePubKey;
-    }else{
+    } else {
       delete updates.masternodePubKey;
     }
 
-    if(masternode.voteAddr){
+    if (masternode.voteAddr) {
       updates.voteAddr = masternode.voteAddr;
-    }else{
+    } else {
       delete updates.voteAddr;
     }
 
-    if(masternode.address){
+    if (masternode.address) {
       updates.address = masternode.address;
-    }else{
+    } else {
       delete updates.address;
     }
 
-    if(masternode.payAddr){
-      updates.payAddr = masternode.payAddr;     
-    }else{
+    if (masternode.payAddr) {
+      updates.payAddr = masternode.payAddr;
+    } else {
       delete updates.payAddr;
     }
 
@@ -1804,8 +1804,6 @@ export class Storage {
       cb
     );
   }
-
-
 
   // TODO: remove masternode
   removeMasternodes(walletId, txid, cb) {

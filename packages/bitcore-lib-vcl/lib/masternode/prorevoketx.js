@@ -1,6 +1,6 @@
 'use strict';
 
-const bls12 = require('@noble/bls12-381');
+const loadBls = require("blssignatures");
 
 const Uuid = require('uuid');
 
@@ -73,6 +73,7 @@ ProRevokeTx.prototype.get_message = function(writer) {
 }
 
 ProRevokeTx.prototype.get_signMessage = async function(writer, sigMode) {
+  var BLS = await loadBls();
   if (!writer) {
     writer = new BufferWriter();
   }
@@ -81,15 +82,16 @@ ProRevokeTx.prototype.get_signMessage = async function(writer, sigMode) {
     return writer;
   }
 
-  var privKey = Buffer.from(this.masternodePrivKey, 'hex');
-  var publicKey = bls12.getPublicKey(privKey);
+  var privKey = BLS.PrivateKey.fromBytes(Buffer.from(this.masternodePrivKey, 'hex') ,false);
+
+  var publicKey = BLS.LegacySchemeMPL.get_public_key(privKey);
   var msgHash = this.get_message(writer);
   console.log("##########msg:", msgHash);
 
   try{
-    var signature = await bls12.sign(msgHash, privKey);
+    var signature =  BLS.LegacySchemeMPL.sign(privKey, msgHash);
 
-    const isValid = bls12.verify(signature, msgHash, publicKey);
+    const isValid = BLS.LegacySchemeMPL.verify(publicKey, msgHash, signature);
     if(!isValid){
       throw new TypeError('verify is invalid');
     }
@@ -100,8 +102,16 @@ ProRevokeTx.prototype.get_signMessage = async function(writer, sigMode) {
     writer.write(signature, 96);
 
     console.log("sig:", signature.toString('hex'));
+
+    privKey.delete();
+    publicKey.delete();
+    signature.delete();
+
     return writer;
   }catch(error) {
+    privKey.delete();
+    publicKey.delete();
+    signature.delete();
     throw new TypeError('sign is error');
   }
 }

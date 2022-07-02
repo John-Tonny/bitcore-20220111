@@ -35,9 +35,9 @@
     "request": "browser-request"
   },
   "dependencies": {
-    "@noble/bls12-381": "^1.2.0",
     "bech32": "=2.0.0",
     "bip-schnorr": "=0.6.4",
+    "blssignatures": "git+https://github.com/John-Tonny/blssignatures.git",
     "bn.js": "=4.11.8",
     "bs58": "^4.0.1",
     "buffer-compare": "=1.1.1",

@@ -25,7 +25,7 @@ export class ERC721TxProvider extends ETHTxProvider {
   }) {
     const { from, tokenAddress, tokenId } = params;
     const data = this.encodeData(params);
-    const recipients = [{ address: tokenAddress , amount: '0' }];
+    const recipients = [{ address: tokenAddress, amount: '0' }];
     const newParams = { ...params, recipients, data };
     return super.create(newParams);
   }
@@ -33,7 +33,7 @@ export class ERC721TxProvider extends ETHTxProvider {
   encodeData(params: {
     recipients: Array<{ address: string; amount: string }>;
     tokenAddress: string;
-    tokenId: number; 
+    tokenId: number;
     from: string;
   }) {
     const { recipients, tokenAddress, tokenId, from } = params;
