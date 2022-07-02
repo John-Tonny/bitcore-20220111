@@ -83,10 +83,9 @@ ProRevokeTx.prototype.get_signMessage = async function(writer, sigMode) {
   }
 
   var privKey = BLS.PrivateKey.fromBytes(Buffer.from(this.masternodePrivKey, 'hex') ,false);
+  var publicKey = privKey.get_g1();
 
-  var publicKey = BLS.LegacySchemeMPL.get_public_key(privKey);
   var msgHash = this.get_message(writer);
-  console.log("##########msg:", msgHash);
 
   try{
     var signature =  BLS.LegacySchemeMPL.sign(privKey, msgHash);
@@ -95,13 +94,13 @@ ProRevokeTx.prototype.get_signMessage = async function(writer, sigMode) {
     if(!isValid){
       throw new TypeError('verify is invalid');
     }
+    
+    var arrSignature = signature.serialize(true);
 
-    if(signature.length != 96){
+    if(arrSignature.length != 96){
       throw new TypeError('singature length is invalid');
     }
-    writer.write(signature, 96);
-
-    console.log("sig:", signature.toString('hex'));
+    writer.write(arrSignature, 96);
 
     privKey.delete();
     publicKey.delete();

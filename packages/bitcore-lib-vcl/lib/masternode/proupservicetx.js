@@ -159,10 +159,10 @@ ProUpServiceTx.prototype.get_signMessage = async function(writer, sigMode) {
     return writer;
   }
   
-  var privKey = BLS.PrivateKey.from_bytes(Buffer.from(this.masternodePrivKey, 'hex'));
-  var publicKey = BLS.LegacySchemeMPL.get_public_key(privKey);
+  var privKey = BLS.PrivateKey.from_bytes(Buffer.from(this.masternodePrivKey, 'hex'), false);
+  var publicKey = privKey.get_g1();
+
   var msgHash = this.get_message(writer);
-  console.log("##########msg:", msgHash);
 
   try{
     var signature = BLS.LegacySchemeMPL.sign(privKey, msgHash);
@@ -171,15 +171,14 @@ ProUpServiceTx.prototype.get_signMessage = async function(writer, sigMode) {
     if(!isValid){
       throw new TypeError('verify is invalid');
     }  
-    
-    if(signature.length != 96){
+  
+    var arrSignature = signature.serialize(true);  
+    if(arrSignature.length != 96){
       throw new TypeError('singature length is invalid');
     }
   
-    writer.write(signature, 96);
+    writer.write(arrSignature, 96);
  
-    console.log("sig:", signature.toString('hex'));
-
     privKey.delete();
     publicKey.delete();
     signature.delete();
