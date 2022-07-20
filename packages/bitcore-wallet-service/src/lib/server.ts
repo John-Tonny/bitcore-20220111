@@ -7145,7 +7145,7 @@ export class WalletService {
                     });
                     txp.setInputs(xinputs);
 
-                    if ((txp.asset.version == 2)) {
+                    if (txp.asset.version == 2) {
                       txp.amount = 0;
                     }
                     txp.asset.version = myTx.version;
