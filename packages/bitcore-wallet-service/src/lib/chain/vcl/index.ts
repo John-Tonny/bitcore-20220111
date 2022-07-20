@@ -416,21 +416,41 @@ export class VclChain implements IChain {
       if (txp.lockUntilBlockHeight) t.lockUntilBlockHeight(txp.lockUntilBlockHeight);
     }
 
+    // john 20220709
+    if (txp.asset && txp.asset.version) {
+      t.setVersion(txp.asset.version);
+    }
+
     /*
      * txp.inputs clean txp.input
      * removes possible nSequence number (BIP68)
      */
-    let inputs = txp.inputs.map(x => {
-      return {
-        address: x.address,
-        txid: x.txid,
-        vout: x.vout,
-        outputIndex: x.outputIndex,
-        scriptPubKey: x.scriptPubKey,
-        satoshis: x.satoshis,
-        publicKeys: x.publicKeys
-      };
-    });
+    var inputs;
+    if (!txp.asset || !txp.asset.version) {
+      inputs = txp.inputs.map(x => {
+        return {
+          address: x.address,
+          txid: x.txid,
+          vout: x.vout,
+          outputIndex: x.outputIndex,
+          scriptPubKey: x.scriptPubKey,
+          satoshis: x.satoshis,
+          publicKeys: x.publicKeys
+        };
+      });
+    } else {
+      inputs = txp.inputs.map(x => {
+        return {
+          address: x.address,
+          txid: x.txid,
+          vout: x.vout,
+          outputIndex: x.outputIndex,
+          satoshis: x.satoshis,
+          script: x.script, // john 20220709
+          sequenceNumber: x.sequenceNumber
+        };
+      });
+    }
 
     switch (txp.addressType) {
       case Constants.SCRIPT_TYPES.P2WSH:
@@ -446,62 +466,81 @@ export class VclChain implements IChain {
         break;
     }
 
-    _.each(txp.outputs, o => {
-      $.checkState(o.script || o.toAddress, 'Output should have either toAddress or script specified');
-      if (o.script) {
-        t.addOutput(
-          new this.bitcoreLib.Transaction.Output({
-            script: o.script,
-            satoshis: o.amount
-          })
-        );
-      } else {
-        t.to(o.toAddress, o.amount);
-      }
-    });
+    if (!txp.asset) {
+      _.each(txp.outputs, o => {
+        $.checkState(o.script || o.toAddress, 'Output should have either toAddress or script specified');
+        if (o.script) {
+          t.addOutput(
+            new this.bitcoreLib.Transaction.Output({
+              script: o.script,
+              satoshis: o.amount
+            })
+          );
+        } else {
+          t.to(o.toAddress, o.amount);
+        }
+      });
 
-    t.fee(txp.fee);
+      t.fee(txp.fee);
 
-    // john 20210409
-    if (txp.atomicswap && txp.atomicswap.isAtomicSwap && txp.atomicswap.redeem != undefined) {
-      t.inputs[0].output.setScript(txp.atomicswap.contract);
-      t.atomicswap = txp.atomicswap;
-      if (!txp.atomicswap.redeem) {
-        t.lockUntilDate(txp.atomicswap.lockTime);
-      } else {
-        t.nLockTime = txp.atomicswap.lockTime;
-      }
-    }
-
-    if (txp.txExtends && txp.txExtends.version && txp.txExtends.outScripts) {
-      t.setVersion(txp.txExtends.version);
-      for (var i = 0; i < t.outputs.length; i++) {
-        if (t.outputs[i]._satoshis == 0) {
-          t.outputs[i].setScript(txp.txExtends.outScripts);
+      // john 20210409
+      if (txp.atomicswap && txp.atomicswap.isAtomicSwap && txp.atomicswap.redeem != undefined) {
+        t.inputs[0].output.setScript(txp.atomicswap.contract);
+        t.atomicswap = txp.atomicswap;
+        if (!txp.atomicswap.redeem) {
+          t.lockUntilDate(txp.atomicswap.lockTime);
+        } else {
+          t.nLockTime = txp.atomicswap.lockTime;
         }
       }
-    }
 
-    if (txp.changeAddress) {
-      t.change(txp.changeAddress.address);
-    }
+      if (txp.txExtends && txp.txExtends.version && txp.txExtends.outScripts) {
+        t.setVersion(txp.txExtends.version);
+        for (var i = 0; i < t.outputs.length; i++) {
+          if (t.outputs[i]._satoshis == 0) {
+            t.outputs[i].setScript(txp.txExtends.outScripts);
+          }
+        }
+      }
 
-    // Shuffle outputs for improved privacy
-    if (t.outputs.length > 1) {
-      const outputOrder = _.reject(txp.outputOrder, (order: number) => {
-        return order >= t.outputs.length;
-      });
-      $.checkState(t.outputs.length == outputOrder.length);
-      t.sortOutputs(outputs => {
-        return _.map(outputOrder, i => {
-          return outputs[i];
+      if (txp.changeAddress) {
+        t.change(txp.changeAddress.address);
+      }
+
+      // Shuffle outputs for improved privacy
+      if (t.outputs.length > 1) {
+        const outputOrder = _.reject(txp.outputOrder, (order: number) => {
+          return order >= t.outputs.length;
         });
+        $.checkState(t.outputs.length == outputOrder.length);
+        t.sortOutputs(outputs => {
+          return _.map(outputOrder, i => {
+            return outputs[i];
+          });
+        });
+      }
+    } else {
+      _.each(txp.outputs, o => {
+        $.checkState(o.script || o.toAddress, 'Output should have either toAddress or script specified');
+        if (o.script) {
+          t.addOutput(
+            new this.bitcoreLib.Transaction.Output({
+              script: o.script,
+              satoshis: o.amount
+            })
+          );
+        } else {
+          t.to(o.toAddress, o.amount);
+        }
       });
     }
 
     // Validate actual inputs vs outputs independently of Bitcore
     const totalInputs = _.sumBy(t.inputs, 'output.satoshis');
     const totalOutputs = _.sumBy(t.outputs, 'satoshis');
+    if (txp.asset) {
+      t.fee(totalInputs - totalOutputs);
+    }
 
     $.checkState(totalInputs > 0 && totalOutputs > 0 && totalInputs >= totalOutputs, 'not-enough-inputs');
     $.checkState(totalInputs - totalOutputs <= Defaults.MAX_TX_FEE[txp.coin], 'fee-too-high');

@@ -1715,6 +1715,18 @@ export class ExpressApp {
       });
     });
 
+    router.get('/v1/web3/spvproof/', (req, res) => {
+      getServerWithAuth(req, res, server => {
+        const opts: { coin?: string; ethtxid?: string } = {};
+        if (req.query.coin) opts.coin = req.query.coin;
+        if (req.query.ethtxid) opts.ethtxid = req.query.ethtxid;
+        server.getSPVProof(opts, (err, ret) => {
+          if (err) return returnError(err, res, req);
+          res.json(ret);
+        });
+      });
+    });
+
     // Set no-cache by default
     // Set no-cache by default
     this.app.use((req, res, next) => {

@@ -83,8 +83,10 @@ export interface ITxProposal {
   atomicswap?: any;
   atomicswapAddr?: string;
   atomicswapSecretHash?: string;
-  txExtends?: any; // 20220219
-  tokenId?: number; // 20220423
+  txExtends?: any; // john 20220219
+  tokenId?: number; // john 20220423
+  asset?: any; // john 20220709
+  relay?: any; // john 20220709
 }
 
 export class TxProposal {
@@ -160,6 +162,8 @@ export class TxProposal {
   atomicswapSecretHash?: string;
   txExtends?: any; // john 20220219
   tokenId?: string; // john 20220423
+  asset?: any; // john 20220709
+  relay?: any; // john 20220709
 
   static create(opts) {
     opts = opts || {};
@@ -263,6 +267,10 @@ export class TxProposal {
     // john 20220423
     x.tokenId = opts.tokenId;
 
+    // john 20220709
+    x.asset = opts.asset;
+    x.relay = opts.relay;
+
     return x;
   }
 
@@ -353,6 +361,10 @@ export class TxProposal {
     // john 20220423
     x.tokenId = obj.tokenId;
 
+    // john 20220709
+    x.asset = obj.asset;
+    x.relay = obj.relay;
+
     return x;
   }
 
@@ -419,6 +431,8 @@ export class TxProposal {
           break;
         }
       }
+    } else if (this.asset && this.asset.version) {
+      t.setVersion(this.asset.version); // john 20220709
     }
     return t.uncheckedSerialize1();
   }
@@ -489,6 +503,10 @@ export class TxProposal {
     try {
       // Tests signatures are OK
       const tx = ChainService.getBitcoreTx(this);
+      // john 20220709
+      if (this.asset && this.asset.version) {
+        tx.setVersion(this.asset.version);
+      }
       ChainService.addSignaturesToBitcoreTx(
         this.chain,
         tx,

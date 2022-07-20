@@ -11,6 +11,8 @@ const Config = () => {
     basePath: '/bws/api',
     disableLogs: false,
     port: 3232,
+    web3Url: process.env.WEB3_URL || 'http://121.89.233.198:8645',
+    blockbookUrl: process.env.BLOCKBOOK_URL || 'http://106.55.177.193:9130/',
 
     // Uncomment to make BWS a forking server
     // cluster: true,
@@ -41,6 +43,15 @@ const Config = () => {
         url: 'http://localhost:3380'
       }
     },
+    // john 20220709
+    blockbookOpts: {
+      vcl: {
+        livenet: {
+          url: 'http://106.55.177.193:9130'
+        }
+      }
+    },
+
     blockchainExplorerOpts: {
       /*
       btc: {
