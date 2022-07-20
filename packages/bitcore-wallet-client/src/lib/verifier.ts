@@ -132,7 +132,8 @@ export class Verifier {
       var o1 = txp.outputs[i];
       var o2 = args.outputs[i];
       // john 20210409
-      if (!txp.atomicswap || txp.atomicswap.isAtomicSwap) {
+      if (txp.atomicswap && txp.atomicswap.isAtomicSwap) {
+      } else {
         if (!strEqual(o1.toAddress, o2.toAddress)) return false;
         if (!strEqual(o1.script, o2.script)) return false;
       }

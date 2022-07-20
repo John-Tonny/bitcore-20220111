@@ -1495,6 +1495,9 @@ export class API extends EventEmitter {
 
       var txp = await this._postRequest(baseUrl, args);
       this._processTxps(txp);
+      if (args.asset && args.asset.version) {
+        return cb(null, txp);
+      }
       if (
         !Verifier.checkProposalCreation(
           args,
@@ -4017,7 +4020,7 @@ export class API extends EventEmitter {
       log.warn('DEPRECATED WARN: isValidAddress should receive 2 parameters.');
     }
 
-    if(false){
+    if (false) {
       opts = opts || {};
 
       $.checkState(this.credentials && this.credentials.isComplete());
@@ -4039,21 +4042,20 @@ export class API extends EventEmitter {
 
       var url = '/v1/masternode/blsgenerate/' + qs;
       this.request.get(url, cb);
-    }else{
+    } else {
       loadBls().then(BLS => {
-      
         var seed = new Bitcore.PrivateKey().toString();
         var sk = BLS.LegacySchemeMPL.key_gen(Buffer.from(seed, 'hex'));
         var pk = BLS.LegacySchemeMPL.get_public_key(sk);
-	
+
         var bls = {
-	  secret: BLS.Util.hex_str(sk.serialize()),
-	  public: BLS.Util.hex_str(pk)
+          secret: BLS.Util.hex_str(sk.serialize()),
+          public: BLS.Util.hex_str(pk)
         };
 
-	sk.delete();
+        sk.delete();
         return cb(null, bls);
-      });     
+      });
     }
   }
 
@@ -4086,7 +4088,7 @@ export class API extends EventEmitter {
       throw new Error('masternodePrivateKey must be hex string');
     }
 
-    if(false){
+    if (false) {
       args.push('msgHash=' + opts.msgHash);
       args.push('masternodePrivateKey=' + opts.masternodePrivateKey);
 
@@ -4097,25 +4099,28 @@ export class API extends EventEmitter {
 
       var url = '/v1/masternode/blssign/' + qs;
       return await this._getRequest(url);
-    }else{
-        var BLS = await loadBls();
+    } else {
+      var BLS = await loadBls();
 
-        var sk = BLS.PrivateKey.from_bytes(Buffer.from(opts.masternodePrivateKey, 'hex'), false);
-        var pk = sk.get_g1();
-        var msg = Buffer.from(opts.msgHash, 'hex');
-	var signature = BLS.LegacySchemeMPL.sign(sk, msg);
-	var isValid = BLS.LegacySchemeMPL.verify(pk, msg, signature);
-	if(!isValid){
-	  throw new Error('not signed');
-        }
+      var sk = BLS.PrivateKey.from_bytes(
+        Buffer.from(opts.masternodePrivateKey, 'hex'),
+        false
+      );
+      var pk = sk.get_g1();
+      var msg = Buffer.from(opts.msgHash, 'hex');
+      var signature = BLS.LegacySchemeMPL.sign(sk, msg);
+      var isValid = BLS.LegacySchemeMPL.verify(pk, msg, signature);
+      if (!isValid) {
+        throw new Error('not signed');
+      }
 
-	var sig = BLS.Util.hex_str(signature.serialize(true));
+      var sig = BLS.Util.hex_str(signature.serialize(true));
 
-        sk.delete();
-	pk.delete();
-	signature.delete()
+      sk.delete();
+      pk.delete();
+      signature.delete();
 
- 	return sig;
+      return sig;
     }
   }
 
@@ -4505,8 +4510,8 @@ export class API extends EventEmitter {
       [
         next => {
           if (opts.masternodePrivKey && opts.masternodePubKey) return next();
-          
-	  this.getMasternodeBlsGenerate({}, (err, bls) => {
+
+          this.getMasternodeBlsGenerate({}, (err, bls) => {
             if (err) {
               return next(new Error('masternode bls generate error!'), err);
             }
@@ -4882,7 +4887,7 @@ export class API extends EventEmitter {
 
   proUpRevokeTx(opts, cb) {
     $.checkArgument(_.isObject(opts), 'Argument should be an object');
-    $.checkArgument(_.isObject(opts.keys), 'key Argument should be an object');
+    $.checkArgument(_.isObject(opts.key), 'key Argument should be an object');
     $.checkArgument(
       _.isObject(opts.masternode),
       'masternode Argument should be an object'
@@ -5262,5 +5267,186 @@ export class API extends EventEmitter {
         return resolve(data);
       });
     });
+  }
+
+  // john 20220709
+  async createAssetSendProposal(opts, cb, baseUrl, additionOpts) {
+    if (opts.coin) {
+      if (!_.includes(Constants.COINS, opts.coin))
+        return cb(new Error('Invalid coin'));
+      if (opts.coin != 'vcl') {
+        return cb(new Error('coin is not supported'));
+      }
+    }
+    $.checkArgument(_.isObject(opts.asset), 'Argument should be an object');
+
+    $.checkArgument(opts.asset.assetGuid, 'Invalid assetGuid');
+    opts.asset.version = TX_VERSION_ALLOCATION_SEND;
+
+    return this.createTxProposal(opts, cb, '', undefined);
+  }
+
+  async createAssetBurnProposal(opts, cb, baseUrl, additionOpts) {
+    if (opts.coin) {
+      if (!_.includes(Constants.COINS, opts.coin))
+        return cb(new Error('Invalid coin'));
+      if (opts.coin != 'vcl') {
+        return cb(new Error('coin is not supported'));
+      }
+    }
+    $.checkArgument(_.isObject(opts.asset), 'Argument should be an object');
+
+    $.checkArgument(opts.asset.assetGuid, 'Invalid assetGuid');
+
+    if (opts.asset.ethAddr) {
+      opts.asset.version = TX_VERSION_ALLOCATION_BURN_TO_NEVM;
+    } else {
+      opts.asset.version = TX_VERSION_ALLOCATION_BURN_TO_SYSCOIN;
+    }
+
+    return this.createTxProposal(opts, cb, '', undefined);
+  }
+
+  async createAssetMintProposal(opts, cb, baseUrl, additionOpts) {
+    if (opts.coin) {
+      if (!_.includes(Constants.COINS, opts.coin))
+        return cb(new Error('Invalid coin'));
+      if (opts.coin != 'vcl') {
+        return cb(new Error('coin is not supported'));
+      }
+    }
+    $.checkArgument(_.isObject(opts.asset), 'Argument should be an object');
+    $.checkArgument(opts.asset.assetGuid, 'Invalid assetGuid');
+    $.checkArgument(opts.asset.ethtxid, 'Invalid ethtxid');
+
+    opts.asset.version = TX_VERSION_ALLOCATION_MINT;
+
+    return this.createTxProposal(opts, cb, '', undefined);
+  }
+
+  async createVclProposal(opts, cb, baseUrl, additionOpts) {
+    if (opts.coin) {
+      if (!_.includes(Constants.COINS, opts.coin))
+        return cb(new Error('Invalid coin'));
+      if (opts.coin != 'vcl') {
+        return cb(new Error('coin is not supported'));
+      }
+    }
+    opts.asset = {};
+    opts.asset.version = 0x02;
+
+    return this.createTxProposal(opts, cb, '', undefined);
+  }
+
+  async createApproveProposal(opts, cb, baseUrl, additionOpts) {
+    $.checkArgument(_.isObject(opts), 'Argument should be an object');
+    if (opts.coin) {
+      if (!_.includes(Constants.COINS, opts.coin))
+        return cb(new Error('Invalid coin'));
+      if (opts.coin != 'eth') {
+        return cb(new Error('coin is not supported'));
+      }
+    }
+    $.checkArgument(
+      _.isObject(opts.relay),
+      'relay Argument should be an object'
+    );
+    opts.relay.cmd = 0x01;
+
+    return this.createTxProposal(opts, cb, '', undefined);
+  }
+
+  async createFreezeBurnERC20Proposal(opts, cb, baseUrl, additionOpts) {
+    $.checkArgument(_.isObject(opts), 'Argument should be an object');
+    if (opts.coin) {
+      if (!_.includes(Constants.COINS, opts.coin))
+        return cb(new Error('Invalid coin'));
+      if (opts.coin != 'eth') {
+        return cb(new Error('coin is not supported'));
+      }
+    }
+    $.checkArgument(
+      _.isObject(opts.relay),
+      'relay Argument should be an object'
+    );
+    $.checkArgument(opts.relay.sysAddr, 'sysAddr is required');
+    opts.relay.cmd = 0x02;
+
+    return this.createTxProposal(opts, cb, '', undefined);
+  }
+
+  async createRelayTxProposal(opts, cb, baseUrl, additionOpts) {
+    $.checkArgument(_.isObject(opts), 'Argument should be an object');
+    if (opts.coin) {
+      if (!_.includes(Constants.COINS, opts.coin))
+        return cb(new Error('Invalid coin'));
+      if (opts.coin != 'eth') {
+        return cb(new Error('coin is not supported'));
+      }
+    }
+    $.checkArgument(
+      _.isObject(opts.relay),
+      'relay Argument should be an object'
+    );
+    $.checkArgument(opts.relay.txid, 'txid is required');
+    opts.relay.cmd = 0x03;
+
+    opts.outputs = [{}];
+
+    return this.createTxProposal(opts, cb, '', undefined);
+  }
+
+  async createRelayAssetTxProposal(opts, cb, baseUrl, additionOpts) {
+    $.checkArgument(_.isObject(opts), 'Argument should be an object');
+    if (opts.coin) {
+      if (!_.includes(Constants.COINS, opts.coin))
+        return cb(new Error('Invalid coin'));
+      if (opts.coin != 'eth') {
+        return cb(new Error('coin is not supported'));
+      }
+    }
+
+    $.checkArgument(
+      _.isObject(opts.relay),
+      'relay Argument should be an object'
+    );
+    $.checkArgument(opts.relay.txid, 'txid is required');
+    opts.relay.cmd = 0x04;
+    opts.outputs = [{}];
+
+    return this.createTxProposal(opts, cb, '', undefined);
+  }
+
+  getSPVProof(opts, cb) {
+    if (!cb) {
+      cb = opts;
+      opts = {};
+      log.warn('DEPRECATED WARN: getSPVProof should receive 2 parameters.');
+    }
+
+    opts = opts || {};
+
+    var args = [];
+    if (opts.coin) {
+      if (!_.includes(Constants.COINS, opts.coin))
+        return cb(new Error('Invalid coin'));
+      if (opts.coin != 'eth') {
+        return cb(new Error('coin is not supported'));
+      }
+      args.push('coin=' + opts.coin);
+    } else {
+      opts.coin = 'eth';
+    }
+
+    if (!opts.ethtxid) return cb(new Error('Not utxo id'));
+    args.push('ethtxid=' + opts.ethtxid);
+
+    var qs = '';
+    if (args.length > 0) {
+      qs = '?' + args.join('&');
+    }
+
+    var url = '/v1/web3/spvproof/' + qs;
+    this.request.get(url, cb);
   }
 }

@@ -1,6 +1,6 @@
 export { RelayAbi, ERC20ManagerAbi, RelayAddr, ERC20ManagerAddr };
 
-const RelayAddr = '0x62aa89614d2ec79dc7Db2A0e84026bBD02b3d7fD';
+const RelayAddr = process.env.RELAY || '0x62aa89614d2ec79dc7Db2A0e84026bBD02b3d7fD';
 const RelayAbi = [
   {
     anonymous: false,
@@ -313,7 +313,7 @@ const RelayAbi = [
   }
 ];
 
-const ERC20ManagerAddr = '0xeEc8C8875dC98FfB5da5CD2e83102Aab962C96C3';
+const ERC20ManagerAddr = process.env.ERC20Manager || '0xeEc8C8875dC98FfB5da5CD2e83102Aab962C96C3';
 const ERC20ManagerAbi = [
   {
     inputs: [

@@ -596,6 +596,42 @@ export class Key {
     };
   };
 
+  sign1 = function (rootPath, txp, password, cb) {
+    $.shouldBeString(rootPath);
+    if (this.isPrivKeyEncrypted() && !password) {
+      return cb(new Errors.ENCRYPTED_PRIVATE_KEY());
+    }
+    var privs = [];
+    var derived: any = {};
+
+    var derived = this.derive(password, rootPath, txp.coin);
+    var xpriv = new Bitcore_[txp.coin].HDPrivateKey(derived);
+
+    _.each(txp.inputs, function (i) {
+      $.checkState(
+        i.path,
+        'Input derivation path not available (signing transaction)'
+      );
+      if (!derived[i.path]) {
+        derived[i.path] = xpriv.deriveChild(i.path).privateKey;
+        privs.push(derived[i.path]);
+      }
+    });
+
+    var signatures = _.map(privs, function (priv, i) {
+      return txp.getSignatures(priv, undefined, txp.signingMethod);
+    });
+
+    signatures = _.map(
+      _.sortBy(_.flatten(signatures), 'inputIndex'),
+      function (s) {
+        return s.signature.toDER(txp.signingMethod).toString('hex');
+      }
+    );
+
+    return signatures;
+  };
+
   sign = function (rootPath, txp, password, cb) {
     $.shouldBeString(rootPath);
     if (this.isPrivKeyEncrypted() && !password) {

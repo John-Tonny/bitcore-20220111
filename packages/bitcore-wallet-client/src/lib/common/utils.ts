@@ -368,6 +368,9 @@ export class Utils {
       // john 20220219
       if (txp.txExtends && txp.txExtends.version) {
         t.setVersion(txp.txExtends.version);
+      } else if (txp.asset && txp.asset.version) {
+        // john 20220709
+        t.setVersion(txp.asset.version);
       }
 
       $.checkState(
@@ -409,35 +412,37 @@ export class Utils {
         });
       }
 
-      t.fee(txp.fee);
+      if (!txp.asset || !txp.asset.version) {
+        t.fee(txp.fee);
 
-      if (txp.instantAcceptanceEscrow && txp.escrowAddress) {
-        t.escrow(
-          txp.escrowAddress.address,
-          txp.instantAcceptanceEscrow + txp.fee
-        );
-      }
+        if (txp.instantAcceptanceEscrow && txp.escrowAddress) {
+          t.escrow(
+            txp.escrowAddress.address,
+            txp.instantAcceptanceEscrow + txp.fee
+          );
+        }
 
-      if (txp.changeAddress) {
-        t.change(txp.changeAddress.address);
-      }
+        if (txp.changeAddress) {
+          t.change(txp.changeAddress.address);
+        }
 
-      if (txp.enableRBF) t.enableRBF();
+        if (txp.enableRBF) t.enableRBF();
 
-      // Shuffle outputs for improved privacy
-      if (t.outputs.length > 1) {
-        var outputOrder = _.reject(txp.outputOrder, order => {
-          return order >= t.outputs.length;
-        });
-        $.checkState(
-          t.outputs.length == outputOrder.length,
-          'Failed state: t.ouputs.length == outputOrder.length at buildTx()'
-        );
-        t.sortOutputs(outputs => {
-          return _.map(outputOrder, i => {
-            return outputs[i];
+        // Shuffle outputs for improved privacy
+        if (t.outputs.length > 1) {
+          var outputOrder = _.reject(txp.outputOrder, order => {
+            return order >= t.outputs.length;
           });
-        });
+          $.checkState(
+            t.outputs.length == outputOrder.length,
+            'Failed state: t.ouputs.length == outputOrder.length at buildTx()'
+          );
+          t.sortOutputs(outputs => {
+            return _.map(outputOrder, i => {
+              return outputs[i];
+            });
+          });
+        }
       }
 
       // Validate inputs vs outputs independently of Bitcore
@@ -464,6 +469,10 @@ export class Utils {
         totalInputs - totalOutputs <= Defaults.MAX_TX_FEE(coin),
         'Failed state: totalInputs - totalOutputs <= Defaults.MAX_TX_FEE(coin) at buildTx'
       );
+
+      if (txp.asset && txp.asset.version) {
+        t.fee(totalInputs - totalOutputs);
+      }
 
       return t;
     } else {
@@ -495,25 +504,83 @@ export class Utils {
       const isERC20 = tokenAddress && !payProUrl && !isTokenSwap;
       const isERC721 = tokenAddress && tokenId;
       const isETHMULTISIG = multisigContractAddress;
-      const chain = isETHMULTISIG
-        ? 'ETHMULTISIG'
-        : isERC721
-        ? 'ERC721'
-        : isERC20
-        ? 'ERC20'
-        : txp.chain
-        ? txp.chain.toUpperCase()
-        : this.getChain(coin);
-      for (let index = 0; index < recipients.length; index++) {
-        const rawTx = Transactions.create({
+      var chain;
+      if (!txp.relay || !txp.relay.cmd) {
+        chain = isETHMULTISIG
+          ? 'ETHMULTISIG'
+          : isERC721
+          ? 'ERC721'
+          : isERC20
+          ? 'ERC20'
+          : txp.chain
+          ? txp.chain.toUpperCase()
+          : this.getChain(coin);
+        for (let index = 0; index < recipients.length; index++) {
+          const rawTx = Transactions.create({
+            ...txp,
+            ...recipients[index],
+            tag: destinationTag ? Number(destinationTag) : undefined,
+            chain,
+            nonce: Number(txp.nonce) + Number(index),
+            recipients: [recipients[index]]
+          });
+          unsignedTxs.push(rawTx);
+        }
+      }
+      if (txp.coin == 'eth' && txp.relay.cmd == 1) {
+        chain = 'RELAY';
+        txp.chain = chain;
+        for (let index = 0; index < recipients.length; index++) {
+          var rawTx = Transactions.get({ ...txp }).createApprove({
+            ...txp,
+            ...recipients[index],
+            tag: destinationTag ? Number(destinationTag) : undefined,
+            chain,
+            nonce: Number(txp.nonce) + Number(index),
+            recipients: [recipients[index]]
+          });
+          unsignedTxs.push(rawTx);
+        }
+        txp.chain = 'ETH';
+      } else if (txp.coin == 'eth' && txp.relay.cmd == 2) {
+        chain = 'RELAY';
+        txp.chain = chain;
+        for (let index = 0; index < recipients.length; index++) {
+          var rawTx = Transactions.get({ ...txp }).createFreezeBurnERC20({
+            ...txp,
+            ...recipients[index],
+            tag: destinationTag ? Number(destinationTag) : undefined,
+            chain,
+            nonce: Number(txp.nonce) + Number(index),
+            recipients: [recipients[index]]
+          });
+          unsignedTxs.push(rawTx);
+        }
+        txp.chain = 'ETH';
+      } else if (txp.coin == 'eth' && txp.relay.cmd == 3) {
+        chain = 'RELAY';
+        txp.chain = chain;
+        var rawTx = Transactions.get({ ...txp }).createRelayTx({
           ...txp,
-          ...recipients[index],
           tag: destinationTag ? Number(destinationTag) : undefined,
           chain,
-          nonce: Number(txp.nonce) + Number(index),
-          recipients: [recipients[index]]
+          nonce: Number(txp.nonce)
         });
         unsignedTxs.push(rawTx);
+        txp.chain = 'ETH';
+      } else if (txp.coin == 'eth' && txp.relay.cmd == 4) {
+        chain = 'RELAY';
+        txp.chain = chain;
+        var rawTx = Transactions.get({ ...txp }).createRelayAssetTx({
+          ...txp,
+          tag: destinationTag ? Number(destinationTag) : undefined,
+          chain,
+          nonce: Number(txp.nonce)
+        });
+        unsignedTxs.push(rawTx);
+        txp.chain = 'ETH';
+      } else {
+        throw new Error('relay cmd is invalid');
       }
       return { uncheckedSerialize: () => unsignedTxs };
     }
