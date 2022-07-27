@@ -6,12 +6,12 @@ import { ERC20ManagerAbi, ERC20ManagerAddr, RelayAbi, RelayAddr } from './abi';
 const { toBN } = Web3.utils;
 
 export class RelayTxProvider extends ETHTxProvider {
-  getWeb3(web3Url){
-    if(web3Url){
+  getWeb3(web3Url) {
+    if (web3Url) {
       return new Web3(web3Url);
     }
     return new Web3();
-  }  
+  }
 
   getRelayContract(web3Url) {
     const web3 = this.getWeb3(web3Url);

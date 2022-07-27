@@ -969,9 +969,8 @@ export class BtcChain implements IChain {
   getRedeemSendMaxInfo(server, wallet, opts, cb) {
     return cb(null, null);
   }
-  
-  getERC20ManagerContract(txp, opts){
+
+  getERC20ManagerContract(txp, opts) {
     return null;
   }
-
 }

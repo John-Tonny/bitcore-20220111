@@ -6822,7 +6822,7 @@ export class WalletService {
         return cb(new Error('outputs is required'));
       }
 
-      for(var i=0;i<opts.outputs.length;i++){
+      for (var i = 0; i < opts.outputs.length; i++) {
         if (!opts.outputs[i].toAddress) return cb(new Error('toAddress is required'));
         if (!opts.outputs[i].amount) return cb(new Error('amount is required'));
       }
@@ -6830,7 +6830,7 @@ export class WalletService {
       if (!_.isArray(opts.outputs) || opts.outputs.length == 0) {
         return cb(new Error('outputs is required'));
       }
-      for(var i=0;i<opts.outputs.length;i++){
+      for (var i = 0; i < opts.outputs.length; i++) {
         if (!opts.outputs[i].toAddress) return cb(new Error('toAddress is required'));
         if (!opts.outputs[i].amount) return cb(new Error('amount is required'));
       }
@@ -7382,7 +7382,7 @@ export class WalletService {
                 },
                 next => {
                   if (opts.relay.cmd != 1) return next();
-                  this.getTokenAddressFromAssetGuid(txp, { web3Url: config.web3Url}, function(err, tokenAddress) {
+                  this.getTokenAddressFromAssetGuid(txp, { web3Url: config.web3Url }, function(err, tokenAddress) {
                     if (err) return next(err);
                     txp.tokenAddress = tokenAddress;
                     return next();
@@ -7497,20 +7497,23 @@ export class WalletService {
     }
 
     var erc20ManagerContract = txp.getERC20ManagerContract(opts);
-    if(!erc20ManagerContract){
+    if (!erc20ManagerContract) {
       return cb(new Error('ERC20Manager Contract is not found'));
     }
 
-    erc20ManagerContract.methods.assetRegistry(txp.relay.assetGuid).call().then( assetRegistry => {
-      if(assetRegistry === "" || !assetRegistry){
+    erc20ManagerContract.methods
+      .assetRegistry(txp.relay.assetGuid)
+      .call()
+      .then(assetRegistry => {
+        if (assetRegistry === '' || !assetRegistry) {
+          return cb(new Error('assetGuid is unregistered'));
+        }
+        return cb(null, assetRegistry.erc20ContractAddress);
+      })
+      .catch(e => {
         return cb(new Error('assetGuid is unregistered'));
-      }
-      return cb(null, assetRegistry.erc20ContractAddress);
-    }).catch(e=>{
-      return cb(new Error('assetGuid is unregistered'));
-    })
+      });
   }
-
 }
 
 function checkRequired(obj, args, cb?: (e: any) => void) {

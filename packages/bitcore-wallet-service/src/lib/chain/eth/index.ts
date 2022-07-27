@@ -157,7 +157,7 @@ export class EthChain implements IChain {
         let gasLimit;
         var defaultGasLimit = opts.tokenAddress ? Defaults.DEFAULT_ERC20_GAS_LIMIT : Defaults.DEFAULT_GAS_LIMIT;
         let fee = 0;
-        if(!opts.relay){
+        if (!opts.relay) {
           for (let output of opts.outputs) {
             if (!output.gasLimit) {
               try {
@@ -192,7 +192,7 @@ export class EthChain implements IChain {
             gasLimit = inGasLimit || defaultGasLimit;
             fee += feePerKb * gasLimit;
           }
-        }else{
+        } else {
           defaultGasLimit = Defaults.DEFAULT_ERC20_GAS_LIMIT;
           /*
           try {
@@ -359,10 +359,10 @@ export class EthChain implements IChain {
   }
 
   getERC20ManagerContract(txp, opts) {
-    if(txp.relay){
-      return Transactions.get({chain: 'RELAY' }).getERC20ManagerContract(opts.web3Url);
+    if (txp.relay) {
+      return Transactions.get({ chain: 'RELAY' }).getERC20ManagerContract(opts.web3Url);
     }
-    return null 
+    return null;
   }
 
   convertFeePerKb(p, feePerKb) {

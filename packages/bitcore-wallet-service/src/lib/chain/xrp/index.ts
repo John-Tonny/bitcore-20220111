@@ -288,7 +288,7 @@ export class XrpChain implements IChain {
     return cb(null, null);
   }
 
-  getERC20ManagerContract(txp, opts){
+  getERC20ManagerContract(txp, opts) {
     return null;
   }
 }

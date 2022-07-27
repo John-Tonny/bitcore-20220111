@@ -48,7 +48,7 @@ export interface IChain {
     cb
   );
 
-  getERC20ManagerContract(txp: TxProposal,opts);
+  getERC20ManagerContract(txp: TxProposal, opts);
 
   getInputSizeSafetyMargin(opts: any): number;
   getSizeSafetyMargin(opts: any): number;

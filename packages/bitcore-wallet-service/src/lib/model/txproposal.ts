@@ -448,7 +448,6 @@ export class TxProposal {
     return ChainService.getERC20ManagerContract(this, opts);
   }
 
-
   /**
    * getTotalAmount
    *
