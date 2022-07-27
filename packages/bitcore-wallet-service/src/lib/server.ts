@@ -6821,18 +6821,19 @@ export class WalletService {
       if (!_.isArray(opts.outputs) || opts.outputs.length == 0) {
         return cb(new Error('outputs is required'));
       }
-      opts.outputs.forEach((o, idx) => {
-        if (!o.Address) return cb(new Error('toAddress is required'));
-        if (!o.amount) return cb(new Error('amount is required'));
-      });
+
+      for(var i=0;i<opts.outputs.length;i++){
+        if (!opts.outputs[i].toAddress) return cb(new Error('toAddress is required'));
+        if (!opts.outputs[i].amount) return cb(new Error('amount is required'));
+      }
     } else if (opts.asset.version == 0x02) {
       if (!_.isArray(opts.outputs) || opts.outputs.length == 0) {
         return cb(new Error('outputs is required'));
       }
-      opts.outputs.forEach((o, idx) => {
-        if (!o.Address) return cb(new Error('toAddress is required'));
-        if (!o.amount) return cb(new Error('amount is required'));
-      });
+      for(var i=0;i<opts.outputs.length;i++){
+        if (!opts.outputs[i].toAddress) return cb(new Error('toAddress is required'));
+        if (!opts.outputs[i].amount) return cb(new Error('amount is required'));
+      }
     } else if (opts.asset.version == stxjs.utils.SYSCOIN_TX_VERSION_ALLOCATION_BURN_TO_ETHEREUM) {
       if (!opts.asset.ethAddr) return cb(new Error('ethAddr is required'));
     } else if (opts.asset.version == stxjs.utils.SYSCOIN_TX_VERSION_ALLOCATION_BURN_TO_SYSCOIN) {
@@ -7194,15 +7195,16 @@ export class WalletService {
         return cb(new Error('outputs is required'));
       }
       if (opts.outputs.length != 1) {
-        return cb(new Error('outputs is required'));
+        return cb(new Error('outputs length must be 1'));
       }
       if (!opts.outputs[0].amount) return cb(new Error('amount is required'));
+      if (!opts.relay.assetGuid) return cb(new Error('assetGuid is required'));
     } else if (opts.relay.cmd == 0x02) {
       if (!_.isArray(opts.outputs) || opts.outputs.length == 0) {
         return cb(new Error('outputs is required'));
       }
       if (opts.outputs.length != 1) {
-        return cb(new Error('outputs is required'));
+        return cb(new Error('outputs length must be 1'));
       }
       if (!opts.outputs[0].amount) return cb(new Error('amount is required'));
       if (!opts.relay.assetGuid) return cb(new Error('assetGuid is required'));
@@ -7379,6 +7381,14 @@ export class WalletService {
                   next();
                 },
                 next => {
+                  if (opts.relay.cmd != 1) return next();
+                  this.getTokenAddressFromAssetGuid(txp, { web3Url: config.web3Url}, function(err, tokenAddress) {
+                    if (err) return next(err);
+                    txp.tokenAddress = tokenAddress;
+                    return next();
+                  });
+                },
+                next => {
                   return ChainService.selectTxInputs(this, txp, wallet, opts, next);
                 },
                 async next => {
@@ -7476,6 +7486,31 @@ export class WalletService {
         return cb(new Error(e.message()));
       });
   }
+
+  getTokenAddressFromAssetGuid(txp, opts, cb) {
+    this.logd('get tokenAddress');
+    if (!txp.relay.assetGuid) {
+      return cb(new Error('assetGuid is required'));
+    }
+    if (!opts.web3Url) {
+      return cb(new Error('web3Url is required'));
+    }
+
+    var erc20ManagerContract = txp.getERC20ManagerContract(opts);
+    if(!erc20ManagerContract){
+      return cb(new Error('ERC20Manager Contract is not found'));
+    }
+
+    erc20ManagerContract.methods.assetRegistry(txp.relay.assetGuid).call().then( assetRegistry => {
+      if(assetRegistry === "" || !assetRegistry){
+        return cb(new Error('assetGuid is unregistered'));
+      }
+      return cb(null, assetRegistry.erc20ContractAddress);
+    }).catch(e=>{
+      return cb(new Error('assetGuid is unregistered'));
+    })
+  }
+
 }
 
 function checkRequired(obj, args, cb?: (e: any) => void) {

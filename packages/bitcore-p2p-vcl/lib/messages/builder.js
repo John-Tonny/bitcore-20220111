@@ -73,7 +73,6 @@ function builder(options) {
     exported.commands[key]._constructor = Command;
 
     exported.commands[key].fromBuffer = function(buffer) {
-      console.log(key); // john
       var message = exported.commands[key]();
       message.setPayload(buffer);
       return message;

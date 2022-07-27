@@ -9,6 +9,8 @@ var BufferWriter = bitcore.encoding.BufferWriter;
 var _ = bitcore.deps._;
 var $ = bitcore.util.preconditions;
 
+var NEVMBlockVersion = 537919616 || process.env.NEVM_BLOCK_VERSION
+
 /**
  * Sent in response to a `getheaders` message. It contains information about
  * block headers.
@@ -40,9 +42,13 @@ HeadersMessage.prototype.setPayload = function(payload) {
   for (var i = 0; i < count; i++) {
     var header = this.BlockHeader.fromBufferReader(parser);
     this.headers.push(header);
-    // var txn_count = parser.readUInt8();
-    // john 20220219
-    var txn_count = parser.readUInt16LE();
+    var txn_count;
+    // john 20220726
+    if(header.version == NEVMBlockVersion ){
+      txn_count = parser.readUInt16LE();
+    }else{
+      txn_count = parser.readUInt8();
+    }
     $.checkState(txn_count === 0, 'txn_count should always be 0');
   }
   utils.checkFinished(parser);

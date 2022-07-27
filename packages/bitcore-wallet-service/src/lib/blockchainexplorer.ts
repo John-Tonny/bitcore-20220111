@@ -16,7 +16,7 @@ const PROVIDERS = {
       testnet: 'https://api.bitpay.com'
     },
     eth: {
-      livenet: 'http://127.0.0.1:8200',
+      livenet: 'http://127.0.0.1:3000',
       testnet: 'http://127.0.0.1:8200'
     },
     xrp: {
@@ -32,7 +32,7 @@ const PROVIDERS = {
       testnet: 'https://api.bitpay.com'
     },
     vcl: {
-      livenet: 'http://127.0.0.1:8200',
+      livenet: 'http://127.0.0.1:3000',
       testnet: 'http://127.0.0.1:8200'
     }
   }

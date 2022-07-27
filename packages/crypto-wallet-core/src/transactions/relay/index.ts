@@ -6,20 +6,27 @@ import { ERC20ManagerAbi, ERC20ManagerAddr, RelayAbi, RelayAddr } from './abi';
 const { toBN } = Web3.utils;
 
 export class RelayTxProvider extends ETHTxProvider {
-  getRelayContract() {
-    const web3 = new Web3();
+  getWeb3(web3Url){
+    if(web3Url){
+      return new Web3(web3Url);
+    }
+    return new Web3();
+  }  
+
+  getRelayContract(web3Url) {
+    const web3 = this.getWeb3(web3Url);
     const contract = new web3.eth.Contract(RelayAbi as AbiItem[], RelayAddr);
     return contract;
   }
 
-  getERC20ManagerContract() {
-    const web3 = new Web3();
+  getERC20ManagerContract(web3Url) {
+    const web3 = this.getWeb3(web3Url);
     const contract = new web3.eth.Contract(ERC20ManagerAbi as AbiItem[], ERC20ManagerAddr);
     return contract;
   }
 
-  getERC20Contract(tokenContractAddress: string) {
-    const web3 = new Web3();
+  getERC20Contract(tokenContractAddress: string, web3Url: string) {
+    const web3 = this.getWeb3(web3Url);
     const contract = new web3.eth.Contract(ERC20Abi as AbiItem[], tokenContractAddress);
     return contract;
   }
@@ -56,7 +63,7 @@ export class RelayTxProvider extends ETHTxProvider {
   }) {
     const { relay } = params;
     const { nevmBlockNumber, txBytes, txIndex, txSibling, syscoinBlockHeader } = params.relay;
-    const data = this.getRelayContract()
+    const data = this.getRelayContract(undefined)
       .methods.relayAssetTx(nevmBlockNumber, txBytes, txIndex, txSibling, syscoinBlockHeader)
       .encodeABI();
     return data;
@@ -93,7 +100,7 @@ export class RelayTxProvider extends ETHTxProvider {
   }) {
     const { relay } = params;
     const { nevmBlockNumber, txBytes, txIndex, txSibling, syscoinBlockHeader } = params.relay;
-    const data = this.getRelayContract()
+    const data = this.getRelayContract(undefined)
       .methods.relayTx(nevmBlockNumber, txBytes, txIndex, txSibling, syscoinBlockHeader)
       .encodeABI();
     return data;
@@ -121,7 +128,7 @@ export class RelayTxProvider extends ETHTxProvider {
     const { recipients, relay } = params;
     const [{ amount }] = params.recipients;
     const { assetGuid, sysAddr } = params.relay;
-    const data = this.getERC20ManagerContract()
+    const data = this.getERC20ManagerContract(undefined)
       .methods.freezeBurnERC20(amount, assetGuid, sysAddr)
       .encodeABI();
     return data;
@@ -153,7 +160,7 @@ export class RelayTxProvider extends ETHTxProvider {
     const { tokenAddress, recipients, contractAddress } = params;
     const [{ amount }] = params.recipients;
     const amountStr = Number(amount).toLocaleString('en', { useGrouping: false });
-    const data = this.getERC20Contract(tokenAddress)
+    const data = this.getERC20Contract(tokenAddress, undefined)
       .methods.approve(ERC20ManagerAddr, amountStr)
       .encodeABI();
     return data;

@@ -443,6 +443,12 @@ export class TxProposal {
     return t.uncheckedAtomicSwapSerialize();
   }
 
+  // john
+  getERC20ManagerContract(opts) {
+    return ChainService.getERC20ManagerContract(this, opts);
+  }
+
+
   /**
    * getTotalAmount
    *

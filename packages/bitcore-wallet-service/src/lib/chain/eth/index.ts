@@ -155,40 +155,67 @@ export class EthChain implements IChain {
         const { coin, network } = wallet;
         let inGasLimit;
         let gasLimit;
-        const defaultGasLimit = opts.tokenAddress ? Defaults.DEFAULT_ERC20_GAS_LIMIT : Defaults.DEFAULT_GAS_LIMIT;
+        var defaultGasLimit = opts.tokenAddress ? Defaults.DEFAULT_ERC20_GAS_LIMIT : Defaults.DEFAULT_GAS_LIMIT;
         let fee = 0;
-        for (let output of opts.outputs) {
-          if (!output.gasLimit) {
-            try {
-              const to = opts.payProUrl
-                ? output.toAddress
-                : opts.tokenAddress
-                ? opts.tokenAddress
-                : opts.multisigContractAddress
-                ? opts.multisigContractAddress
-                : output.toAddress;
-              const value = opts.tokenAddress || opts.multisigContractAddress ? 0 : output.amount;
-              inGasLimit = await server.estimateGas({
-                coin,
-                network,
-                from,
-                to,
-                value,
-                data: output.data,
-                gasPrice
-              });
-              output.gasLimit = inGasLimit || defaultGasLimit;
-            } catch (err) {
-              output.gasLimit = defaultGasLimit;
+        if(!opts.relay){
+          for (let output of opts.outputs) {
+            if (!output.gasLimit) {
+              try {
+                const to = opts.payProUrl
+                  ? output.toAddress
+                  : opts.tokenAddress
+                  ? opts.tokenAddress
+                  : opts.multisigContractAddress
+                  ? opts.multisigContractAddress
+                  : output.toAddress;
+                const value = opts.tokenAddress || opts.multisigContractAddress ? 0 : output.amount;
+                inGasLimit = await server.estimateGas({
+                  coin,
+                  network,
+                  from,
+                  to,
+                  value,
+                  data: output.data,
+                  gasPrice
+                });
+                output.gasLimit = inGasLimit || defaultGasLimit;
+              } catch (err) {
+                output.gasLimit = defaultGasLimit;
+              }
+            } else {
+              inGasLimit = output.gasLimit;
             }
-          } else {
-            inGasLimit = output.gasLimit;
+            if (_.isNumber(opts.fee)) {
+              // This is used for sendmax
+              gasPrice = feePerKb = Number((opts.fee / (inGasLimit || defaultGasLimit)).toFixed());
+            }
+            gasLimit = inGasLimit || defaultGasLimit;
+            fee += feePerKb * gasLimit;
           }
+        }else{
+          defaultGasLimit = Defaults.DEFAULT_ERC20_GAS_LIMIT;
+          /*
+          try {
+            const to = '0x58CfA3CD076f8c79E411fDB87E473Dd8216713F0';
+            const value = 0;
+            inGasLimit = await server.estimateGas({
+              coin,
+              network,
+              from,
+              to,
+              value,
+              data: null,
+              gasPrice
+            });
+            gasLimit = inGasLimit || defaultGasLimit;
+          } catch (err) {
+            gasLimit = defaultGasLimit;
+          }*/
+          gasLimit = defaultGasLimit;
           if (_.isNumber(opts.fee)) {
             // This is used for sendmax
             gasPrice = feePerKb = Number((opts.fee / (inGasLimit || defaultGasLimit)).toFixed());
           }
-          gasLimit = inGasLimit || defaultGasLimit;
           fee += feePerKb * gasLimit;
         }
         return resolve({ feePerKb, gasPrice, gasLimit, fee });
@@ -248,6 +275,7 @@ export class EthChain implements IChain {
           ...txp,
           ...recipients[index],
           chain,
+          gasLimit: txp.gasLimit,
           nonce: Number(txp.nonce) + Number(index),
           recipients: [recipients[index]]
         });
@@ -274,6 +302,7 @@ export class EthChain implements IChain {
           ...txp,
           ...recipients[index],
           chain,
+          gasLimit: txp.gasLimit,
           nonce: Number(txp.nonce) + Number(index),
           recipients: [recipients[index]]
         });
@@ -296,6 +325,7 @@ export class EthChain implements IChain {
       const rawTx = Transactions.get({ ...txp }).createRelayAssetTx({
         ...txp,
         chain,
+        gasLimit: txp.gasLimit,
         nonce: Number(txp.nonce)
       });
       unsignedTxs.push(rawTx);
@@ -326,6 +356,13 @@ export class EthChain implements IChain {
     }
 
     return tx;
+  }
+
+  getERC20ManagerContract(txp, opts) {
+    if(txp.relay){
+      return Transactions.get({chain: 'RELAY' }).getERC20ManagerContract(opts.web3Url);
+    }
+    return null 
   }
 
   convertFeePerKb(p, feePerKb) {

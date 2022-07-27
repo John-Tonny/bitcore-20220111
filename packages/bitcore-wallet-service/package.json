@@ -55,7 +55,7 @@
     "socket.io-client": "^2.2.0",
     "source-map-support": "^0.5.13",
     "sticky-session": "^0.1.0",
-    "syscoinjs-lib": "git+https://github.com/John-Tonny/syscoinjs-lib.git",
+    "syscoinjs-lib": "https://github.com/John-Tonny/syscoinjs-lib.git",
     "typedarray-to-buffer": "^4.0.0",
     "uuid": "^3.3.2",
     "winston": "^3.3.3"

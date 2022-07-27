@@ -1017,4 +1017,9 @@ export class VclChain implements IChain {
   onTx(tx) {
     return null;
   }
+
+  getERC20ManagerContract(txp, opts){
+     return null;
+  }
+  
 }

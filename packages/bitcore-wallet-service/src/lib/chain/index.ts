@@ -48,6 +48,8 @@ export interface IChain {
     cb
   );
 
+  getERC20ManagerContract(txp: TxProposal,opts);
+
   getInputSizeSafetyMargin(opts: any): number;
   getSizeSafetyMargin(opts: any): number;
   getDustAmountValue();
@@ -140,6 +142,10 @@ class ChainProxy {
 
   getBitcoreTx(txp: TxProposal, opts = { signed: true }) {
     return this.get(txp.chain).getBitcoreTx(txp, { signed: opts.signed });
+  }
+
+  getERC20ManagerContract(txp: TxProposal, opts) {
+    return this.get(txp.chain).getERC20ManagerContract(txp, opts);
   }
 
   convertFeePerKb(coin, p, feePerKb) {
