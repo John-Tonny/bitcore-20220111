@@ -30,8 +30,8 @@ export class CurrencyProvider {
       let chain = chainNetwork.chain.toUpperCase();      
       const coin_unit = this.apiProvider.getCoinUnitFromUser();
 
-      logger.info(chain);
-      logger.info(coin_unit);
+      // logger.info(chain);
+      // logger.info(coin_unit);
       if(chain === 'VCL'){
         if(coin_unit !== '' ){
           chain = coin_unit;
