@@ -735,15 +735,18 @@ export class WalletService {
             }
 
             const zpub = this.xPubTozPub(wallet);
-            sjs.utils.fetchBackendAccount(config.blockbookUrl, zpub, null, true).then(ret => {
-              _.each(ret.tokensAsset, tokenAsset => {
-                tokenAsset.symbol = new Buffer(tokenAsset.symbol, 'base64').toString();
+            sjs.utils
+              .fetchBackendAccount(config.blockbookUrl, zpub, null, true)
+              .then(ret => {
+                _.each(ret.tokensAsset, tokenAsset => {
+                  tokenAsset.symbol = new Buffer(tokenAsset.symbol, 'base64').toString();
+                });
+                status.tokensAsset = ret.tokensAsset;
+                next();
+              })
+              .catch(err => {
+                next(err);
               });
-              status.tokensAsset = ret.tokensAsset;
-              next();
-            }).catch(err=>{
-              next(err);
-            });
           });
         },
         next => {
@@ -5482,93 +5485,96 @@ export class WalletService {
       const zpub = this.xPubTozPub(wallet);
 
       async.waterfall(
-          [
-            next => {
-              var options = 'details=txs&pageSize=' + opts.pageSize;
-              if(opts.page){
-                options += '&page=' + opts.page;
-              }
+        [
+          next => {
+            var options = 'details=txs&pageSize=' + opts.pageSize;
+            if (opts.page) {
+              options += '&page=' + opts.page;
+            }
 
-              sjs.utils.fetchBackendAccount(config.blockbookUrl, zpub, options, true).then(ret => {
+            sjs.utils
+              .fetchBackendAccount(config.blockbookUrl, zpub, options, true)
+              .then(ret => {
                 var ret1 = _.omit(ret, ['tokensAsset', 'tokens', 'transactions']);
                 var items = [];
-                _.each(ret.transactions, tx=> {
+                _.each(ret.transactions, tx => {
                   var item = {
                     txid: tx.txid,
                     confirmations: tx.confirmations,
                     blockheight: tx.blockHeight,
                     fees: tx.fees,
                     time: tx.blockTime,
-                    size: tx.hex.length/2,
+                    size: tx.hex.length / 2,
                     amount: 0,
                     action: this.getTxType(tx),
                     addressTo: null,
                     outputs: tx.vout,
                     dust: false
-                  }
+                  };
                   items.push(item);
                 });
                 ret1.transactions = items;
                 next(null, ret1);
-              }).catch(err=>{
+              })
+              .catch(err => {
                 next(err);
               });
-            },
-            (txs: { transactions: Array<{ time: number }>}, next) => {
-              if (!txs || _.isEmpty(txs.transactions)) {
-                return next();
-              }
-              // TODO optimize this...
-              // Fetch all proposals in [t - 7 days, t + 1 day]
-              const minTs = _.minBy(txs.transactions, 'time').time - 7 * 24 * 3600;
-              const maxTs = _.maxBy(txs.transactions, 'time').time + 1 * 24 * 3600;
-              async.parallel(
-                  [
-                    done => {
-                      this.storage.fetchTxs(
-                          this.walletId,
-                          {
-                            minTs,
-                            maxTs
-                          },
-                          done
-                      );
-                    },
-                    done => {
-                      this.storage.fetchTxNotes(
-                          this.walletId,
-                          {
-                            minTs
-                          },
-                          done
-                      );
-                    }
-                  ],
-                  (err, res) => {
-                    return next(err, {
-                      txs,
-                      txps: res[0],
-                      notes: res[1]
-                    });
-                  }
-              );
+          },
+          (txs: { transactions: Array<{ time: number }> }, next) => {
+            if (!txs || _.isEmpty(txs.transactions)) {
+              return next();
             }
-          ],
-          (err, res: any) => {
-            if (err) return cb(err);
-            if (!res) return cb(null, []);
-            // TODO we are indexing everything again, each query.
-            const indexedProposals = _.keyBy(res.txps, 'txid');
-            const indexedNotes = _.keyBy(res.notes, 'txid');
-
-            const finalTxs = _.map(res.txs.transactions, tx => {
-              WalletService._addProposalInfo2(tx, indexedProposals, opts);
-              WalletService._addNotesInfo(tx, indexedNotes);
-              return tx;
-            });
-            res.txs.transactions = finalTxs;
-            return cb(null, res.txs);
+            // TODO optimize this...
+            // Fetch all proposals in [t - 7 days, t + 1 day]
+            const minTs = _.minBy(txs.transactions, 'time').time - 7 * 24 * 3600;
+            const maxTs = _.maxBy(txs.transactions, 'time').time + 1 * 24 * 3600;
+            async.parallel(
+              [
+                done => {
+                  this.storage.fetchTxs(
+                    this.walletId,
+                    {
+                      minTs,
+                      maxTs
+                    },
+                    done
+                  );
+                },
+                done => {
+                  this.storage.fetchTxNotes(
+                    this.walletId,
+                    {
+                      minTs
+                    },
+                    done
+                  );
+                }
+              ],
+              (err, res) => {
+                return next(err, {
+                  txs,
+                  txps: res[0],
+                  notes: res[1]
+                });
+              }
+            );
           }
+        ],
+        (err, res: any) => {
+          if (err) return cb(err);
+          if (!res) return cb(null, []);
+          // TODO we are indexing everything again, each query.
+          const indexedProposals = _.keyBy(res.txps, 'txid');
+          const indexedNotes = _.keyBy(res.notes, 'txid');
+
+          const finalTxs = _.map(res.txs.transactions, tx => {
+            WalletService._addProposalInfo2(tx, indexedProposals, opts);
+            WalletService._addNotesInfo(tx, indexedNotes);
+            return tx;
+          });
+          res.txs.transactions = finalTxs;
+          return cb(null, res.txs);
+        }
       );
     });
   }
@@ -7610,7 +7616,7 @@ export class WalletService {
     if (!opts.txid) {
       return cb(new Error('txid is required'));
     }
-    if(opts.coin && opts.coin !='eth'){
+    if (opts.coin && opts.coin != 'eth') {
       return cb(new Error('coin is not supported'));
     }
 
@@ -7691,37 +7697,41 @@ export class WalletService {
     if (!opts.assetGuid) {
       return cb(new Error('assetGuid is required'));
     }
-    if(opts.coin && opts.coin !='vcl'){
+    if (opts.coin && opts.coin != 'vcl') {
       return cb(new Error('coin is not supported'));
     }
 
     sjs.utils
-        .fetchBackendAsset(syscoinjs.blockbookURL, opts.assetGuid)
-        .then(result => {
-	  if(result.assetGuid == null){
-	    return cb(new Error('not found'));
+      .fetchBackendAsset(syscoinjs.blockbookURL, opts.assetGuid)
+      .then(result => {
+        if (result.assetGuid == null) {
+          return cb(new Error('not found'));
+        }
+        try {
+          if (result.symbol) {
+            result.symbol = new Buffer(result.symbol, 'base64').toString();
           }
-          try {
-            if (result.symbol) {
-              result.symbol = new Buffer(result.symbol, 'base64').toString();
-            }
-            if (result.pubData && result.pubData.desc) {
-              result.pubData.desc = new Buffer(result.pubData.desc, 'base64').toString();
-            }
-            if (result.notaryKeyID) {
-              result.notaryKeyID = new Bitcore_[opts.coin].Address(new Buffer(result.notaryKeyID, 'base64'), 'livenet', 'witnesspubkeyhash').toString();
-            }
-            if (result.notaryDetails && result.notaryDetails.endPoint) {
-              result.notaryDetails.endPoint = new Buffer(result.notaryDetails.endPoint, 'base64').toString();
-            }
-            return cb(null, result);
-          }catch(e){
-            return cb(null, result);
+          if (result.pubData && result.pubData.desc) {
+            result.pubData.desc = new Buffer(result.pubData.desc, 'base64').toString();
           }
-        })
-        .catch(e => {
-          return cb(new Error(e.message()));
-        });
+          if (result.notaryKeyID) {
+            result.notaryKeyID = new Bitcore_[opts.coin].Address(
+              new Buffer(result.notaryKeyID, 'base64'),
+              'livenet',
+              'witnesspubkeyhash'
+            ).toString();
+          }
+          if (result.notaryDetails && result.notaryDetails.endPoint) {
+            result.notaryDetails.endPoint = new Buffer(result.notaryDetails.endPoint, 'base64').toString();
+          }
+          return cb(null, result);
+        } catch (e) {
+          return cb(null, result);
+        }
+      })
+      .catch(e => {
+        return cb(new Error(e.message()));
+      });
   }
 
   getTxType(tx) {
@@ -7739,7 +7749,6 @@ export class WalletService {
 
     return 'Transaction';
   }
-
 }
 
 function checkRequired(obj, args, cb?: (e: any) => void) {

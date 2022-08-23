@@ -2747,7 +2747,6 @@ export class API extends EventEmitter {
     });
   }
 
-
   // /**
   // * getTx
   // *
@@ -5520,5 +5519,4 @@ export class API extends EventEmitter {
     var url = '/v1/asset/' + qs;
     this.request.get(url, cb);
   }
-
 }
