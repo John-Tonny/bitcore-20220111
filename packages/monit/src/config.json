@@ -1,0 +1,15 @@
+{
+  "rpc_hosts": ["52.82.10.46", "161.189.98.179", "161.189.98.179"],
+  "rpc_port": 9902,
+  "p2p_hosts": ["52.83.45.206", "52.82.4.7", "52.83.40.78", "161.189.98.179"],
+  "p2p_port": 9900,
+  "db_user": "",
+  "db_password": "",
+  "db_url": "52.82.14.63",
+  "db_port": 27017,
+  "config_filename": "/mnt/ethereum/bitcore/bitcore.config.json",
+  "bitcore_external_host": "22.33.44.55", 
+  "chain_name": "wgl",
+  "mail_user": "jlwkk99@tom.com",
+  "mail_pwd": "jlw9090"
+}

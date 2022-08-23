@@ -1090,6 +1090,25 @@ export class ExpressApp {
       });
     });
 
+    router.get('/v2/txhistory/', (req, res) => {
+      getServerWithAuth(req, res, server => {
+        const opts: {
+          page?: number;
+          pageSize?: number;
+          includeExtendedInfo?: boolean;
+        } = {};
+        if (req.query.page) opts.page = +req.query.page;
+        if (req.query.pageSize) opts.pageSize = +req.query.pageSize;
+        if (req.query.includeExtendedInfo == '1') opts.includeExtendedInfo = true;
+
+        server.getTxHistory2(opts, (err, txs) => {
+          if (err) return returnError(err, res, req);
+          res.json(txs);
+          res.end();
+        });
+      });
+    });
+
     router.post('/v1/addresses/scan/', (req, res) => {
       getServerWithAuth(req, res, server => {
         server.startScan(req.body, (err, started) => {
@@ -1723,6 +1742,19 @@ export class ExpressApp {
         server.getSPVProof(opts, (err, ret) => {
           if (err) return returnError(err, res, req);
           res.json(ret);
+        });
+      });
+    });
+
+    router.get('/v1/asset/', (req, res) => {
+      getServerWithAuth(req, res, server => {
+        const opts: { coin?: string; assetGuid?: string } = {};
+        if (req.query.coin) opts.coin = req.query.coin;
+        if (req.query.assetGuid) opts.assetGuid = req.query.assetGuid;
+        server.getAsset(opts, (err, ret) => {
+          if (err) return returnError(err, res, req);
+          res.json(ret);
+          res.end();
         });
       });
     });

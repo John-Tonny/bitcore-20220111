@@ -2711,6 +2711,44 @@ export class API extends EventEmitter {
   }
 
   // /**
+  // * Get transaction history
+  // *
+  // * @param {Object} opts
+  // * @param {Number} opts.skip (defaults to 0)
+  // * @param {Number} opts.limit
+  // * @param {String} opts.tokenAddress
+  // * @param {String} opts.multisigContractAddress (optional: MULTISIG ETH Contract Address)
+  // * @param {Boolean} opts.includeExtendedInfo
+  // * @param {Callback} cb
+  // * @return {Callback} cb - Return error or array of transactions
+  // */
+  getVclTxHistory(opts, cb) {
+    $.checkState(
+      this.credentials && this.credentials.isComplete(),
+      'Failed state: this.credentials at <getTxHistory()>'
+    );
+
+    var args = [];
+    if (opts) {
+      if (opts.page) args.push('page=' + opts.page);
+      if (opts.pageSize) args.push('pageSize=' + opts.pageSize);
+      if (opts.includeExtendedInfo) args.push('includeExtendedInfo=1');
+    }
+    var qs = '';
+    if (args.length > 0) {
+      qs = '?' + args.join('&');
+    }
+
+    var url = '/v2/txhistory/' + qs;
+    this.request.get(url, (err, txs) => {
+      if (err) return cb(err);
+      this._processTxps(txs);
+      return cb(null, txs);
+    });
+  }
+
+
+  // /**
   // * getTx
   // *
   // * @param {String} TransactionId
@@ -5433,10 +5471,10 @@ export class API extends EventEmitter {
       if (opts.coin != 'eth') {
         return cb(new Error('coin is not supported'));
       }
-      args.push('coin=' + opts.coin);
     } else {
       opts.coin = 'eth';
     }
+    args.push('coin=' + opts.coin);
 
     if (!opts.ethtxid) return cb(new Error('Not utxo id'));
     args.push('ethtxid=' + opts.ethtxid);
@@ -5449,4 +5487,38 @@ export class API extends EventEmitter {
     var url = '/v1/web3/spvproof/' + qs;
     this.request.get(url, cb);
   }
+
+  getAsset(opts, cb) {
+    if (!cb) {
+      cb = opts;
+      opts = {};
+      log.warn('DEPRECATED WARN: getAsset should receive 2 parameters.');
+    }
+
+    opts = opts || {};
+
+    var args = [];
+    if (opts.coin) {
+      if (!_.includes(Constants.COINS, opts.coin))
+        return cb(new Error('Invalid coin'));
+      if (opts.coin != 'vcl') {
+        return cb(new Error('coin is not supported'));
+      }
+    } else {
+      opts.coin = 'vcl';
+    }
+    args.push('coin=' + opts.coin);
+
+    if (!opts.assetGuid) return cb(new Error('Not assetGuid'));
+    args.push('assetGuid=' + opts.assetGuid);
+
+    var qs = '';
+    if (args.length > 0) {
+      qs = '?' + args.join('&');
+    }
+
+    var url = '/v1/asset/' + qs;
+    this.request.get(url, cb);
+  }
+
 }

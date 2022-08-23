@@ -1,0 +1,24 @@
+{
+  "name": "monit",
+  "version": "1.0.0",
+  "description": "",
+  "main": "status.js",
+  "babel": {
+    "presets": [
+      "es2016"
+    ]
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "async": "^3.2.1",
+    "babel-cli": "^6.26.0",
+    "mongodb": "^4.1.0",
+    "nodemailer": "^6.6.3",
+    "request": "^2.88.2",
+    "silly-datetime": "^0.1.2"
+  }
+}
