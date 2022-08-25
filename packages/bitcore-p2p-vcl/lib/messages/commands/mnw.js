@@ -2,7 +2,7 @@
 
 var Message = require('../message');
 var inherits = require('util').inherits;
-var bitcore = require('vircle-lib');
+var bitcore = require('bitcore-lib-vcl');
 var utils = require('../utils');
 var $ = bitcore.util.preconditions;
 var _ = bitcore.deps._;
