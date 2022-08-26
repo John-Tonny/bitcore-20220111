@@ -73,6 +73,7 @@ VersionMessage.prototype.setPayload = function(payload) {
   } else {
     this.relay = !!parser.readUInt8();
   }
+  // john 20220726
   if(!parser.finished()){
     this.mnauthChallenge = parser.read(32); 
   }

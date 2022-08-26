@@ -745,7 +745,7 @@ export class WalletService {
                 next();
               })
               .catch(err => {
-                next(err);
+                next();
               });
           });
         },
@@ -7660,7 +7660,7 @@ export class WalletService {
         }
       })
       .catch(e => {
-        return cb(new Error(e.message()));
+        return cb(new Error(e.message));
       });
   }
 
@@ -7730,7 +7730,7 @@ export class WalletService {
         }
       })
       .catch(e => {
-        return cb(new Error(e.message()));
+        return cb(new Error(e.message));
       });
   }
 
