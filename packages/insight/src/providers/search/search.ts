@@ -120,7 +120,7 @@ export class SearchProvider {
       ],
     },
     {
-      regexes: [/^(vclcoin:)?(sys1[a-klm-zA-HJ-NP-Z0-9]{39,59})/],
+      regexes: [/^(vclcoin:)?(vcl1[a-klm-zA-HJ-NP-Z0-9]{39,59})/],
       dataIndex: 2,
       type: 'address',
       chainNetworks: [

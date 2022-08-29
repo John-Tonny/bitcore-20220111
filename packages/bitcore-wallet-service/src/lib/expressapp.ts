@@ -46,10 +46,12 @@ export class ExpressApp {
 
       res.setHeader('Access-Control-Allow-Origin', '*');
       res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, DELETE');
-      res.setHeader(
+      /* res.setHeader(
         'Access-Control-Allow-Headers',
         'x-signature,x-identity,x-session,x-client-version,x-wallet-id,X-Requested-With,Content-Type,Authorization'
       );
+      */
+      res.setHeader('Access-Control-Allow-Headers', '*');
       res.setHeader('x-service-version', WalletService.getServiceVersion());
       next();
     });

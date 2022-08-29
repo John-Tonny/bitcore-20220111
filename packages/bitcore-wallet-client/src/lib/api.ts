@@ -4057,7 +4057,7 @@ export class API extends EventEmitter {
       log.warn('DEPRECATED WARN: isValidAddress should receive 2 parameters.');
     }
 
-    if (false) {
+    if (true) {
       opts = opts || {};
 
       $.checkState(this.credentials && this.credentials.isComplete());
@@ -4125,7 +4125,7 @@ export class API extends EventEmitter {
       throw new Error('masternodePrivateKey must be hex string');
     }
 
-    if (false) {
+    if (true) {
       args.push('msgHash=' + opts.msgHash);
       args.push('masternodePrivateKey=' + opts.masternodePrivateKey);
 
@@ -4663,6 +4663,7 @@ export class API extends EventEmitter {
               if (err) {
                 return next(new Error('create TxProposal error! ' + err));
               }
+	      console.log("createTxp:", createTxp);
               return next(null, createTxp);
             },
             ''
@@ -4685,6 +4686,7 @@ export class API extends EventEmitter {
               if (err) {
                 return next(new Error('push Signatures error! ' + err));
               }
+	      console.log("rawHex:", rawHex);
               return next(null, rawHex);
             },
             ''

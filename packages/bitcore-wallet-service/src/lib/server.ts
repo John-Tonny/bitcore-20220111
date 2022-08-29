@@ -712,9 +712,11 @@ export class WalletService {
         next => {
           this.getWallet({}, (err, wallet) => {
             if (err) return next(err);
-
+	 
             const walletExtendedKeys = ['publicKeyRing', 'pubKey', 'addressManager'];
             const copayerExtendedKeys = ['xPubKey', 'requestPubKey', 'signature', 'addressManager', 'customData'];
+		
+	    opts.includeExtendedInfo = true;
 
             wallet.copayers = _.map(wallet.copayers, copayer => {
               if (copayer.id == this.copayerId) return copayer;
@@ -733,20 +735,23 @@ export class WalletService {
             } else {
               status.serverMessage = deprecatedServerMessage(wallet, this.appName, this.appVersion);
             }
-
-            const zpub = this.xPubTozPub(wallet);
-            sjs.utils
-              .fetchBackendAccount(config.blockbookUrl, zpub, null, true)
-              .then(ret => {
-                _.each(ret.tokensAsset, tokenAsset => {
-                  tokenAsset.symbol = new Buffer(tokenAsset.symbol, 'base64').toString();
+            try{
+              const zpub = this.xPubTozPub(wallet);
+              sjs.utils
+                .fetchBackendAccount(config.blockbookUrl, zpub, null, true)
+                .then(ret => {
+                  _.each(ret.tokensAsset, tokenAsset => {
+                    tokenAsset.symbol = new Buffer(tokenAsset.symbol, 'base64').toString();
+                  });
+                  status.tokensAsset = ret.tokensAsset;
+                  next();
+                })
+                .catch(err => {
+                  next();
                 });
-                status.tokensAsset = ret.tokensAsset;
-                next();
-              })
-              .catch(err => {
-                next();
-              });
+	      }catch(e){
+		next();
+	      }
           });
         },
         next => {
@@ -5482,8 +5487,13 @@ export class WalletService {
 
       const from = (opts.page || 0) * opts.pageSize;
       const to = from + opts.pageSize;
-      const zpub = this.xPubTozPub(wallet);
-
+      var zpub;
+      try{
+        zpub = this.xPubTozPub(wallet);
+      }catch(e){
+        return cb(e.message);
+      }
+     
       async.waterfall(
         [
           next => {
