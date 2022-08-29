@@ -4663,7 +4663,6 @@ export class API extends EventEmitter {
               if (err) {
                 return next(new Error('create TxProposal error! ' + err));
               }
-	      console.log("createTxp:", createTxp);
               return next(null, createTxp);
             },
             ''
@@ -4686,7 +4685,6 @@ export class API extends EventEmitter {
               if (err) {
                 return next(new Error('push Signatures error! ' + err));
               }
-	      console.log("rawHex:", rawHex);
               return next(null, rawHex);
             },
             ''

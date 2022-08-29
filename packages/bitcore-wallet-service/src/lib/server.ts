@@ -712,11 +712,11 @@ export class WalletService {
         next => {
           this.getWallet({}, (err, wallet) => {
             if (err) return next(err);
-	 
+
             const walletExtendedKeys = ['publicKeyRing', 'pubKey', 'addressManager'];
             const copayerExtendedKeys = ['xPubKey', 'requestPubKey', 'signature', 'addressManager', 'customData'];
-		
-	    opts.includeExtendedInfo = true;
+
+            opts.includeExtendedInfo = true;
 
             wallet.copayers = _.map(wallet.copayers, copayer => {
               if (copayer.id == this.copayerId) return copayer;
@@ -735,7 +735,7 @@ export class WalletService {
             } else {
               status.serverMessage = deprecatedServerMessage(wallet, this.appName, this.appVersion);
             }
-            try{
+            try {
               const zpub = this.xPubTozPub(wallet);
               sjs.utils
                 .fetchBackendAccount(config.blockbookUrl, zpub, null, true)
@@ -749,9 +749,9 @@ export class WalletService {
                 .catch(err => {
                   next();
                 });
-	      }catch(e){
-		next();
-	      }
+            } catch (e) {
+              next();
+            }
           });
         },
         next => {
@@ -5488,12 +5488,12 @@ export class WalletService {
       const from = (opts.page || 0) * opts.pageSize;
       const to = from + opts.pageSize;
       var zpub;
-      try{
+      try {
         zpub = this.xPubTozPub(wallet);
-      }catch(e){
+      } catch (e) {
         return cb(e.message);
       }
-     
+
       async.waterfall(
         [
           next => {
