@@ -138,6 +138,10 @@ class ChainStateProxy implements IChainStateProvider {
   async getMasternodeBlsSign(params) {
     return this.get(params).getMasternodeBlsSign(params);
   }
+  // john 20220830
+  async getMasternodeBlsFromSecret(params) {
+    return this.get(params).getMasternodeBlsFromSecret(params);
+  }
 
   // john 20210409
   async getRawTransaction(params: RawTransactionParams) {

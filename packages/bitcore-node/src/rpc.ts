@@ -111,12 +111,14 @@ export class RPC {
     return this.asyncCall<string>('masternodebroadcast', ['relay', rawTx]);
   }
 
-  getMasternodeStatus(utxo: string) {
-    let ret = this.asyncCall<string>('masternode_list', []);
-    if (utxo == '') {
+  async getMasternodeStatus(utxo: string)  {
+    if(utxo == ''){}
+    try {
+      const ret = await this.asyncCall<string>('masternodelist', []);
       return ret;
+    } catch (e) {
+      return await  this.asyncCall<string>('masternode_list', []);
     }
-    return ret;
   }
 
   // john 20220219
@@ -125,6 +127,10 @@ export class RPC {
   }
   getMasternodeBlsSign(msgHash: string, masternodePrivateKey: string) {
     return this.asyncCall<string>('bls_sign', [msgHash, masternodePrivateKey]);
+  }
+  // john 20220830
+  getMasternodeBlsFromSecret(masternodePrivateKey: string) {
+    return this.asyncCall<string>('bls_fromsecret', [masternodePrivateKey]);
   }
 
   // john 20210409

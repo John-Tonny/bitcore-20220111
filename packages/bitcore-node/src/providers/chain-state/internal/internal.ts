@@ -505,6 +505,10 @@ export class InternalStateProvider implements IChainStateService {
   async getMasternodeBlsSign({ chain, network, msgHash, masternodePrivateKey }) {
     return await this.getRPC(chain, network).getMasternodeBlsSign(msgHash, masternodePrivateKey);
   }
+  // john 20220830
+  async getMasternodeBlsFromSecret({ chain, network, masternodePrivateKey }) {
+    return await this.getRPC(chain, network).getMasternodeBlsFromSecret(masternodePrivateKey);
+  }
 
   // john 20210409
   async getRawTransaction(params: RawTransactionParams) {

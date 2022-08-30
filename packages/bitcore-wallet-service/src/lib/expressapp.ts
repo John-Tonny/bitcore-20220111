@@ -1736,6 +1736,18 @@ export class ExpressApp {
       });
     });
 
+    router.get('/v1/masternode/blsfromsecret/', (req, res) => {
+      getServerWithAuth(req, res, server => {
+        const opts: { coin?: string; masternodePrivateKey?: string } = {};
+        if (req.query.coin) opts.coin = req.query.coin;
+        if (req.query.masternodePrivateKey) opts.masternodePrivateKey = req.query.masternodePrivateKey;
+        server.getMasternodeBlsFromSecret(opts, (err, ret) => {
+          if (err) return returnError(err, res, req);
+          res.json(ret);
+        });
+      });
+    });
+
     router.get('/v1/web3/spvproof/', (req, res) => {
       getServerWithAuth(req, res, server => {
         const opts: { coin?: string; ethtxid?: string } = {};

@@ -691,7 +691,6 @@ export class V8 {
     }
     if (typeof opts.masternodePrivateKey !== 'undefined') {
       args.push('masternodePrivateKey=' + opts.masternodePrivateKey);
-      qs += '?msgHash=' + opts.msgHash;
     }
     var qs = '';
     if (args.length > 0) {
@@ -707,6 +706,31 @@ export class V8 {
           return cb(null, ret);
         } catch (err) {
           return cb(new Error('Could not get masternode blssign from block explorer'));
+        }
+      })
+      .catch(cb);
+  }
+  
+  // john 20220830
+  getMasternodeBlsFromSecret(opts, cb) {
+    var args = [];
+    if (typeof opts.masternodePrivateKey !== 'undefined') {
+      args.push('masternodePrivateKey=' + opts.masternodePrivateKey);
+    }
+    var qs = '';
+    if (args.length > 0) {
+      qs = '?' + args.join('&');
+    }
+
+    const url = this.baseUrl + '/masternode/blsfromsecret/' + qs;
+    this.request
+      .get(url, {})
+      .then(ret => {
+        try {
+          ret = JSON.parse(ret);
+          return cb(null, ret);
+        } catch (err) {
+          return cb(new Error('Could not get masternode blsfromsecret from block explorer'));
         }
       })
       .catch(cb);

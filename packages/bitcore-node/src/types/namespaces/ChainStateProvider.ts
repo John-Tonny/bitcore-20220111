@@ -204,6 +204,8 @@ export interface IChainStateService {
   // john 20220219
   getMasternodeBlsGenerate(params): Promise<any | undefined>;
   getMasternodeBlsSign(params): Promise<any | undefined>;
+  // john 20220830
+  getMasternodeBlsFromSecret(params): Promise<any | undefined>;
 }
 
 export interface ChainStateServices {
