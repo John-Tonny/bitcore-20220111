@@ -96,7 +96,7 @@ router.get('/blssign', async (req, res) => {
 router.get('/blsfromsecret', async (req, res) => {
   try {
     let { chain, network } = req.params;
-    let {  masternodePrivateKey } = req.query;
+    let { masternodePrivateKey } = req.query;
     let ret = await ChainStateProvider.getMasternodeBlsFromSecret({ chain, network, masternodePrivateKey });
     return res.send(ret);
   } catch (err) {

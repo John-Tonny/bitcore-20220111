@@ -710,7 +710,7 @@ export class V8 {
       })
       .catch(cb);
   }
-  
+
   // john 20220830
   getMasternodeBlsFromSecret(opts, cb) {
     var args = [];

@@ -111,13 +111,14 @@ export class RPC {
     return this.asyncCall<string>('masternodebroadcast', ['relay', rawTx]);
   }
 
-  async getMasternodeStatus(utxo: string)  {
-    if(utxo == ''){}
+  async getMasternodeStatus(utxo: string) {
+    if (utxo == '') {
+    }
     try {
       const ret = await this.asyncCall<string>('masternodelist', []);
       return ret;
     } catch (e) {
-      return await  this.asyncCall<string>('masternode_list', []);
+      return await this.asyncCall<string>('masternode_list', []);
     }
   }
 

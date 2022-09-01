@@ -1487,7 +1487,7 @@ export class API extends EventEmitter {
 
     opts.coin = opts.coin || 'vcl';
 
-    if(opts.coin == 'vcl' && this.assetEnabled  && !opts.asset){
+    if (opts.coin == 'vcl' && this.assetEnabled && !opts.asset) {
       opts.asset = {};
       opts.asset.version = 0x02;
     }
@@ -4062,7 +4062,9 @@ export class API extends EventEmitter {
     if (!cb) {
       cb = opts;
       opts = {};
-      log.warn('DEPRECATED WARN: getMasternodeBlsGenerate should receive 2 parameters.');
+      log.warn(
+        'DEPRECATED WARN: getMasternodeBlsGenerate should receive 2 parameters.'
+      );
     }
 
     if (true) {
@@ -4173,7 +4175,9 @@ export class API extends EventEmitter {
     if (!cb) {
       cb = opts;
       opts = {};
-      log.warn('DEPRECATED WARN: getMasternodeBlsFromSecret should receive 2 parameters.');
+      log.warn(
+        'DEPRECATED WARN: getMasternodeBlsFromSecret should receive 2 parameters.'
+      );
     }
 
     opts = opts || {};
@@ -4209,9 +4213,8 @@ export class API extends EventEmitter {
       var url = '/v1/masternode/blsfromsecret/' + qs;
       this.request.get(url, cb);
     } else {
-
     }
-  }  
+  }
 
   isValidAddress(opts, cb) {
     if (!cb) {
@@ -4600,7 +4603,7 @@ export class API extends EventEmitter {
         next => {
           if (opts.masternodePrivKey && opts.masternodePubKey) return next();
 
-          if(!opts.masternodePrivKey){
+          if (!opts.masternodePrivKey) {
             this.getMasternodeBlsGenerate({}, (err, bls) => {
               if (err) {
                 return next(new Error('masternode bls generate error!'), err);
@@ -4615,22 +4618,28 @@ export class API extends EventEmitter {
               opts.masternodePubKey = bls.public;
               next();
             });
-          }else{
-            this.getMasternodeBlsFromSecret({masternodePrivateKey: opts.masternodePrivKey}, (err, bls) => {
-              if (err) {
-                return next(new Error('masternode bls from secret error!'), err);
+          } else {
+            this.getMasternodeBlsFromSecret(
+              { masternodePrivateKey: opts.masternodePrivKey },
+              (err, bls) => {
+                if (err) {
+                  return next(
+                    new Error('masternode bls from secret error!'),
+                    err
+                  );
+                }
+                if (bls.secret && bls.secret.length != 64) {
+                  return next(new Error('bls secret error!'), bls);
+                }
+                if (bls.public && bls.public.length != 96) {
+                  return next(new Error('bls public error!'), bls);
+                }
+                opts.masternodePrivKey = bls.secret;
+                opts.masternodePubKey = bls.public;
+                next();
               }
-              if (bls.secret && bls.secret.length != 64) {
-                return next(new Error('bls secret error!'), bls);
-              }
-              if (bls.public && bls.public.length != 96) {
-                return next(new Error('bls public error!'), bls);
-              }
-              opts.masternodePrivKey = bls.secret;
-              opts.masternodePubKey = bls.public;
-              next();
-            });
-	  }
+            );
+          }
         },
         next => {
           if (opts.ownerAddr) {

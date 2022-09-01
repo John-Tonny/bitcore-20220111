@@ -7020,7 +7020,6 @@ export class WalletService {
     });
   }
 
-
   createAsset(opts, cb) {
     this.logd('assset created');
 
@@ -7062,6 +7061,7 @@ export class WalletService {
       this.storage.fetchTx(this.walletId, txProposalId, cb);
     };
 
+    let excludeUtxos;
     this._runLocked(
       cb,
       cb => {
@@ -7206,6 +7206,16 @@ export class WalletService {
                   txp = TxProposal.create(txOpts);
                   next();
                 },
+                next => {
+                  if (!opts.excludeMasternode) {
+                    return next();
+                  }
+                  this.storage.fetchMasternodes(this.walletId, undefined, undefined, (err, masternodes) => {
+                    if (err) return next(err);
+                    excludeUtxos = masternodes;
+                    return next();
+                  });
+                },
                 async next => {
                   if (
                     opts.asset.version == stxjs.utils.SYSCOIN_TX_VERSION_ALLOCATION_SEND ||
@@ -7249,12 +7259,17 @@ export class WalletService {
                     if (opts.asset.version == 0x02) {
                       const txOpts = { rbf: false };
                       this.logd('assset created');
+
                       psbt = await syscoinjs.createTransaction(
                         txOpts,
                         sysChangeAddress.address,
                         outputs,
                         feeRate,
-                        zpub
+                        zpub,
+                          undefined,
+                          undefined,
+                          undefined,
+                          excludeUtxos
                       );
                     } else if (
                       opts.asset.version == stxjs.utils.SYSCOIN_TX_VERSION_ALLOCATION_BURN_TO_ETHEREUM ||
@@ -7391,6 +7406,7 @@ export class WalletService {
 
   xPubTozPub(wallet) {
     const copayer = wallet.getCopayer(this.copayerId);
+    if(wallet.addressType == 'P2PKH') return copayer.xPubKey;
     var data = new Bitcore.encoding.Base58Check.decode(copayer.xPubKey);
     data[0] = 0x04;
     data[1] = 0xb2;
