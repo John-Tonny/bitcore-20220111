@@ -16,8 +16,8 @@ const PROVIDERS = {
       testnet: 'https://api.bitpay.com'
     },
     eth: {
-      livenet: 'http://127.0.0.1:3000',
-      testnet: 'http://127.0.0.1:8200'
+      livenet: process.env.ETH_MAINNET_BLOCKEXPLORER_URL || 'http://127.0.0.1:8200',
+      testnet: process.env.ETH_TEXTNET_BLOCKEXPLORER_URL || 'http://127.0.0.1:8300'
     },
     xrp: {
       livenet: 'https://api-xrp.bitcore.io',
@@ -32,8 +32,8 @@ const PROVIDERS = {
       testnet: 'https://api.bitpay.com'
     },
     vcl: {
-      livenet: 'http://127.0.0.1:8200',
-      testnet: 'http://127.0.0.1:8200'
+      livenet: process.env.VCL_MAINNET_BLOCKEXPLORER_URL || 'http://127.0.0.1:8200',
+      testnet: process.env.VCL_TEXTNET_BLOCKEXPLORER_URL || 'http://127.0.0.1:8300'
     }
   }
 };

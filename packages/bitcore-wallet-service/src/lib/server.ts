@@ -7266,10 +7266,10 @@ export class WalletService {
                         outputs,
                         feeRate,
                         zpub,
-                          undefined,
-                          undefined,
-                          undefined,
-                          excludeUtxos
+                        undefined,
+                        undefined,
+                        undefined,
+                        excludeUtxos
                       );
                     } else if (
                       opts.asset.version == stxjs.utils.SYSCOIN_TX_VERSION_ALLOCATION_BURN_TO_ETHEREUM ||
@@ -7406,7 +7406,7 @@ export class WalletService {
 
   xPubTozPub(wallet) {
     const copayer = wallet.getCopayer(this.copayerId);
-    if(wallet.addressType == 'P2PKH') return copayer.xPubKey;
+    if (wallet.addressType == 'P2PKH') return copayer.xPubKey;
     var data = new Bitcore.encoding.Base58Check.decode(copayer.xPubKey);
     data[0] = 0x04;
     data[1] = 0xb2;

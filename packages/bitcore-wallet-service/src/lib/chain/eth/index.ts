@@ -254,84 +254,86 @@ export class EthChain implements IChain {
         });
         unsignedTxs.push(rawTx);
       }
-    }
-    if (txp.coin == 'eth' && txp.relay.cmd == 1) {
-      chain = 'RELAY';
-      txp.chain = chain;
-      const recipients = outputs.map(output => {
-        return {
-          amount: output.amount,
-          address: output.toAddress,
-          data: output.data,
-          gasLimit: output.gasLimit
-        };
-      });
-      // Backwards compatibility BWC <= 8.9.0
-      if (data) {
-        recipients[0].data = data;
-      }
-      for (let index = 0; index < recipients.length; index++) {
-        const rawTx = Transactions.get({ ...txp }).createApprove({
-          ...txp,
-          ...recipients[index],
-          chain,
-          gasLimit: txp.gasLimit,
-          nonce: Number(txp.nonce) + Number(index),
-          recipients: [recipients[index]]
-        });
-        unsignedTxs.push(rawTx);
-      }
-      txp.chain = 'ETH';
-    } else if (txp.coin == 'eth' && txp.relay.cmd == 2) {
-      chain = 'RELAY';
-      txp.chain = chain;
-      const recipients = outputs.map(output => {
-        return {
-          amount: output.amount,
-          address: output.toAddress,
-          data: output.data,
-          gasLimit: output.gasLimit
-        };
-      });
-      // Backwards compatibility BWC <= 8.9.0
-      if (data) {
-        recipients[0].data = data;
-      }
-      for (let index = 0; index < recipients.length; index++) {
-        const rawTx = Transactions.get({ ...txp }).createFreezeBurnERC20({
-          ...txp,
-          ...recipients[index],
-          chain,
-          gasLimit: txp.gasLimit,
-          nonce: Number(txp.nonce) + Number(index),
-          recipients: [recipients[index]]
-        });
-        unsignedTxs.push(rawTx);
-      }
-      txp.chain = 'ETH';
-    } else if (txp.coin == 'eth' && txp.relay.cmd == 3) {
-      chain = 'RELAY';
-      txp.chain = chain;
-      const rawTx = Transactions.get({ ...txp }).createRelayTx({
-        ...txp,
-        chain,
-        nonce: Number(txp.nonce)
-      });
-      unsignedTxs.push(rawTx);
-      txp.chain = 'ETH';
-    } else if (txp.coin == 'eth' && txp.relay.cmd == 4) {
-      chain = 'RELAY';
-      txp.chain = chain;
-      const rawTx = Transactions.get({ ...txp }).createRelayAssetTx({
-        ...txp,
-        chain,
-        gasLimit: txp.gasLimit,
-        nonce: Number(txp.nonce)
-      });
-      unsignedTxs.push(rawTx);
-      txp.chain = 'ETH';
     } else {
-      throw new Error('relay cmd is invalid');
+
+      if (txp.coin == 'eth' && txp.relay && txp.relay.cmd == 1) {
+        chain = 'RELAY';
+        txp.chain = chain;
+        const recipients = outputs.map(output => {
+          return {
+            amount: output.amount,
+            address: output.toAddress,
+            data: output.data,
+            gasLimit: output.gasLimit
+          };
+        });
+        // Backwards compatibility BWC <= 8.9.0
+        if (data) {
+          recipients[0].data = data;
+        }
+        for (let index = 0; index < recipients.length; index++) {
+          const rawTx = Transactions.get({...txp}).createApprove({
+            ...txp,
+            ...recipients[index],
+            chain,
+            gasLimit: txp.gasLimit,
+            nonce: Number(txp.nonce) + Number(index),
+            recipients: [recipients[index]]
+          });
+          unsignedTxs.push(rawTx);
+        }
+        txp.chain = 'ETH';
+      } else if (txp.coin == 'eth' && txp.relay && txp.relay.cmd == 2) {
+        chain = 'RELAY';
+        txp.chain = chain;
+        const recipients = outputs.map(output => {
+          return {
+            amount: output.amount,
+            address: output.toAddress,
+            data: output.data,
+            gasLimit: output.gasLimit
+          };
+        });
+        // Backwards compatibility BWC <= 8.9.0
+        if (data) {
+          recipients[0].data = data;
+        }
+        for (let index = 0; index < recipients.length; index++) {
+          const rawTx = Transactions.get({...txp}).createFreezeBurnERC20({
+            ...txp,
+            ...recipients[index],
+            chain,
+            gasLimit: txp.gasLimit,
+            nonce: Number(txp.nonce) + Number(index),
+            recipients: [recipients[index]]
+          });
+          unsignedTxs.push(rawTx);
+        }
+        txp.chain = 'ETH';
+      } else if (txp.coin == 'eth' && txp.relay && txp.relay.cmd == 3) {
+        chain = 'RELAY';
+        txp.chain = chain;
+        const rawTx = Transactions.get({...txp}).createRelayTx({
+          ...txp,
+          chain,
+          nonce: Number(txp.nonce)
+        });
+        unsignedTxs.push(rawTx);
+        txp.chain = 'ETH';
+      } else if (txp.coin == 'eth' && txp.relay && txp.relay.cmd == 4) {
+        chain = 'RELAY';
+        txp.chain = chain;
+        const rawTx = Transactions.get({...txp}).createRelayAssetTx({
+          ...txp,
+          chain,
+          gasLimit: txp.gasLimit,
+          nonce: Number(txp.nonce)
+        });
+        unsignedTxs.push(rawTx);
+        txp.chain = 'ETH';
+      } else {
+        throw new Error('relay cmd is invalid');
+      }
     }
 
     let tx = {
