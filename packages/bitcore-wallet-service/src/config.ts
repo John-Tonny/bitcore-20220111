@@ -98,18 +98,18 @@ const Config = () => {
       },*/
       eth: {
         livenet: {
-          url:  process.env.ETH_MAINNET_BLOCKEXPLORER_URL || 'http://69.234.192.199:8200'
+          url: process.env.ETH_MAINNET_BLOCKEXPLORER_URL || 'http://69.234.192.199:8200'
         },
         testnet: {
-          url:  process.env.ETH_TESTNET_BLOCKEXPLORER_URL || 'http://127.0.0.1:8300'
+          url: process.env.ETH_TESTNET_BLOCKEXPLORER_URL || 'http://127.0.0.1:8300'
         }
       },
       vcl: {
         livenet: {
-          url:  process.env.VCL_MAINNET_BLOCKEXPLORER_URL || 'http://69.234.192.199:8200'
+          url: process.env.VCL_MAINNET_BLOCKEXPLORER_URL || 'http://69.234.192.199:8200'
         },
         testnet: {
-          url:  process.env.VCL_TESTNET_BLOCKEXPLORER_URL || 'http://127.0.0.1:8300'
+          url: process.env.VCL_TESTNET_BLOCKEXPLORER_URL || 'http://127.0.0.1:8300'
         }
       },
       socketApiKey: 'L2mPTvucM9CNvUU6MaJwUpYiLEDN9TLa3g3Fv4Fu8CnZob4ADZdJ'
