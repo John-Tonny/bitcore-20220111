@@ -596,4 +596,14 @@ export class Utils {
       return false;
     }
   }
+
+  static xPubTozPub(xPubKey, coin) {
+    var data = new Bitcore_[coin].encoding.Base58Check.decode(xPubKey);
+    data[0] = 0x04;
+    data[1] = 0xb2;
+    data[2] = 0x47;
+    data[3] = 0x46;
+    return Bitcore_[coin].encoding.Base58Check.encode(data);
+  }
+
 }

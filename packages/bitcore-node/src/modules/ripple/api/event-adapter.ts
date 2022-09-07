@@ -1,7 +1,7 @@
 import { ObjectId } from 'mongodb';
 import { RippleAPI } from 'ripple-lib';
 import { BaseModule } from '../..';
-import logger from '../../../logger';
+import logger, { timestamp } from '../../../logger';
 import { RippleStateProvider } from './csp';
 
 export class RippleEventAdapter {
@@ -11,7 +11,7 @@ export class RippleEventAdapter {
 
   async start() {
     this.stopping = false;
-    console.log('Starting websocket adapter for Ripple');
+    console.log(`${timestamp()} | Starting websocket adapter for Ripple`);
 
     this.services.Event.events.on('stop', () => {
       this.stop();

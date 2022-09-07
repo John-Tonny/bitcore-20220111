@@ -1,7 +1,7 @@
 import * as _ from 'lodash';
 // import * as async from 'async';
 import { LoggifyClass } from '../decorators/Loggify';
-import logger from '../logger';
+import logger, { timestamp } from '../logger';
 import app from '../routes';
 import { RPC } from '../rpc';
 import { wait } from '../utils/wait';
@@ -51,7 +51,7 @@ export class RpcService {
       return;
     }
 
-    logger.info('Starting Rpc Service');
+    logger.info(`${timestamp()} | Starting Rpc Service`);
 
     let retrys = 0;
     this.getRpcArray();

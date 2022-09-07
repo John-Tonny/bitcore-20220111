@@ -5,7 +5,7 @@ import { ObjectID } from 'mongodb';
 import { Cursor, Db, MongoClient } from 'mongodb';
 import { Readable } from 'stream';
 import { LoggifyClass } from '../decorators/Loggify';
-import logger from '../logger';
+import logger, { timestamp } from '../logger';
 import '../models';
 import { MongoBound } from '../models/base';
 import { ConfigType } from '../types/Config';
@@ -68,7 +68,7 @@ export class StorageService {
 
   async stop() {
     if (this.client) {
-      logger.info('Stopping Storage Service');
+      logger.info(`${timestamp()} | Stopping Storage Service`);
       await wait(5000);
       this.connected = false;
       await Promise.all(this.modelsConnected);

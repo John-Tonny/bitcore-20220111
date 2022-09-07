@@ -5597,4 +5597,14 @@ export class API extends EventEmitter {
     var url = '/v1/asset/' + qs;
     this.request.get(url, cb);
   }
+  
+  getAccountXpub = function(addressType){
+    addressType = addressType || 'P2PKH';
+    if(addressType == 'P2PKH'){
+      return this.credentials.xPubKey;
+    }else{
+      return Utils.xPubTozPub(this.credentials.xPubKey, this.credentials.coin);
+    }
+  }
+
 }

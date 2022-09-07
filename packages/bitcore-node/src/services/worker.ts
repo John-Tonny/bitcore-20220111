@@ -2,7 +2,7 @@ import cluster from 'cluster';
 import { EventEmitter } from 'events';
 import config from '../config';
 import { LoggifyClass } from '../decorators/Loggify';
-import logger from '../logger';
+import logger, { timestamp } from '../logger';
 import { CallbackType } from '../types/Callback';
 import { WorkerType } from '../types/Worker';
 import parseArgv from '../utils/parseArgv';
@@ -27,7 +27,7 @@ export class WorkerService extends EventEmitter {
       if (!args.DEBUG) {
         for (let worker = 0; worker < config.numWorkers; worker++) {
           let newWorker = cluster.fork();
-          logger.verbose(`Starting worker number ${worker}`);
+          logger.verbose(`${timestamp()} | Starting worker number ${worker}`);
           newWorker.on('message', (msg: any) => {
             this.emit(msg.id, msg);
           });

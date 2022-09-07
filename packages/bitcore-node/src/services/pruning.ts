@@ -1,5 +1,5 @@
 import { Transform } from 'stream';
-import logger from '../logger';
+import logger, { timestamp } from '../logger';
 import { ITransaction } from '../models/baseTransaction';
 import { CoinModel, CoinStorage } from '../models/coin';
 import { TransactionModel, TransactionStorage } from '../models/transaction';
@@ -30,7 +30,7 @@ export class PruningService {
   }
 
   async stop() {
-    logger.info('Stopping Pruning Service');
+    logger.info(`${timestamp()} | Stopping Pruning Service`);
     this.stopping = true;
   }
 
