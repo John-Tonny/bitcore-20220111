@@ -404,7 +404,7 @@ export class EthP2pWorker extends BaseP2PWorker<IEthBlock> {
 
   async stop() {
     this.stopping = true;
-    logger.debug(`Stopping worker for chain ${this.chain} ${this.network}`);
+    logger.debug(`${timestamp()} | Stopping worker for chain ${this.chain} ${this.network}`);
     await this.disconnect();
   }
 

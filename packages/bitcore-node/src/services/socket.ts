@@ -2,7 +2,7 @@ import * as http from 'http';
 import { ObjectID } from 'mongodb';
 import SocketIO = require('socket.io');
 import { LoggifyClass } from '../decorators/Loggify';
-import logger from '../logger';
+import logger, { timestamp } from '../logger';
 import { CoinEvent, EventModel, EventStorage, MasternodeEvent, TxEvent } from '../models/events';
 import { BlockEvent } from '../models/events';
 import { WalletStorage } from '../models/wallet';
@@ -59,7 +59,7 @@ export class SocketService {
     }
     if (this.stopped) {
       this.stopped = false;
-      logger.info('Starting Socket Service');
+      logger.info(`${timestamp()} | Starting Socket Service`);
       this.httpServer = server;
       this.io = SocketIO(server);
       this.io.sockets.on('connection', socket => {
@@ -94,7 +94,7 @@ export class SocketService {
   }
 
   async stop() {
-    logger.info('Stopping Socket Service');
+    logger.info(`${timestamp()} | Stopping Socket Service`);
     this.stopped = true;
   }
 

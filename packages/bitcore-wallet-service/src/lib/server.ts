@@ -2456,7 +2456,6 @@ export class WalletService {
    * @param {Boolean} opts.noShuffleOutputs - Optional. If set, TX outputs won't be shuffled. Defaults to false
    * @param {Boolean} opts.noCashAddr - do not use cashaddress for bch
    * @param {Boolean} opts.signingMethod[=ecdsa] - do not use cashaddress for bch
-   * @param {number} opts.tokenId - optional. ERC721 Contract TokenID
    * @param {number} opts.token - optional. VERC721 VERC1155 Contract
    * @param {string} opts.tokenAddress - optional. ERC20 ERC721 VERC721 VERC1155 Token Contract Address
    * @param {string} opts.multisigContractAddress - optional. MULTISIG ETH Contract Address
@@ -7235,7 +7234,12 @@ export class WalletService {
                     isTokenSwap: opts.isTokenSwap,
                     enableRBF: opts.enableRBF,
                     replaceTxByFee: opts.replaceTxByFee,
-                    txExtends: opts.txExtends // 20220219
+                    txExtends: opts.txExtends, // 20220219
+                    txType,
+                    maxPriorityFeePerGas,
+                    maxFeePerGas,
+                    accessList: opts.accessList || [],
+                    asset: opts.asset // 20220709
                   };
                   txp = TxProposal.create(txOpts);
                   next();

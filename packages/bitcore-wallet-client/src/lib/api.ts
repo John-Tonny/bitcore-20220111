@@ -2002,6 +2002,7 @@ export class API extends EventEmitter {
   // * @param {String} opts.coin - Optional: defaults to current wallet coin
   // * @param {String} opts.tokenAddress - Optional: ERC20 token contract address
   // * @param {String} opts.tokenId - Optional: ERC1155 token id
+  // * @param {String} opts.tokenType - Optional: ERC1155 token type
   // * @param {String} opts.multisigContractAddress optional: MULTISIG ETH Contract Address
   // * @param {Callback} cb
   // */

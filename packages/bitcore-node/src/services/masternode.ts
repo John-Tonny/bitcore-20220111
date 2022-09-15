@@ -1,6 +1,6 @@
 import * as _ from 'lodash';
 import { LoggifyClass } from '../decorators/Loggify';
-import logger from '../logger';
+import logger, { timestamp } from '../logger';
 import { EventStorage } from '../models/events';
 import { IMasternode, VclMasternode, VclMasternodeStorage } from '../models/masternode';
 import { ChainStateProvider } from '../providers/chain-state';
@@ -45,7 +45,7 @@ export class MasternodeService {
       return;
     }
 
-    logger.info('Starting Masternode Service');
+    logger.info(`${timestamp()} | Starting Masternode Service`);
     if (!this.storageService.connected) {
       await this.storageService.start({});
     }

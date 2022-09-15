@@ -244,7 +244,7 @@ export class XrpP2pWorker extends BaseP2PWorker<any> {
         configuredStart = chainBestBlock - 1;
       }
       const defaultBestBlock = { height: configuredStart } as IXrpBlock;
-      logger.info(`Starting XRP Sync @ ${configuredStart}`);
+      logger.info(` { timestamp() } | Starting XRP Sync @ ${configuredStart}`);
       ourBestBlock = defaultBestBlock;
     }
     const startHeight = ourBestBlock.height;
@@ -358,7 +358,7 @@ export class XrpP2pWorker extends BaseP2PWorker<any> {
 
   async stop() {
     this.stopping = true;
-    logger.debug(`Stopping worker for chain ${this.chain} ${this.network}`);
+    logger.debug(`${timestamp()} | Stopping worker for chain ${this.chain} ${this.network}`);
     await this.disconnect();
   }
 

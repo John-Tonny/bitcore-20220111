@@ -631,7 +631,7 @@ export class Utils {
             unsignedTxs.push(rawTx);
           }
           txp.chain = 'ETH';
-        } else if (txp.coin == 'eth' && txp.relay  && txp.relay.cmd == 2) {
+        } else if (txp.coin == 'eth' && txp.relay && txp.relay.cmd == 2) {
           chain = 'RELAY';
           txp.chain = chain;
           for (let index = 0; index < recipients.length; index++) {

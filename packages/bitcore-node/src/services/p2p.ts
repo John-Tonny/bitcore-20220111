@@ -1,5 +1,5 @@
 import * as os from 'os';
-import logger from '../logger';
+import logger, { timestamp } from '../logger';
 import { BaseBlock, IBlock } from '../models/baseBlock';
 import { StateStorage } from '../models/state';
 import { wait } from '../utils/wait';
@@ -25,7 +25,7 @@ export class P2pManager {
   }
 
   async stop() {
-    logger.info('Stopping P2P Manager');
+    logger.info(`${timestamp()} | Stopping P2P Manager`);
     for (const worker of this.workers) {
       await worker.stop();
     }
@@ -37,7 +37,7 @@ export class P2pManager {
       logger.info('Disabled P2P Manager');
       return;
     }
-    logger.info('Starting P2P Manager');
+    logger.info(`${timestamp()} | Starting P2P Manager`);
 
     for (let chainNetwork of Config.chainNetworks()) {
       const { chain, network } = chainNetwork;
@@ -45,7 +45,7 @@ export class P2pManager {
       if ((chainConfig.chainSource && chainConfig.chainSource !== 'p2p') || chainConfig.disabled) {
         continue;
       }
-      logger.info(`Starting ${chain} p2p worker`);
+      logger.info(`${timestamp()} | Starting ${chain} p2p worker`);
       const p2pWorker = new this.workerClasses[chain]({
         chain,
         network,
@@ -78,10 +78,10 @@ export class BaseP2PWorker<T extends IBlock = IBlock> {
     if (!this.lastHeartBeat) {
       return false;
     }
-    const [hostname, pid, timestamp] = this.lastHeartBeat.split(':');
+    const [hostname, pid, timestamp1] = this.lastHeartBeat.split(':');
     const hostNameMatches = hostname === os.hostname();
     const pidMatches = pid === process.pid.toString();
-    const timestampIsFresh = Date.now() - parseInt(timestamp) < 5 * 60 * 1000;
+    const timestampIsFresh = Date.now() - parseInt(timestamp1) < 5 * 60 * 1000;
     const amSyncingNode = hostNameMatches && pidMatches && timestampIsFresh;
     return amSyncingNode;
   }

@@ -12,7 +12,7 @@ const Config = () => {
     disableLogs: false,
     port: 3232,
     web3Url: process.env.WEB3_URL || 'http://121.89.233.198:8645',
-    blockbookUrl: process.env.BLOCKBOOK_URL || 'http://106.55.177.193:9130/',
+    blockbookUrl: process.env.BLOCKBOOK_URL || 'http://127.0.0.1:9130/',
     ignoreRateLimiter: true,
 
     // Uncomment to make BWS a forking server
@@ -48,7 +48,7 @@ const Config = () => {
     blockbookOpts: {
       vcl: {
         livenet: {
-          url: process.env.BLOCKBOOK_URL || 'http://69.234.192.199:9130'
+          url: process.env.BLOCKBOOK_URL || 'http://127.0.0.1:9130'
         }
       }
     },
@@ -98,7 +98,7 @@ const Config = () => {
       },*/
       eth: {
         livenet: {
-          url:  process.env.ETH_MAINNET_BLOCKEXPLORER_URL || 'http://69.234.192.199:8200'
+          url:  process.env.ETH_MAINNET_BLOCKEXPLORER_URL || 'http://127.0.0.1:8200'
         },
         testnet: {
           url:  process.env.ETH_TESTNET_BLOCKEXPLORER_URL || 'http://127.0.0.1:8300'
@@ -106,7 +106,7 @@ const Config = () => {
       },
       vcl: {
         livenet: {
-          url:  process.env.VCL_MAINNET_BLOCKEXPLORER_URL || 'http://69.234.192.199:8200'
+          url:  process.env.VCL_MAINNET_BLOCKEXPLORER_URL || 'http://127.0.0.1:8200'
         },
         testnet: {
           url:  process.env.VCL_TESTNET_BLOCKEXPLORER_URL || 'http://127.0.0.1:8300'

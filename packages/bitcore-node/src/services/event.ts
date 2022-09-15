@@ -1,6 +1,6 @@
 import { EventEmitter } from 'events';
 import { LoggifyClass } from '../decorators/Loggify';
-import logger from '../logger';
+import logger, { timestamp } from '../logger';
 import { BlockEvent, CoinEvent, EventModel, EventStorage, MasternodeEvent, TxEvent } from '../models/events';
 import { Config, ConfigService } from './config';
 import { StorageService } from './storage';
@@ -34,7 +34,7 @@ export class EventService {
       logger.info('Disabled Event Service');
       return;
     }
-    logger.info('Starting Event Service');
+    logger.info(`${timestamp()} | Starting Event Service`);
     this.stopped = false;
     this.events.emit('start');
     if (this.storageService.connected) {
@@ -47,7 +47,7 @@ export class EventService {
   }
 
   async stop() {
-    logger.info('Stopping Event Service');
+    logger.info(`${timestamp()} | Stopping Event Service`);
     this.stopped = true;
     this.events.emit('stop');
   }

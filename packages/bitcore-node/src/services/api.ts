@@ -1,7 +1,7 @@
 import * as http from 'http';
 import config from '../config';
 import { LoggifyClass } from '../decorators/Loggify';
-import logger from '../logger';
+import logger, { timestamp } from '../logger';
 import app from '../routes';
 import { Config, ConfigService } from './config';
 import { Socket, SocketService } from './socket';
@@ -47,7 +47,7 @@ export class ApiService {
       this.httpServer = new http.Server(app);
       this.httpServer.timeout = this.timeout;
       this.httpServer.listen(this.port, () => {
-        logger.info(`Starting API Service on port ${this.port}`);
+        logger.info(`${timestamp()} | Starting API Service on port ${this.port}`);
         this.socketService.start({ server: this.httpServer });
       });
     }
