@@ -1,0 +1,34 @@
+version: '3'
+services:
+  database:
+    image: mongo:4.4.16
+    ports:
+     - 27017:27017
+    volumes:
+    - /mnt/ethereum/mongodb:/data/db
+
+  bitcore:
+    image: johntonny2019/bitcore:v2.0.1
+    links:
+      - database
+    ports:
+      - 8200:8200
+      - 3232:3232
+    environment:
+      - DB_URL=mongodb://172.17.0.1:27017
+      - RPC_PORT=9902
+      - P2P_PORT=9900
+      - NETWORK_MAGIC=2584452109
+      - BITCORE_CONFIG_PATH=/root/bitcore/conf/bitcore.config.json
+      - ERC20Manager=0xeEc8C8875dC98FfB5da5CD2e83102Aab962C96C3
+      - RELAY=0x62aa89614d2ec79dc7Db2A0e84026bBD02b3d7fD
+      - WEB3_URL=http://118.190.201.80:8645
+      - BLOCKBOOK_URL=http://172.17.0.1:9130/
+      - COLLATERAL_COIN=100000000000
+      - BECH32=vcl
+    env_file: .env
+    volumes:
+    - /root/bitcore/conf:/root/bitcore/conf
+    - /root/bitcore/logs:/root/bitcore/logs
+    #command: /bin/bash -c "monit -I"
+

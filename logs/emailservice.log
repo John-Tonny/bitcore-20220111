@@ -1,0 +1,61 @@
+{"message":"bws.config.js not found, using default configuration values","level":"info"}
+{"message":"Email templates at:/mnt/ethereum/ccc/bitcore/packages/bitcore-wallet-service/ts_build/lib/../../templates/","level":"info"}
+{"message":"Using message broker server at http://localhost:3380","level":"info"}
+{"message":"Unable to connect to the mongoDB. Check the credentials.","level":"error"}
+{"name":"MongoServerSelectionError","reason":{"type":"Single","setName":null,"maxSetVersion":null,"maxElectionId":null,"servers":{},"stale":false,"compatible":true,"compatibilityError":null,"logicalSessionTimeoutMinutes":null,"heartbeatFrequencyMS":10000,"localThresholdMS":15,"commonWireVersion":null},"level":"error"}
+
+/mnt/ethereum/ccc/bitcore/packages/bitcore-wallet-service/node_modules/mongodb/lib/core/sdam/topology.js:430
+        const timeoutError = new MongoServerSelectionError(
+                             ^
+MongoServerSelectionError: connect ECONNREFUSED 127.0.0.1:27017
+    at Timeout.waitQueueMember.timer.setTimeout [as _onTimeout] (/mnt/ethereum/ccc/bitcore/packages/bitcore-wallet-service/node_modules/mongodb/lib/core/sdam/topology.js:430:30)
+    at listOnTimeout (internal/timers.js:535:17)
+    at processTimers (internal/timers.js:479:7)
+{"message":"bws.config.js not found, using default configuration values","level":"info"}
+{"message":"Email templates at:/mnt/ethereum/ccc/bitcore/packages/bitcore-wallet-service/ts_build/lib/../../templates/","level":"info"}
+{"message":"Using message broker server at http://localhost:3380","level":"info"}
+{"message":"Connection established to db: mongodb://127.0.0.1:27017/bws","level":"info"}
+{"message":"Creating DB indexes","level":"info"}
+{"message":"Email service started","level":"info"}
+{"message":"bws.config.js not found, using default configuration values","level":"info"}
+{"message":"Email templates at:/mnt/ethereum/ccc/bitcore/packages/bitcore-wallet-service/ts_build/lib/../../templates/","level":"info"}
+{"message":"Using message broker server at http://localhost:3380","level":"info"}
+{"message":"Connection established to db: mongodb://127.0.0.1:27017/bws","level":"info"}
+{"message":"Creating DB indexes","level":"info"}
+{"message":"Email service started","level":"info"}
+{"message":"bws.config.js not found, using default configuration values","level":"info"}
+{"message":"Email templates at:/mnt/ethereum/ccc/bitcore/packages/bitcore-wallet-service/ts_build/lib/../../templates/","level":"info"}
+{"message":"Using message broker server at http://localhost:3380","level":"info"}
+{"message":"Connection established to db: mongodb://127.0.0.1:27017/bws","level":"info"}
+{"message":"Creating DB indexes","level":"info"}
+{"message":"Email service started","level":"info"}
+{"message":"bws.config.js not found, using default configuration values","level":"info"}
+{"message":"Email templates at:/mnt/ethereum/ccc/bitcore/packages/bitcore-wallet-service/ts_build/lib/../../templates/","level":"info"}
+{"message":"Using message broker server at http://localhost:3380","level":"info"}
+{"message":"Connection established to db: mongodb://127.0.0.1:27017/bws","level":"info"}
+{"message":"Creating DB indexes","level":"info"}
+{"message":"Email service started","level":"info"}
+{"message":"bws.config.js not found, using default configuration values","level":"info"}
+{"message":"Email templates at:/mnt/ethereum/ccc/bitcore/packages/bitcore-wallet-service/ts_build/lib/../../templates/","level":"info"}
+{"message":"Using message broker server at http://localhost:3380","level":"info"}
+{"message":"Connection established to db: mongodb://127.0.0.1:27017/bws","level":"info"}
+{"message":"Creating DB indexes","level":"info"}
+{"message":"Email service started","level":"info"}
+{"message":"bws.config.js not found, using default configuration values","level":"info"}
+{"message":"Email templates at:/mnt/ethereum/ccc/bitcore/packages/bitcore-wallet-service/ts_build/lib/../../templates/","level":"info"}
+{"message":"Using message broker server at http://localhost:3380","level":"info"}
+{"message":"Connection established to db: mongodb://127.0.0.1:27017/bws","level":"info"}
+{"message":"Creating DB indexes","level":"info"}
+{"message":"Email service started","level":"info"}
+{"message":"bws.config.js not found, using default configuration values","level":"info"}
+{"message":"Email templates at:/mnt/ethereum/ccc/bitcore/packages/bitcore-wallet-service/ts_build/lib/../../templates/","level":"info"}
+{"message":"Using message broker server at http://localhost:3380","level":"info"}
+{"message":"Connection established to db: mongodb://127.0.0.1:27017/bws","level":"info"}
+{"message":"Creating DB indexes","level":"info"}
+{"message":"Email service started","level":"info"}
+{"message":"bws.config.js not found, using default configuration values","level":"info"}
+{"message":"Email templates at:/mnt/ethereum/ccc/bitcore/packages/bitcore-wallet-service/ts_build/lib/../../templates/","level":"info"}
+{"message":"Using message broker server at http://localhost:3380","level":"info"}
+{"message":"Connection established to db: mongodb://127.0.0.1:27017/bws","level":"info"}
+{"message":"Creating DB indexes","level":"info"}
+{"message":"Email service started","level":"info"}

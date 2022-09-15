@@ -1,0 +1,334 @@
+{"message":"bws.config.js not found, using default configuration values","level":"info"}
+{"message":"Listening on port: 3232","level":"info"}
+{"message":"Serving static files from /tmp/static","level":"debug"}
+{"message":"Connection established to db: mongodb://127.0.0.1:27017/bws","level":"info"}
+{"message":"Creating DB indexes","level":"info"}
+{"message":"Using message broker server at http://localhost:3380","level":"info"}
+{"message":"BWS running ","level":"info"}
+{"message":"addresses checked already","level":"debug"}
+[v8.js.207] GET TX 0x0490b3f4d133bdd03edbd43e2d641903190a2b9d445eb7bbf375cf2461c05c35
+[v8.js.207] GET TX 0xeb85f9279c9ededb1e28ca5e5074a7a324848a3fb781f19ded05ab8f98fbf595
+[v8.js.207] GET TX 0x0490b3f4d133bdd03edbd43e2d641903190a2b9d445eb7bbf375cf2461c05c35
+[v8.js.207] GET TX 0xeb85f9279c9ededb1e28ca5e5074a7a324848a3fb781f19ded05ab8f98fbf595
+{"message":"2022-09-14 00:40:52.138 |       ::ffff:127.0.0.1 | -:bwc-8.25.27  |  bcd31fd1-e1b8-4508-b931-ff3d6b89ab7a  |      END |   30595 ms |    GET |   200 | /bws/api/v3/wallets/?includeExtendedInfo=1&serverMessageArray=1&r=71780 |      0 open","level":"info"}
+{"message":"2022-09-14 00:40:52.138 |       ::ffff:127.0.0.1 | -:bwc-8.25.27  |  bcd31fd1-e1b8-4508-b931-ff3d6b89ab7a  |   CLOSED |   30595 ms |    GET |   200 | /bws/api/v3/wallets/?includeExtendedInfo=1&serverMessageArray=1&r=71780 |     -1 open","level":"info"}
+{"message":"addresses checked already","level":"debug"}
+{"message":"/v1/balance/?tokenAddress=0x26B69343Ab58f9A1A1BcB7FeE7FA6a5A1bB3409E&tokenId=1&r=63187 :500:500 - \"<!DOCTYPE html>\\n<html lang=\\\"en\\\">\\n<head>\\n<meta charset=\\\"utf-8\\\">\\n<title>Error</title>\\n</head>\\n<body>\\n<pre>Error: socket hang up<br> &nbsp; &nbsp;at createHangUpError (_http_client.js:330:17)<br> &nbsp; &nbsp;at Socket.socketOnEnd (_http_client.js:431:23)<br> &nbsp; &nbsp;at Socket.emit (events.js:198:15)<br> &nbsp; &nbsp;at endReadableNT (_stream_readable.js:1139:12)<br> &nbsp; &nbsp;at processTicksAndRejections (internal/process/task_queues.js:81:17)</pre>\\n</body>\\n</html>\\n\"","level":"error"}
+{"message":"2022-09-14 00:41:22.802 |       ::ffff:127.0.0.1 | -:bwc-8.25.27  |  bcd31fd1-e1b8-4508-b931-ff3d6b89ab7a  |      END |   90191 ms |    GET |   500 | /bws/api/v1/balance/?tokenAddress=0x26B69343Ab58f9A1A1BcB7FeE7FA6a5A1bB3409E&tokenId=1&r=63187 |     -1 open","level":"info"}
+{"message":"2022-09-14 00:41:22.802 |       ::ffff:127.0.0.1 | -:bwc-8.25.27  |  bcd31fd1-e1b8-4508-b931-ff3d6b89ab7a  |   CLOSED |   90191 ms |    GET |   500 | /bws/api/v1/balance/?tokenAddress=0x26B69343Ab58f9A1A1BcB7FeE7FA6a5A1bB3409E&tokenId=1&r=63187 |     -2 open","level":"info"}
+{"message":"bws.config.js not found, using default configuration values","level":"info"}
+{"message":"Listening on port: 3232","level":"info"}
+{"message":"Serving static files from /tmp/static","level":"debug"}
+{"message":"Connection established to db: mongodb://127.0.0.1:27017/bws","level":"info"}
+{"message":"Creating DB indexes","level":"info"}
+{"message":"Using message broker server at http://localhost:3380","level":"info"}
+{"message":"BWS running ","level":"info"}
+{"message":"addresses checked already","level":"debug"}
+[v8.js.207] GET TX 0x0490b3f4d133bdd03edbd43e2d641903190a2b9d445eb7bbf375cf2461c05c35
+[v8.js.207] GET TX 0xeb85f9279c9ededb1e28ca5e5074a7a324848a3fb781f19ded05ab8f98fbf595
+[v8.js.207] GET TX 0x0490b3f4d133bdd03edbd43e2d641903190a2b9d445eb7bbf375cf2461c05c35
+[v8.js.207] GET TX 0xeb85f9279c9ededb1e28ca5e5074a7a324848a3fb781f19ded05ab8f98fbf595
+{"message":"2022-09-14 00:48:26.279 |       ::ffff:127.0.0.1 | -:bwc-8.25.27  |  bcd31fd1-e1b8-4508-b931-ff3d6b89ab7a  |      END |   57307 ms |    GET |   200 | /bws/api/v3/wallets/?includeExtendedInfo=1&serverMessageArray=1&r=75636 |      0 open","level":"info"}
+{"message":"2022-09-14 00:48:26.279 |       ::ffff:127.0.0.1 | -:bwc-8.25.27  |  bcd31fd1-e1b8-4508-b931-ff3d6b89ab7a  |   CLOSED |   57307 ms |    GET |   200 | /bws/api/v3/wallets/?includeExtendedInfo=1&serverMessageArray=1&r=75636 |     -1 open","level":"info"}
+{"message":"addresses checked already","level":"debug"}
+{"message":"/v1/balance/?tokenAddress=0x26B69343Ab58f9A1A1BcB7FeE7FA6a5A1bB3409E&tokenId=1&r=27750 :500:500 - {}","level":"error"}
+{"message":"2022-09-14 00:49:23.652 |       ::ffff:127.0.0.1 | -:bwc-8.25.27  |  bcd31fd1-e1b8-4508-b931-ff3d6b89ab7a  |      END |   74595 ms |    GET |   500 | /bws/api/v1/balance/?tokenAddress=0x26B69343Ab58f9A1A1BcB7FeE7FA6a5A1bB3409E&tokenId=1&r=27750 |     -1 open","level":"info"}
+{"message":"2022-09-14 00:49:23.652 |       ::ffff:127.0.0.1 | -:bwc-8.25.27  |  bcd31fd1-e1b8-4508-b931-ff3d6b89ab7a  |   CLOSED |   74595 ms |    GET |   500 | /bws/api/v1/balance/?tokenAddress=0x26B69343Ab58f9A1A1BcB7FeE7FA6a5A1bB3409E&tokenId=1&r=27750 |     -2 open","level":"info"}
+{"message":"addresses checked already","level":"debug"}
+[v8.js.207] GET TX 0x0490b3f4d133bdd03edbd43e2d641903190a2b9d445eb7bbf375cf2461c05c35
+[v8.js.207] GET TX 0xeb85f9279c9ededb1e28ca5e5074a7a324848a3fb781f19ded05ab8f98fbf595
+[v8.js.207] GET TX 0x0490b3f4d133bdd03edbd43e2d641903190a2b9d445eb7bbf375cf2461c05c35
+[v8.js.207] GET TX 0xeb85f9279c9ededb1e28ca5e5074a7a324848a3fb781f19ded05ab8f98fbf595
+{"message":"2022-09-14 00:50:47.820 |       ::ffff:127.0.0.1 | -:bwc-8.25.27  |  bcd31fd1-e1b8-4508-b931-ff3d6b89ab7a  |      END |   27934 ms |    GET |   200 | /bws/api/v3/wallets/?includeExtendedInfo=1&serverMessageArray=1&r=92337 |     -2 open","level":"info"}
+{"message":"2022-09-14 00:50:47.820 |       ::ffff:127.0.0.1 | -:bwc-8.25.27  |  bcd31fd1-e1b8-4508-b931-ff3d6b89ab7a  |   CLOSED |   27934 ms |    GET |   200 | /bws/api/v3/wallets/?includeExtendedInfo=1&serverMessageArray=1&r=92337 |     -3 open","level":"info"}
+{"message":"addresses checked already","level":"debug"}
+{"message":"/v1/balance/?tokenAddress=0x26B69343Ab58f9A1A1BcB7FeE7FA6a5A1bB3409E&tokenId=1&r=24315 :500:500 - {}","level":"error"}
+{"message":"2022-09-14 00:51:15.890 |       ::ffff:127.0.0.1 | -:bwc-8.25.27  |  bcd31fd1-e1b8-4508-b931-ff3d6b89ab7a  |      END |    3246 ms |    GET |   500 | /bws/api/v1/balance/?tokenAddress=0x26B69343Ab58f9A1A1BcB7FeE7FA6a5A1bB3409E&tokenId=1&r=24315 |     -3 open","level":"info"}
+{"message":"2022-09-14 00:51:15.890 |       ::ffff:127.0.0.1 | -:bwc-8.25.27  |  bcd31fd1-e1b8-4508-b931-ff3d6b89ab7a  |   CLOSED |    3246 ms |    GET |   500 | /bws/api/v1/balance/?tokenAddress=0x26B69343Ab58f9A1A1BcB7FeE7FA6a5A1bB3409E&tokenId=1&r=24315 |     -4 open","level":"info"}
+{"message":"addresses checked already","level":"debug"}
+[v8.js.207] GET TX 0x0490b3f4d133bdd03edbd43e2d641903190a2b9d445eb7bbf375cf2461c05c35
+[v8.js.207] GET TX 0xeb85f9279c9ededb1e28ca5e5074a7a324848a3fb781f19ded05ab8f98fbf595
+[v8.js.207] GET TX 0x0490b3f4d133bdd03edbd43e2d641903190a2b9d445eb7bbf375cf2461c05c35
+[v8.js.207] GET TX 0xeb85f9279c9ededb1e28ca5e5074a7a324848a3fb781f19ded05ab8f98fbf595
+{"message":"2022-09-14 00:51:25.436 |       ::ffff:127.0.0.1 | -:bwc-8.25.27  |  bcd31fd1-e1b8-4508-b931-ff3d6b89ab7a  |      END |   40186 ms |    GET |   200 | /bws/api/v3/wallets/?includeExtendedInfo=1&serverMessageArray=1&r=75828 |     -4 open","level":"info"}
+{"message":"2022-09-14 00:51:25.436 |       ::ffff:127.0.0.1 | -:bwc-8.25.27  |  bcd31fd1-e1b8-4508-b931-ff3d6b89ab7a  |   CLOSED |   40187 ms |    GET |   200 | /bws/api/v3/wallets/?includeExtendedInfo=1&serverMessageArray=1&r=75828 |     -5 open","level":"info"}
+{"message":"addresses checked already","level":"debug"}
+{"message":"/v1/balance/?tokenAddress=0x26B69343Ab58f9A1A1BcB7FeE7FA6a5A1bB3409E&tokenId=1&r=72462 :500:500 - \"<!DOCTYPE html>\\n<html lang=\\\"en\\\">\\n<head>\\n<meta charset=\\\"utf-8\\\">\\n<title>Error</title>\\n</head>\\n<body>\\n<pre>Error: socket hang up<br> &nbsp; &nbsp;at createHangUpError (_http_client.js:330:17)<br> &nbsp; &nbsp;at Socket.socketOnEnd (_http_client.js:431:23)<br> &nbsp; &nbsp;at Socket.emit (events.js:198:15)<br> &nbsp; &nbsp;at endReadableNT (_stream_readable.js:1139:12)<br> &nbsp; &nbsp;at processTicksAndRejections (internal/process/task_queues.js:81:17)</pre>\\n</body>\\n</html>\\n\"","level":"error"}
+{"message":"2022-09-14 00:52:05.731 |       ::ffff:127.0.0.1 | -:bwc-8.25.27  |  bcd31fd1-e1b8-4508-b931-ff3d6b89ab7a  |      END |   28595 ms |    GET |   500 | /bws/api/v1/balance/?tokenAddress=0x26B69343Ab58f9A1A1BcB7FeE7FA6a5A1bB3409E&tokenId=1&r=72462 |     -5 open","level":"info"}
+{"message":"2022-09-14 00:52:05.731 |       ::ffff:127.0.0.1 | -:bwc-8.25.27  |  bcd31fd1-e1b8-4508-b931-ff3d6b89ab7a  |   CLOSED |   28595 ms |    GET |   500 | /bws/api/v1/balance/?tokenAddress=0x26B69343Ab58f9A1A1BcB7FeE7FA6a5A1bB3409E&tokenId=1&r=72462 |     -6 open","level":"info"}
+{"message":"addresses checked already","level":"debug"}
+[v8.js.207] GET TX 0x0490b3f4d133bdd03edbd43e2d641903190a2b9d445eb7bbf375cf2461c05c35
+[v8.js.207] GET TX 0xeb85f9279c9ededb1e28ca5e5074a7a324848a3fb781f19ded05ab8f98fbf595
+[v8.js.207] GET TX 0x0490b3f4d133bdd03edbd43e2d641903190a2b9d445eb7bbf375cf2461c05c35
+[v8.js.207] GET TX 0xeb85f9279c9ededb1e28ca5e5074a7a324848a3fb781f19ded05ab8f98fbf595
+{"message":"2022-09-14 00:55:22.950 |       ::ffff:127.0.0.1 | -:bwc-8.25.27  |  bcd31fd1-e1b8-4508-b931-ff3d6b89ab7a  |      END |   21555 ms |    GET |   200 | /bws/api/v3/wallets/?includeExtendedInfo=1&serverMessageArray=1&r=86326 |     -6 open","level":"info"}
+{"message":"2022-09-14 00:55:22.950 |       ::ffff:127.0.0.1 | -:bwc-8.25.27  |  bcd31fd1-e1b8-4508-b931-ff3d6b89ab7a  |   CLOSED |   21555 ms |    GET |   200 | /bws/api/v3/wallets/?includeExtendedInfo=1&serverMessageArray=1&r=86326 |     -7 open","level":"info"}
+{"message":"addresses checked already","level":"debug"}
+{"message":"/v1/balance/?tokenAddress=0x26B69343Ab58f9A1A1BcB7FeE7FA6a5A1bB3409E&tokenId=1&r=39995 :500:500 - {}","level":"error"}
+{"message":"2022-09-14 00:55:44.570 |       ::ffff:127.0.0.1 | -:bwc-8.25.27  |  bcd31fd1-e1b8-4508-b931-ff3d6b89ab7a  |      END |   35782 ms |    GET |   500 | /bws/api/v1/balance/?tokenAddress=0x26B69343Ab58f9A1A1BcB7FeE7FA6a5A1bB3409E&tokenId=1&r=39995 |     -7 open","level":"info"}
+{"message":"2022-09-14 00:55:44.570 |       ::ffff:127.0.0.1 | -:bwc-8.25.27  |  bcd31fd1-e1b8-4508-b931-ff3d6b89ab7a  |   CLOSED |   35782 ms |    GET |   500 | /bws/api/v1/balance/?tokenAddress=0x26B69343Ab58f9A1A1BcB7FeE7FA6a5A1bB3409E&tokenId=1&r=39995 |     -8 open","level":"info"}
+{"message":"addresses checked already","level":"debug"}
+[v8.js.207] GET TX 0x0490b3f4d133bdd03edbd43e2d641903190a2b9d445eb7bbf375cf2461c05c35
+[v8.js.207] GET TX 0xeb85f9279c9ededb1e28ca5e5074a7a324848a3fb781f19ded05ab8f98fbf595
+[v8.js.207] GET TX 0x0490b3f4d133bdd03edbd43e2d641903190a2b9d445eb7bbf375cf2461c05c35
+[v8.js.207] GET TX 0xeb85f9279c9ededb1e28ca5e5074a7a324848a3fb781f19ded05ab8f98fbf595
+{"message":"2022-09-14 00:56:28.621 |       ::ffff:127.0.0.1 | -:bwc-8.25.27  |  bcd31fd1-e1b8-4508-b931-ff3d6b89ab7a  |      END |   56470 ms |    GET |   200 | /bws/api/v3/wallets/?includeExtendedInfo=1&serverMessageArray=1&r=71230 |     -8 open","level":"info"}
+{"message":"2022-09-14 00:56:28.621 |       ::ffff:127.0.0.1 | -:bwc-8.25.27  |  bcd31fd1-e1b8-4508-b931-ff3d6b89ab7a  |   CLOSED |   56470 ms |    GET |   200 | /bws/api/v3/wallets/?includeExtendedInfo=1&serverMessageArray=1&r=71230 |     -9 open","level":"info"}
+{"message":"addresses checked already","level":"debug"}
+{"message":"/v1/balance/?tokenAddress=0x26B69343Ab58f9A1A1BcB7FeE7FA6a5A1bB3409E&tokenId=1&r=60625 :500:500 - {}","level":"error"}
+{"message":"2022-09-14 00:57:25.173 |       ::ffff:127.0.0.1 | -:bwc-8.25.27  |  bcd31fd1-e1b8-4508-b931-ff3d6b89ab7a  |      END |   12986 ms |    GET |   500 | /bws/api/v1/balance/?tokenAddress=0x26B69343Ab58f9A1A1BcB7FeE7FA6a5A1bB3409E&tokenId=1&r=60625 |     -9 open","level":"info"}
+{"message":"2022-09-14 00:57:25.173 |       ::ffff:127.0.0.1 | -:bwc-8.25.27  |  bcd31fd1-e1b8-4508-b931-ff3d6b89ab7a  |   CLOSED |   12986 ms |    GET |   500 | /bws/api/v1/balance/?tokenAddress=0x26B69343Ab58f9A1A1BcB7FeE7FA6a5A1bB3409E&tokenId=1&r=60625 |    -10 open","level":"info"}
+[v8.js.207] GET TX 0x0490b3f4d133bdd03edbd43e2d641903190a2b9d445eb7bbf375cf2461c05c35
+[v8.js.207] GET TX 0xeb85f9279c9ededb1e28ca5e5074a7a324848a3fb781f19ded05ab8f98fbf595
+{"message":"addresses checked already","level":"debug"}
+[v8.js.207] GET TX 0x0490b3f4d133bdd03edbd43e2d641903190a2b9d445eb7bbf375cf2461c05c35
+[v8.js.207] GET TX 0xeb85f9279c9ededb1e28ca5e5074a7a324848a3fb781f19ded05ab8f98fbf595
+{"message":"2022-09-14 00:57:45.794 |       ::ffff:127.0.0.1 | -:bwc-8.25.27  |  bcd31fd1-e1b8-4508-b931-ff3d6b89ab7a  |      END |    6148 ms |    GET |   200 | /bws/api/v3/wallets/?includeExtendedInfo=1&serverMessageArray=1&r=27873 |    -10 open","level":"info"}
+{"message":"2022-09-14 00:57:45.794 |       ::ffff:127.0.0.1 | -:bwc-8.25.27  |  bcd31fd1-e1b8-4508-b931-ff3d6b89ab7a  |   CLOSED |    6148 ms |    GET |   200 | /bws/api/v3/wallets/?includeExtendedInfo=1&serverMessageArray=1&r=27873 |    -11 open","level":"info"}
+{"message":"addresses checked already","level":"debug"}
+{"message":"2022-09-14 00:57:52.460 |              localhost | -:bwc-8.25.27  |  bcd31fd1-e1b8-4508-b931-ff3d6b89ab7a  |   CLOSED |  120003 ms |    GET |   200 | /bws/api/v1/balance/?tokenAddress=0x26B69343Ab58f9A1A1BcB7FeE7FA6a5A1bB3409E&tokenId=1&r=69858 |    -11 open","level":"info"}
+{"message":"/v1/balance/?tokenAddress=0x26B69343Ab58f9A1A1BcB7FeE7FA6a5A1bB3409E&tokenId=1&r=69858 :500:RequestError: Error: socket hang up","level":"error"}
+[v8.js.207] GET TX 0x0490b3f4d133bdd03edbd43e2d641903190a2b9d445eb7bbf375cf2461c05c35
+[v8.js.207] GET TX 0xeb85f9279c9ededb1e28ca5e5074a7a324848a3fb781f19ded05ab8f98fbf595
+{"message":"addresses checked already","level":"debug"}
+[v8.js.207] GET TX 0x0490b3f4d133bdd03edbd43e2d641903190a2b9d445eb7bbf375cf2461c05c35
+[v8.js.207] GET TX 0xeb85f9279c9ededb1e28ca5e5074a7a324848a3fb781f19ded05ab8f98fbf595
+{"message":"2022-09-14 01:00:56.730 |       ::ffff:127.0.0.1 | -:bwc-8.25.27  |  bcd31fd1-e1b8-4508-b931-ff3d6b89ab7a  |      END |   42359 ms |    GET |   200 | /bws/api/v3/wallets/?includeExtendedInfo=1&serverMessageArray=1&r=80047 |    -11 open","level":"info"}
+{"message":"2022-09-14 01:00:56.730 |       ::ffff:127.0.0.1 | -:bwc-8.25.27  |  bcd31fd1-e1b8-4508-b931-ff3d6b89ab7a  |   CLOSED |   42360 ms |    GET |   200 | /bws/api/v3/wallets/?includeExtendedInfo=1&serverMessageArray=1&r=80047 |    -12 open","level":"info"}
+{"message":"addresses checked already","level":"debug"}
+{"message":"/v1/balance/?tokenAddress=0x26B69343Ab58f9A1A1BcB7FeE7FA6a5A1bB3409E&tokenId=1&r=98249 :500:500 - \"<!DOCTYPE html>\\n<html lang=\\\"en\\\">\\n<head>\\n<meta charset=\\\"utf-8\\\">\\n<title>Error</title>\\n</head>\\n<body>\\n<pre>Error: socket hang up<br> &nbsp; &nbsp;at createHangUpError (_http_client.js:330:17)<br> &nbsp; &nbsp;at Socket.socketOnEnd (_http_client.js:431:23)<br> &nbsp; &nbsp;at Socket.emit (events.js:198:15)<br> &nbsp; &nbsp;at endReadableNT (_stream_readable.js:1139:12)<br> &nbsp; &nbsp;at processTicksAndRejections (internal/process/task_queues.js:81:17)</pre>\\n</body>\\n</html>\\n\"","level":"error"}
+{"message":"2022-09-14 01:01:38.486 |       ::ffff:127.0.0.1 | -:bwc-8.25.27  |  bcd31fd1-e1b8-4508-b931-ff3d6b89ab7a  |      END |   21755 ms |    GET |   500 | /bws/api/v1/balance/?tokenAddress=0x26B69343Ab58f9A1A1BcB7FeE7FA6a5A1bB3409E&tokenId=1&r=98249 |    -12 open","level":"info"}
+{"message":"2022-09-14 01:01:38.486 |       ::ffff:127.0.0.1 | -:bwc-8.25.27  |  bcd31fd1-e1b8-4508-b931-ff3d6b89ab7a  |   CLOSED |   21755 ms |    GET |   500 | /bws/api/v1/balance/?tokenAddress=0x26B69343Ab58f9A1A1BcB7FeE7FA6a5A1bB3409E&tokenId=1&r=98249 |    -13 open","level":"info"}
+{"message":"bws.config.js not found, using default configuration values","level":"info"}
+{"message":"Listening on port: 3232","level":"info"}
+{"message":"Serving static files from /tmp/static","level":"debug"}
+{"message":"Connection established to db: mongodb://127.0.0.1:27017/bws","level":"info"}
+{"message":"Creating DB indexes","level":"info"}
+{"message":"Using message broker server at http://localhost:3380","level":"info"}
+{"message":"BWS running ","level":"info"}
+{"message":"addresses checked already","level":"debug"}
+[v8.js.207] GET TX 0x0490b3f4d133bdd03edbd43e2d641903190a2b9d445eb7bbf375cf2461c05c35
+[v8.js.207] GET TX 0xeb85f9279c9ededb1e28ca5e5074a7a324848a3fb781f19ded05ab8f98fbf595
+[v8.js.207] GET TX 0x0490b3f4d133bdd03edbd43e2d641903190a2b9d445eb7bbf375cf2461c05c35
+[v8.js.207] GET TX 0xeb85f9279c9ededb1e28ca5e5074a7a324848a3fb781f19ded05ab8f98fbf595
+{"message":"2022-09-14 01:07:08.783 |       ::ffff:127.0.0.1 | -:bwc-8.25.27  |  bcd31fd1-e1b8-4508-b931-ff3d6b89ab7a  |      END |   14598 ms |    GET |   200 | /bws/api/v3/wallets/?includeExtendedInfo=1&serverMessageArray=1&r=55012 |      0 open","level":"info"}
+{"message":"2022-09-14 01:07:08.783 |       ::ffff:127.0.0.1 | -:bwc-8.25.27  |  bcd31fd1-e1b8-4508-b931-ff3d6b89ab7a  |   CLOSED |   14598 ms |    GET |   200 | /bws/api/v3/wallets/?includeExtendedInfo=1&serverMessageArray=1&r=55012 |     -1 open","level":"info"}
+{"message":"addresses checked already","level":"debug"}
+{"message":"/v1/balance/?tokenAddress=0x26B69343Ab58f9A1A1BcB7FeE7FA6a5A1bB3409E&tokenId=1&r=59907 :404:404 - \"<!DOCTYPE html>\\n<html lang=\\\"en\\\">\\n<head>\\n<meta charset=\\\"utf-8\\\">\\n<title>Error</title>\\n</head>\\n<body>\\n<pre>Cannot GET /api/ETH/mainnet/wallet/04d4115b3be392382e51435cd31c006d2e32980f4e7fd13853fee8a9277dbd63f26df18b65bd43021f9a87186420284ffdd184791f52e772c1441fdd248fd34bc4/balancetokenAddress=0x26B69343Ab58f9A1A1BcB7FeE7FA6a5A1bB3409E&amp;tokenId=1&amp;</pre>\\n</body>\\n</html>\\n\"","level":"error"}
+{"message":"2022-09-14 01:07:23.452 |       ::ffff:127.0.0.1 | -:bwc-8.25.27  |  bcd31fd1-e1b8-4508-b931-ff3d6b89ab7a  |      END |      84 ms |    GET |   404 | /bws/api/v1/balance/?tokenAddress=0x26B69343Ab58f9A1A1BcB7FeE7FA6a5A1bB3409E&tokenId=1&r=59907 |     -1 open","level":"info"}
+{"message":"2022-09-14 01:07:23.452 |       ::ffff:127.0.0.1 | -:bwc-8.25.27  |  bcd31fd1-e1b8-4508-b931-ff3d6b89ab7a  |   CLOSED |      85 ms |    GET |   404 | /bws/api/v1/balance/?tokenAddress=0x26B69343Ab58f9A1A1BcB7FeE7FA6a5A1bB3409E&tokenId=1&r=59907 |     -2 open","level":"info"}
+{"message":"addresses checked already","level":"debug"}
+[v8.js.207] GET TX 0x0490b3f4d133bdd03edbd43e2d641903190a2b9d445eb7bbf375cf2461c05c35
+[v8.js.207] GET TX 0xeb85f9279c9ededb1e28ca5e5074a7a324848a3fb781f19ded05ab8f98fbf595
+[v8.js.207] GET TX 0x0490b3f4d133bdd03edbd43e2d641903190a2b9d445eb7bbf375cf2461c05c35
+[v8.js.207] GET TX 0xeb85f9279c9ededb1e28ca5e5074a7a324848a3fb781f19ded05ab8f98fbf595
+{"message":"2022-09-14 01:07:37.574 |       ::ffff:127.0.0.1 | -:bwc-8.25.27  |  bcd31fd1-e1b8-4508-b931-ff3d6b89ab7a  |      END |    5853 ms |    GET |   200 | /bws/api/v3/wallets/?includeExtendedInfo=1&serverMessageArray=1&r=40972 |     -2 open","level":"info"}
+{"message":"2022-09-14 01:07:37.574 |       ::ffff:127.0.0.1 | -:bwc-8.25.27  |  bcd31fd1-e1b8-4508-b931-ff3d6b89ab7a  |   CLOSED |    5853 ms |    GET |   200 | /bws/api/v3/wallets/?includeExtendedInfo=1&serverMessageArray=1&r=40972 |     -3 open","level":"info"}
+{"message":"addresses checked already","level":"debug"}
+{"message":"/v1/balance/?tokenAddress=0x26B69343Ab58f9A1A1BcB7FeE7FA6a5A1bB3409E&tokenId=1&r=97090 :404:404 - \"<!DOCTYPE html>\\n<html lang=\\\"en\\\">\\n<head>\\n<meta charset=\\\"utf-8\\\">\\n<title>Error</title>\\n</head>\\n<body>\\n<pre>Cannot GET /api/ETH/mainnet/wallet/04d4115b3be392382e51435cd31c006d2e32980f4e7fd13853fee8a9277dbd63f26df18b65bd43021f9a87186420284ffdd184791f52e772c1441fdd248fd34bc4/balancetokenAddress=0x26B69343Ab58f9A1A1BcB7FeE7FA6a5A1bB3409E&amp;tokenId=1&amp;</pre>\\n</body>\\n</html>\\n\"","level":"error"}
+{"message":"2022-09-14 01:07:43.539 |       ::ffff:127.0.0.1 | -:bwc-8.25.27  |  bcd31fd1-e1b8-4508-b931-ff3d6b89ab7a  |      END |      34 ms |    GET |   404 | /bws/api/v1/balance/?tokenAddress=0x26B69343Ab58f9A1A1BcB7FeE7FA6a5A1bB3409E&tokenId=1&r=97090 |     -3 open","level":"info"}
+{"message":"2022-09-14 01:07:43.539 |       ::ffff:127.0.0.1 | -:bwc-8.25.27  |  bcd31fd1-e1b8-4508-b931-ff3d6b89ab7a  |   CLOSED |      35 ms |    GET |   404 | /bws/api/v1/balance/?tokenAddress=0x26B69343Ab58f9A1A1BcB7FeE7FA6a5A1bB3409E&tokenId=1&r=97090 |     -4 open","level":"info"}
+{"message":"addresses checked already","level":"debug"}
+[v8.js.207] GET TX 0x0490b3f4d133bdd03edbd43e2d641903190a2b9d445eb7bbf375cf2461c05c35
+[v8.js.207] GET TX 0xeb85f9279c9ededb1e28ca5e5074a7a324848a3fb781f19ded05ab8f98fbf595
+[v8.js.207] GET TX 0x0490b3f4d133bdd03edbd43e2d641903190a2b9d445eb7bbf375cf2461c05c35
+[v8.js.207] GET TX 0xeb85f9279c9ededb1e28ca5e5074a7a324848a3fb781f19ded05ab8f98fbf595
+{"message":"2022-09-14 01:07:59.499 |       ::ffff:127.0.0.1 | -:bwc-8.25.27  |  bcd31fd1-e1b8-4508-b931-ff3d6b89ab7a  |      END |    9704 ms |    GET |   200 | /bws/api/v3/wallets/?includeExtendedInfo=1&serverMessageArray=1&r=21388 |     -4 open","level":"info"}
+{"message":"2022-09-14 01:07:59.499 |       ::ffff:127.0.0.1 | -:bwc-8.25.27  |  bcd31fd1-e1b8-4508-b931-ff3d6b89ab7a  |   CLOSED |    9704 ms |    GET |   200 | /bws/api/v3/wallets/?includeExtendedInfo=1&serverMessageArray=1&r=21388 |     -5 open","level":"info"}
+{"message":"addresses checked already","level":"debug"}
+{"message":"/v1/balance/?tokenAddress=0x26B69343Ab58f9A1A1BcB7FeE7FA6a5A1bB3409E&tokenId=1&r=92984 :404:404 - \"<!DOCTYPE html>\\n<html lang=\\\"en\\\">\\n<head>\\n<meta charset=\\\"utf-8\\\">\\n<title>Error</title>\\n</head>\\n<body>\\n<pre>Cannot GET /api/ETH/mainnet/wallet/04d4115b3be392382e51435cd31c006d2e32980f4e7fd13853fee8a9277dbd63f26df18b65bd43021f9a87186420284ffdd184791f52e772c1441fdd248fd34bc4/balancetokenAddress=0x26B69343Ab58f9A1A1BcB7FeE7FA6a5A1bB3409E&amp;tokenId=1&amp;</pre>\\n</body>\\n</html>\\n\"","level":"error"}
+{"message":"2022-09-14 01:08:09.274 |       ::ffff:127.0.0.1 | -:bwc-8.25.27  |  bcd31fd1-e1b8-4508-b931-ff3d6b89ab7a  |      END |      17 ms |    GET |   404 | /bws/api/v1/balance/?tokenAddress=0x26B69343Ab58f9A1A1BcB7FeE7FA6a5A1bB3409E&tokenId=1&r=92984 |     -5 open","level":"info"}
+{"message":"2022-09-14 01:08:09.274 |       ::ffff:127.0.0.1 | -:bwc-8.25.27  |  bcd31fd1-e1b8-4508-b931-ff3d6b89ab7a  |   CLOSED |      18 ms |    GET |   404 | /bws/api/v1/balance/?tokenAddress=0x26B69343Ab58f9A1A1BcB7FeE7FA6a5A1bB3409E&tokenId=1&r=92984 |     -6 open","level":"info"}
+{"message":"addresses checked already","level":"debug"}
+[v8.js.207] GET TX 0x0490b3f4d133bdd03edbd43e2d641903190a2b9d445eb7bbf375cf2461c05c35
+[v8.js.207] GET TX 0xeb85f9279c9ededb1e28ca5e5074a7a324848a3fb781f19ded05ab8f98fbf595
+[v8.js.207] GET TX 0x0490b3f4d133bdd03edbd43e2d641903190a2b9d445eb7bbf375cf2461c05c35
+[v8.js.207] GET TX 0xeb85f9279c9ededb1e28ca5e5074a7a324848a3fb781f19ded05ab8f98fbf595
+{"message":"2022-09-14 01:08:53.803 |       ::ffff:127.0.0.1 | -:bwc-8.25.27  |  bcd31fd1-e1b8-4508-b931-ff3d6b89ab7a  |      END |   33698 ms |    GET |   200 | /bws/api/v3/wallets/?includeExtendedInfo=1&serverMessageArray=1&r=38421 |     -6 open","level":"info"}
+{"message":"2022-09-14 01:08:53.803 |       ::ffff:127.0.0.1 | -:bwc-8.25.27  |  bcd31fd1-e1b8-4508-b931-ff3d6b89ab7a  |   CLOSED |   33698 ms |    GET |   200 | /bws/api/v3/wallets/?includeExtendedInfo=1&serverMessageArray=1&r=38421 |     -7 open","level":"info"}
+{"message":"addresses checked already","level":"debug"}
+{"message":"/v1/balance/?tokenAddress=0x26B69343Ab58f9A1A1BcB7FeE7FA6a5A1bB3409E&tokenId=1&r=62581 :404:404 - \"<!DOCTYPE html>\\n<html lang=\\\"en\\\">\\n<head>\\n<meta charset=\\\"utf-8\\\">\\n<title>Error</title>\\n</head>\\n<body>\\n<pre>Cannot GET /api/ETH/mainnet/wallet/04d4115b3be392382e51435cd31c006d2e32980f4e7fd13853fee8a9277dbd63f26df18b65bd43021f9a87186420284ffdd184791f52e772c1441fdd248fd34bc4/balancetokenAddress=0x26B69343Ab58f9A1A1BcB7FeE7FA6a5A1bB3409E&amp;tokenId=1&amp;</pre>\\n</body>\\n</html>\\n\"","level":"error"}
+{"message":"2022-09-14 01:09:27.574 |       ::ffff:127.0.0.1 | -:bwc-8.25.27  |  bcd31fd1-e1b8-4508-b931-ff3d6b89ab7a  |      END |      16 ms |    GET |   404 | /bws/api/v1/balance/?tokenAddress=0x26B69343Ab58f9A1A1BcB7FeE7FA6a5A1bB3409E&tokenId=1&r=62581 |     -7 open","level":"info"}
+{"message":"2022-09-14 01:09:27.574 |       ::ffff:127.0.0.1 | -:bwc-8.25.27  |  bcd31fd1-e1b8-4508-b931-ff3d6b89ab7a  |   CLOSED |      17 ms |    GET |   404 | /bws/api/v1/balance/?tokenAddress=0x26B69343Ab58f9A1A1BcB7FeE7FA6a5A1bB3409E&tokenId=1&r=62581 |     -8 open","level":"info"}
+{"message":"addresses checked already","level":"debug"}
+[v8.js.207] GET TX 0x0490b3f4d133bdd03edbd43e2d641903190a2b9d445eb7bbf375cf2461c05c35
+[v8.js.207] GET TX 0xeb85f9279c9ededb1e28ca5e5074a7a324848a3fb781f19ded05ab8f98fbf595
+[v8.js.207] GET TX 0x0490b3f4d133bdd03edbd43e2d641903190a2b9d445eb7bbf375cf2461c05c35
+[v8.js.207] GET TX 0xeb85f9279c9ededb1e28ca5e5074a7a324848a3fb781f19ded05ab8f98fbf595
+{"message":"2022-09-14 01:10:52.278 |       ::ffff:127.0.0.1 | -:bwc-8.25.27  |  bcd31fd1-e1b8-4508-b931-ff3d6b89ab7a  |      END |     420 ms |    GET |   200 | /bws/api/v3/wallets/?includeExtendedInfo=1&serverMessageArray=1&r=35891 |     -8 open","level":"info"}
+{"message":"2022-09-14 01:10:52.278 |       ::ffff:127.0.0.1 | -:bwc-8.25.27  |  bcd31fd1-e1b8-4508-b931-ff3d6b89ab7a  |   CLOSED |     420 ms |    GET |   200 | /bws/api/v3/wallets/?includeExtendedInfo=1&serverMessageArray=1&r=35891 |     -9 open","level":"info"}
+{"message":"addresses checked already","level":"debug"}
+{"message":"/v1/balance/?tokenAddress=0x26B69343Ab58f9A1A1BcB7FeE7FA6a5A1bB3409E&tokenId=1&r=34718 :404:404 - \"<!DOCTYPE html>\\n<html lang=\\\"en\\\">\\n<head>\\n<meta charset=\\\"utf-8\\\">\\n<title>Error</title>\\n</head>\\n<body>\\n<pre>Cannot GET /api/ETH/mainnet/wallet/04d4115b3be392382e51435cd31c006d2e32980f4e7fd13853fee8a9277dbd63f26df18b65bd43021f9a87186420284ffdd184791f52e772c1441fdd248fd34bc4/balancetokenAddress=0x26B69343Ab58f9A1A1BcB7FeE7FA6a5A1bB3409E&amp;tokenId=1&amp;</pre>\\n</body>\\n</html>\\n\"","level":"error"}
+{"message":"2022-09-14 01:10:52.759 |       ::ffff:127.0.0.1 | -:bwc-8.25.27  |  bcd31fd1-e1b8-4508-b931-ff3d6b89ab7a  |      END |      15 ms |    GET |   404 | /bws/api/v1/balance/?tokenAddress=0x26B69343Ab58f9A1A1BcB7FeE7FA6a5A1bB3409E&tokenId=1&r=34718 |     -9 open","level":"info"}
+{"message":"2022-09-14 01:10:52.759 |       ::ffff:127.0.0.1 | -:bwc-8.25.27  |  bcd31fd1-e1b8-4508-b931-ff3d6b89ab7a  |   CLOSED |      15 ms |    GET |   404 | /bws/api/v1/balance/?tokenAddress=0x26B69343Ab58f9A1A1BcB7FeE7FA6a5A1bB3409E&tokenId=1&r=34718 |    -10 open","level":"info"}
+{"message":"bws.config.js not found, using default configuration values","level":"info"}
+{"message":"Listening on port: 3232","level":"info"}
+{"message":"Serving static files from /tmp/static","level":"debug"}
+{"message":"Connection established to db: mongodb://127.0.0.1:27017/bws","level":"info"}
+{"message":"Creating DB indexes","level":"info"}
+{"message":"Using message broker server at http://localhost:3380","level":"info"}
+{"message":"BWS running ","level":"info"}
+{"message":"addresses checked already","level":"debug"}
+[v8.js.207] GET TX 0x0490b3f4d133bdd03edbd43e2d641903190a2b9d445eb7bbf375cf2461c05c35
+[v8.js.207] GET TX 0xeb85f9279c9ededb1e28ca5e5074a7a324848a3fb781f19ded05ab8f98fbf595
+{"message":"/v3/wallets/?includeExtendedInfo=1&serverMessageArray=1&r=38339 :401:401 - \"Authentication failed\"","level":"error"}
+{"message":"2022-09-14 01:27:17.233 |       ::ffff:127.0.0.1 | -:bwc-8.25.27  |  bcd31fd1-e1b8-4508-b931-ff3d6b89ab7a  |      END |    9018 ms |    GET |   401 | /bws/api/v3/wallets/?includeExtendedInfo=1&serverMessageArray=1&r=38339 |      0 open","level":"info"}
+{"message":"2022-09-14 01:27:17.233 |       ::ffff:127.0.0.1 | -:bwc-8.25.27  |  bcd31fd1-e1b8-4508-b931-ff3d6b89ab7a  |   CLOSED |    9019 ms |    GET |   401 | /bws/api/v3/wallets/?includeExtendedInfo=1&serverMessageArray=1&r=38339 |     -1 open","level":"info"}
+{"message":"addresses checked already","level":"debug"}
+[v8.js.207] GET TX 0x0490b3f4d133bdd03edbd43e2d641903190a2b9d445eb7bbf375cf2461c05c35
+[v8.js.207] GET TX 0xeb85f9279c9ededb1e28ca5e5074a7a324848a3fb781f19ded05ab8f98fbf595
+{"message":"/v3/wallets/?includeExtendedInfo=1&serverMessageArray=1&r=58686 :500:500 - \"<!DOCTYPE html>\\n<html lang=\\\"en\\\">\\n<head>\\n<meta charset=\\\"utf-8\\\">\\n<title>Error</title>\\n</head>\\n<body>\\n<pre>Error: connect ECONNREFUSED 127.0.0.1:3000<br> &nbsp; &nbsp;at TCPConnectWrap.afterConnect [as oncomplete] (net.js:1088:14)</pre>\\n</body>\\n</html>\\n\"","level":"error"}
+{"message":"2022-09-14 01:27:53.450 |       ::ffff:127.0.0.1 | -:bwc-8.25.27  |  bcd31fd1-e1b8-4508-b931-ff3d6b89ab7a  |      END |     124 ms |    GET |   500 | /bws/api/v3/wallets/?includeExtendedInfo=1&serverMessageArray=1&r=58686 |     -1 open","level":"info"}
+{"message":"2022-09-14 01:27:53.450 |       ::ffff:127.0.0.1 | -:bwc-8.25.27  |  bcd31fd1-e1b8-4508-b931-ff3d6b89ab7a  |   CLOSED |     125 ms |    GET |   500 | /bws/api/v3/wallets/?includeExtendedInfo=1&serverMessageArray=1&r=58686 |     -2 open","level":"info"}
+{"message":"addresses checked already","level":"debug"}
+[v8.js.207] GET TX 0x0490b3f4d133bdd03edbd43e2d641903190a2b9d445eb7bbf375cf2461c05c35
+[v8.js.207] GET TX 0xeb85f9279c9ededb1e28ca5e5074a7a324848a3fb781f19ded05ab8f98fbf595
+{"message":"/v3/wallets/?includeExtendedInfo=1&serverMessageArray=1&r=13907 :500:500 - \"<!DOCTYPE html>\\n<html lang=\\\"en\\\">\\n<head>\\n<meta charset=\\\"utf-8\\\">\\n<title>Error</title>\\n</head>\\n<body>\\n<pre>Error: socket hang up<br> &nbsp; &nbsp;at createHangUpError (_http_client.js:330:17)<br> &nbsp; &nbsp;at Socket.socketOnEnd (_http_client.js:431:23)<br> &nbsp; &nbsp;at Socket.emit (events.js:198:15)<br> &nbsp; &nbsp;at endReadableNT (_stream_readable.js:1139:12)<br> &nbsp; &nbsp;at processTicksAndRejections (internal/process/task_queues.js:81:17)</pre>\\n</body>\\n</html>\\n\"","level":"error"}
+{"message":"2022-09-14 01:28:10.508 |       ::ffff:127.0.0.1 | -:bwc-8.25.27  |  bcd31fd1-e1b8-4508-b931-ff3d6b89ab7a  |      END |   79378 ms |    GET |   500 | /bws/api/v3/wallets/?includeExtendedInfo=1&serverMessageArray=1&r=13907 |     -2 open","level":"info"}
+{"message":"2022-09-14 01:28:10.508 |       ::ffff:127.0.0.1 | -:bwc-8.25.27  |  bcd31fd1-e1b8-4508-b931-ff3d6b89ab7a  |   CLOSED |   79378 ms |    GET |   500 | /bws/api/v3/wallets/?includeExtendedInfo=1&serverMessageArray=1&r=13907 |     -3 open","level":"info"}
+{"message":"bws.config.js not found, using default configuration values","level":"info"}
+{"message":"Listening on port: 3232","level":"info"}
+{"message":"Serving static files from /tmp/static","level":"debug"}
+{"message":"Connection established to db: mongodb://127.0.0.1:27017/bws","level":"info"}
+{"message":"Creating DB indexes","level":"info"}
+{"message":"Using message broker server at http://localhost:3380","level":"info"}
+{"message":"BWS running ","level":"info"}
+{"message":"addresses checked already","level":"debug"}
+[v8.js.207] GET TX 0x0490b3f4d133bdd03edbd43e2d641903190a2b9d445eb7bbf375cf2461c05c35
+[v8.js.207] GET TX 0xeb85f9279c9ededb1e28ca5e5074a7a324848a3fb781f19ded05ab8f98fbf595
+{"message":"/v3/wallets/?includeExtendedInfo=1&serverMessageArray=1&r=60570 :500:500 - \"<!DOCTYPE html>\\n<html lang=\\\"en\\\">\\n<head>\\n<meta charset=\\\"utf-8\\\">\\n<title>Error</title>\\n</head>\\n<body>\\n<pre>Error: connect ECONNREFUSED 127.0.0.1:3000<br> &nbsp; &nbsp;at TCPConnectWrap.afterConnect [as oncomplete] (net.js:1088:14)</pre>\\n</body>\\n</html>\\n\"","level":"error"}
+{"message":"2022-09-14 01:39:02.950 |       ::ffff:127.0.0.1 | -:bwc-8.25.27  |  bcd31fd1-e1b8-4508-b931-ff3d6b89ab7a  |      END |     256 ms |    GET |   500 | /bws/api/v3/wallets/?includeExtendedInfo=1&serverMessageArray=1&r=60570 |      0 open","level":"info"}
+{"message":"2022-09-14 01:39:02.950 |       ::ffff:127.0.0.1 | -:bwc-8.25.27  |  bcd31fd1-e1b8-4508-b931-ff3d6b89ab7a  |   CLOSED |     256 ms |    GET |   500 | /bws/api/v3/wallets/?includeExtendedInfo=1&serverMessageArray=1&r=60570 |     -1 open","level":"info"}
+{"message":"addresses checked already","level":"debug"}
+[v8.js.207] GET TX 0x0490b3f4d133bdd03edbd43e2d641903190a2b9d445eb7bbf375cf2461c05c35
+[v8.js.207] GET TX 0xeb85f9279c9ededb1e28ca5e5074a7a324848a3fb781f19ded05ab8f98fbf595
+[v8.js.207] GET TX 0x0490b3f4d133bdd03edbd43e2d641903190a2b9d445eb7bbf375cf2461c05c35
+[v8.js.207] GET TX 0xeb85f9279c9ededb1e28ca5e5074a7a324848a3fb781f19ded05ab8f98fbf595
+{"message":"2022-09-14 01:39:19.348 |       ::ffff:127.0.0.1 | -:bwc-8.25.27  |  bcd31fd1-e1b8-4508-b931-ff3d6b89ab7a  |      END |   11193 ms |    GET |   200 | /bws/api/v3/wallets/?includeExtendedInfo=1&serverMessageArray=1&r=55661 |     -1 open","level":"info"}
+{"message":"2022-09-14 01:39:19.348 |       ::ffff:127.0.0.1 | -:bwc-8.25.27  |  bcd31fd1-e1b8-4508-b931-ff3d6b89ab7a  |   CLOSED |   11193 ms |    GET |   200 | /bws/api/v3/wallets/?includeExtendedInfo=1&serverMessageArray=1&r=55661 |     -2 open","level":"info"}
+{"message":"addresses checked already","level":"debug"}
+{"message":"2022-09-14 01:39:30.615 |       ::ffff:127.0.0.1 | -:bwc-8.25.27  |  bcd31fd1-e1b8-4508-b931-ff3d6b89ab7a  |      END |  104309 ms |    GET |   200 | /bws/api/v1/balance/?tokenAddress=0x26B69343Ab58f9A1A1BcB7FeE7FA6a5A1bB3409E&tokenId=1&r=63782 |     -2 open","level":"info"}
+{"message":"2022-09-14 01:39:30.615 |       ::ffff:127.0.0.1 | -:bwc-8.25.27  |  bcd31fd1-e1b8-4508-b931-ff3d6b89ab7a  |   CLOSED |  104309 ms |    GET |   200 | /bws/api/v1/balance/?tokenAddress=0x26B69343Ab58f9A1A1BcB7FeE7FA6a5A1bB3409E&tokenId=1&r=63782 |     -3 open","level":"info"}
+{"message":"addresses checked already","level":"debug"}
+[v8.js.207] GET TX 0x0490b3f4d133bdd03edbd43e2d641903190a2b9d445eb7bbf375cf2461c05c35
+[v8.js.207] GET TX 0xeb85f9279c9ededb1e28ca5e5074a7a324848a3fb781f19ded05ab8f98fbf595
+[v8.js.207] GET TX 0x0490b3f4d133bdd03edbd43e2d641903190a2b9d445eb7bbf375cf2461c05c35
+[v8.js.207] GET TX 0xeb85f9279c9ededb1e28ca5e5074a7a324848a3fb781f19ded05ab8f98fbf595
+{"message":"2022-09-14 01:42:19.353 |       ::ffff:127.0.0.1 | -:bwc-8.25.27  |  bcd31fd1-e1b8-4508-b931-ff3d6b89ab7a  |      END |   67520 ms |    GET |   200 | /bws/api/v3/wallets/?includeExtendedInfo=1&serverMessageArray=1&r=47375 |     -3 open","level":"info"}
+{"message":"2022-09-14 01:42:19.353 |       ::ffff:127.0.0.1 | -:bwc-8.25.27  |  bcd31fd1-e1b8-4508-b931-ff3d6b89ab7a  |   CLOSED |   67520 ms |    GET |   200 | /bws/api/v3/wallets/?includeExtendedInfo=1&serverMessageArray=1&r=47375 |     -4 open","level":"info"}
+{"message":"addresses checked already","level":"debug"}
+{"message":"2022-09-14 01:43:26.955 |              localhost | -:bwc-8.25.27  |  bcd31fd1-e1b8-4508-b931-ff3d6b89ab7a  |   CLOSED |  120003 ms |    GET |   200 | /bws/api/v1/balance/?tokenAddress=0x26B69343Ab58f9A1A1BcB7FeE7FA6a5A1bB3409E&tokenId=1&r=89002 |     -4 open","level":"info"}
+{"message":"/v1/balance/?tokenAddress=0x26B69343Ab58f9A1A1BcB7FeE7FA6a5A1bB3409E&tokenId=1&r=89002 :500:RequestError: Error: socket hang up","level":"error"}
+{"message":"addresses checked already","level":"debug"}
+{"message":"2022-09-14 01:46:35.210 |       ::ffff:127.0.0.1 | -:bwc-8.25.27  |  38018961-2818-441a-bd58-6c1e0f2a3210  |      END |   24863 ms |    GET |   200 | /bws/api/v3/wallets/?includeExtendedInfo=1&serverMessageArray=1&r=40840 |     -4 open","level":"info"}
+{"message":"2022-09-14 01:46:35.210 |       ::ffff:127.0.0.1 | -:bwc-8.25.27  |  38018961-2818-441a-bd58-6c1e0f2a3210  |   CLOSED |   24863 ms |    GET |   200 | /bws/api/v3/wallets/?includeExtendedInfo=1&serverMessageArray=1&r=40840 |     -5 open","level":"info"}
+{"message":"addresses checked already","level":"debug"}
+{"message":"2022-09-14 01:47:00.175 |       ::ffff:127.0.0.1 | -:bwc-8.25.27  |  38018961-2818-441a-bd58-6c1e0f2a3210  |      END |   10707 ms |    GET |   200 | /bws/api/v1/balance/?tokenAddress=0x26B69343Ab58f9A1A1BcB7FeE7FA6a5A1bB3409E&tokenId=1&r=58818 |     -5 open","level":"info"}
+{"message":"2022-09-14 01:47:00.175 |       ::ffff:127.0.0.1 | -:bwc-8.25.27  |  38018961-2818-441a-bd58-6c1e0f2a3210  |   CLOSED |   10708 ms |    GET |   200 | /bws/api/v1/balance/?tokenAddress=0x26B69343Ab58f9A1A1BcB7FeE7FA6a5A1bB3409E&tokenId=1&r=58818 |     -6 open","level":"info"}
+{"message":"addresses checked already","level":"debug"}
+{"message":"2022-09-14 01:47:44.505 |       ::ffff:127.0.0.1 | -:bwc-8.25.27  |  38018961-2818-441a-bd58-6c1e0f2a3210  |      END |      98 ms |    GET |   200 | /bws/api/v3/wallets/?includeExtendedInfo=1&serverMessageArray=1&r=49787 |     -6 open","level":"info"}
+{"message":"2022-09-14 01:47:44.505 |       ::ffff:127.0.0.1 | -:bwc-8.25.27  |  38018961-2818-441a-bd58-6c1e0f2a3210  |   CLOSED |      98 ms |    GET |   200 | /bws/api/v3/wallets/?includeExtendedInfo=1&serverMessageArray=1&r=49787 |     -7 open","level":"info"}
+{"message":"addresses checked already","level":"debug"}
+{"message":"2022-09-14 01:47:44.649 |       ::ffff:127.0.0.1 | -:bwc-8.25.27  |  38018961-2818-441a-bd58-6c1e0f2a3210  |      END |     210 ms |    GET |   200 | /bws/api/v1/balance/?tokenAddress=0x26B69343Ab58f9A1A1BcB7FeE7FA6a5A1bB3409E&tokenId=2&r=41805 |     -7 open","level":"info"}
+{"message":"2022-09-14 01:47:44.649 |       ::ffff:127.0.0.1 | -:bwc-8.25.27  |  38018961-2818-441a-bd58-6c1e0f2a3210  |   CLOSED |     211 ms |    GET |   200 | /bws/api/v1/balance/?tokenAddress=0x26B69343Ab58f9A1A1BcB7FeE7FA6a5A1bB3409E&tokenId=2&r=41805 |     -8 open","level":"info"}
+{"message":"bws.config.js not found, using default configuration values","level":"info"}
+{"message":"Listening on port: 3232","level":"info"}
+{"message":"Serving static files from /tmp/static","level":"debug"}
+{"message":"Connection established to db: mongodb://127.0.0.1:27017/bws","level":"info"}
+{"message":"Creating DB indexes","level":"info"}
+{"message":"Using message broker server at http://localhost:3380","level":"info"}
+{"message":"BWS running ","level":"info"}
+{"message":"addresses checked already","level":"debug"}
+{"message":"2022-09-14 02:11:48.999 |       ::ffff:127.0.0.1 | -:bwc-8.25.27  |  38018961-2818-441a-bd58-6c1e0f2a3210  |      END |     286 ms |    GET |   200 | /bws/api/v3/wallets/?includeExtendedInfo=1&serverMessageArray=1&r=12694 |      0 open","level":"info"}
+{"message":"2022-09-14 02:11:48.999 |       ::ffff:127.0.0.1 | -:bwc-8.25.27  |  38018961-2818-441a-bd58-6c1e0f2a3210  |   CLOSED |     286 ms |    GET |   200 | /bws/api/v3/wallets/?includeExtendedInfo=1&serverMessageArray=1&r=12694 |     -1 open","level":"info"}
+{"message":"addresses checked already","level":"debug"}
+{"message":"/v1/balance/?tokenAddress=0x50d80b2a3eaf85b6413c4c1ad38134a6d1bb1ba6&tokenId=11000&r=88340 :500:500 - {}","level":"error"}
+{"message":"2022-09-14 02:11:49.341 |       ::ffff:127.0.0.1 | -:bwc-8.25.27  |  38018961-2818-441a-bd58-6c1e0f2a3210  |      END |    6955 ms |    GET |   500 | /bws/api/v1/balance/?tokenAddress=0x50d80b2a3eaf85b6413c4c1ad38134a6d1bb1ba6&tokenId=11000&r=88340 |     -1 open","level":"info"}
+{"message":"2022-09-14 02:11:49.341 |       ::ffff:127.0.0.1 | -:bwc-8.25.27  |  38018961-2818-441a-bd58-6c1e0f2a3210  |   CLOSED |    6955 ms |    GET |   500 | /bws/api/v1/balance/?tokenAddress=0x50d80b2a3eaf85b6413c4c1ad38134a6d1bb1ba6&tokenId=11000&r=88340 |     -2 open","level":"info"}
+{"message":"addresses checked already","level":"debug"}
+{"message":"/v3/wallets/?includeExtendedInfo=1&serverMessageArray=1&r=46917 :500:500 - \"<!DOCTYPE html>\\n<html lang=\\\"en\\\">\\n<head>\\n<meta charset=\\\"utf-8\\\">\\n<title>Error</title>\\n</head>\\n<body>\\n<pre>Error: connect ECONNREFUSED 127.0.0.1:3000<br> &nbsp; &nbsp;at TCPConnectWrap.afterConnect [as oncomplete] (net.js:1088:14)</pre>\\n</body>\\n</html>\\n\"","level":"error"}
+{"message":"2022-09-14 02:13:54.945 |       ::ffff:127.0.0.1 | -:bwc-8.25.27  |  38018961-2818-441a-bd58-6c1e0f2a3210  |      END |      20 ms |    GET |   500 | /bws/api/v3/wallets/?includeExtendedInfo=1&serverMessageArray=1&r=46917 |     -2 open","level":"info"}
+{"message":"2022-09-14 02:13:54.945 |       ::ffff:127.0.0.1 | -:bwc-8.25.27  |  38018961-2818-441a-bd58-6c1e0f2a3210  |   CLOSED |      20 ms |    GET |   500 | /bws/api/v3/wallets/?includeExtendedInfo=1&serverMessageArray=1&r=46917 |     -3 open","level":"info"}
+{"message":"addresses checked already","level":"debug"}
+{"message":"/v3/wallets/?includeExtendedInfo=1&serverMessageArray=1&r=56499 :500:500 - \"<!DOCTYPE html>\\n<html lang=\\\"en\\\">\\n<head>\\n<meta charset=\\\"utf-8\\\">\\n<title>Error</title>\\n</head>\\n<body>\\n<pre>Error: connect ECONNREFUSED 127.0.0.1:3000<br> &nbsp; &nbsp;at TCPConnectWrap.afterConnect [as oncomplete] (net.js:1088:14)</pre>\\n</body>\\n</html>\\n\"","level":"error"}
+{"message":"2022-09-14 02:14:06.945 |       ::ffff:127.0.0.1 | -:bwc-8.25.27  |  38018961-2818-441a-bd58-6c1e0f2a3210  |      END |      25 ms |    GET |   500 | /bws/api/v3/wallets/?includeExtendedInfo=1&serverMessageArray=1&r=56499 |     -3 open","level":"info"}
+{"message":"2022-09-14 02:14:06.945 |       ::ffff:127.0.0.1 | -:bwc-8.25.27  |  38018961-2818-441a-bd58-6c1e0f2a3210  |   CLOSED |      26 ms |    GET |   500 | /bws/api/v3/wallets/?includeExtendedInfo=1&serverMessageArray=1&r=56499 |     -4 open","level":"info"}
+{"message":"addresses checked already","level":"debug"}
+{"message":"2022-09-14 02:14:12.687 |       ::ffff:127.0.0.1 | -:bwc-8.25.27  |  38018961-2818-441a-bd58-6c1e0f2a3210  |      END |     226 ms |    GET |   200 | /bws/api/v3/wallets/?includeExtendedInfo=1&serverMessageArray=1&r=99007 |     -4 open","level":"info"}
+{"message":"2022-09-14 02:14:12.687 |       ::ffff:127.0.0.1 | -:bwc-8.25.27  |  38018961-2818-441a-bd58-6c1e0f2a3210  |   CLOSED |     226 ms |    GET |   200 | /bws/api/v3/wallets/?includeExtendedInfo=1&serverMessageArray=1&r=99007 |     -5 open","level":"info"}
+{"message":"addresses checked already","level":"debug"}
+{"message":"2022-09-14 02:14:12.971 |       ::ffff:127.0.0.1 | -:bwc-8.25.27  |  38018961-2818-441a-bd58-6c1e0f2a3210  |      END |   14150 ms |    GET |   200 | /bws/api/v1/balance/?tokenAddress=0x50d80b2a3eaf85b6413c4c1ad38134a6d1bb1ba6&tokenId=11000&r=91667 |     -5 open","level":"info"}
+{"message":"2022-09-14 02:14:12.971 |       ::ffff:127.0.0.1 | -:bwc-8.25.27  |  38018961-2818-441a-bd58-6c1e0f2a3210  |   CLOSED |   14150 ms |    GET |   200 | /bws/api/v1/balance/?tokenAddress=0x50d80b2a3eaf85b6413c4c1ad38134a6d1bb1ba6&tokenId=11000&r=91667 |     -6 open","level":"info"}
+{"message":"bws.config.js not found, using default configuration values","level":"info"}
+{"message":"Listening on port: 3232","level":"info"}
+{"message":"Serving static files from /tmp/static","level":"debug"}
+{"message":"Connection established to db: mongodb://127.0.0.1:27017/bws","level":"info"}
+{"message":"Creating DB indexes","level":"info"}
+{"message":"Using message broker server at http://localhost:3380","level":"info"}
+{"message":"BWS running ","level":"info"}
+{"message":"addresses checked already","level":"debug"}
+{"message":"/v3/wallets/?includeExtendedInfo=1&serverMessageArray=1&r=75044 :500:500 - \"<!DOCTYPE html>\\n<html lang=\\\"en\\\">\\n<head>\\n<meta charset=\\\"utf-8\\\">\\n<title>Error</title>\\n</head>\\n<body>\\n<pre>Error: connect ECONNREFUSED 127.0.0.1:3000<br> &nbsp; &nbsp;at TCPConnectWrap.afterConnect [as oncomplete] (net.js:1088:14)</pre>\\n</body>\\n</html>\\n\"","level":"error"}
+{"message":"2022-09-14 19:30:30.529 |       ::ffff:127.0.0.1 | -:bwc-8.25.27  |  38018961-2818-441a-bd58-6c1e0f2a3210  |      END |      69 ms |    GET |   500 | /bws/api/v3/wallets/?includeExtendedInfo=1&serverMessageArray=1&r=75044 |      0 open","level":"info"}
+{"message":"2022-09-14 19:30:30.529 |       ::ffff:127.0.0.1 | -:bwc-8.25.27  |  38018961-2818-441a-bd58-6c1e0f2a3210  |   CLOSED |      69 ms |    GET |   500 | /bws/api/v3/wallets/?includeExtendedInfo=1&serverMessageArray=1&r=75044 |     -1 open","level":"info"}
+{"message":"addresses checked already","level":"debug"}
+{"message":"2022-09-14 19:31:10.825 |       ::ffff:127.0.0.1 | -:bwc-8.25.27  |  38018961-2818-441a-bd58-6c1e0f2a3210  |      END |   13421 ms |    GET |   200 | /bws/api/v3/wallets/?includeExtendedInfo=1&serverMessageArray=1&r=68187 |     -1 open","level":"info"}
+{"message":"2022-09-14 19:31:10.825 |       ::ffff:127.0.0.1 | -:bwc-8.25.27  |  38018961-2818-441a-bd58-6c1e0f2a3210  |   CLOSED |   13421 ms |    GET |   200 | /bws/api/v3/wallets/?includeExtendedInfo=1&serverMessageArray=1&r=68187 |     -2 open","level":"info"}
+{"message":"addresses checked already","level":"debug"}
+{"message":"2022-09-14 19:31:24.293 |       ::ffff:127.0.0.1 | -:bwc-8.25.27  |  38018961-2818-441a-bd58-6c1e0f2a3210  |      END |   88575 ms |    GET |   200 | /bws/api/v1/balance/?tokenAddress=0x26B69343Ab58f9A1A1BcB7FeE7FA6a5A1bB3409E&tokenId=1&tokenType=1&r=57246 |     -2 open","level":"info"}
+{"message":"2022-09-14 19:31:24.293 |       ::ffff:127.0.0.1 | -:bwc-8.25.27  |  38018961-2818-441a-bd58-6c1e0f2a3210  |   CLOSED |   88575 ms |    GET |   200 | /bws/api/v1/balance/?tokenAddress=0x26B69343Ab58f9A1A1BcB7FeE7FA6a5A1bB3409E&tokenId=1&tokenType=1&r=57246 |     -3 open","level":"info"}
+{"message":"addresses checked already","level":"debug"}
+{"message":"2022-09-14 19:36:46.563 |       ::ffff:127.0.0.1 | -:bwc-8.25.27  |  38018961-2818-441a-bd58-6c1e0f2a3210  |      END |    4252 ms |    GET |   200 | /bws/api/v3/wallets/?includeExtendedInfo=1&serverMessageArray=1&r=50281 |     -3 open","level":"info"}
+{"message":"2022-09-14 19:36:46.563 |       ::ffff:127.0.0.1 | -:bwc-8.25.27  |  38018961-2818-441a-bd58-6c1e0f2a3210  |   CLOSED |    4252 ms |    GET |   200 | /bws/api/v3/wallets/?includeExtendedInfo=1&serverMessageArray=1&r=50281 |     -4 open","level":"info"}
+{"message":"addresses checked already","level":"debug"}
+{"message":"2022-09-14 19:36:50.908 |       ::ffff:127.0.0.1 | -:bwc-8.25.27  |  38018961-2818-441a-bd58-6c1e0f2a3210  |      END |   14883 ms |    GET |   200 | /bws/api/v1/balance/?tokenAddress=0x26B69343Ab58f9A1A1BcB7FeE7FA6a5A1bB3409E&tokenId=1&tokenType=1&r=59247 |     -4 open","level":"info"}
+{"message":"2022-09-14 19:36:50.908 |       ::ffff:127.0.0.1 | -:bwc-8.25.27  |  38018961-2818-441a-bd58-6c1e0f2a3210  |   CLOSED |   14883 ms |    GET |   200 | /bws/api/v1/balance/?tokenAddress=0x26B69343Ab58f9A1A1BcB7FeE7FA6a5A1bB3409E&tokenId=1&tokenType=1&r=59247 |     -5 open","level":"info"}
+{"message":"addresses checked already","level":"debug"}
+{"message":"2022-09-14 19:37:43.436 |       ::ffff:127.0.0.1 | -:bwc-8.25.27  |  38018961-2818-441a-bd58-6c1e0f2a3210  |      END |     149 ms |    GET |   200 | /bws/api/v3/wallets/?includeExtendedInfo=1&serverMessageArray=1&r=23888 |     -5 open","level":"info"}
+{"message":"2022-09-14 19:37:43.436 |       ::ffff:127.0.0.1 | -:bwc-8.25.27  |  38018961-2818-441a-bd58-6c1e0f2a3210  |   CLOSED |     150 ms |    GET |   200 | /bws/api/v3/wallets/?includeExtendedInfo=1&serverMessageArray=1&r=23888 |     -6 open","level":"info"}
+{"message":"addresses checked already","level":"debug"}
+{"message":"2022-09-14 19:37:43.685 |       ::ffff:127.0.0.1 | -:bwc-8.25.27  |  38018961-2818-441a-bd58-6c1e0f2a3210  |      END |    5441 ms |    GET |   200 | /bws/api/v1/balance/?tokenAddress=0x26B69343Ab58f9A1A1BcB7FeE7FA6a5A1bB3409E&tokenId=2&tokenType=1&r=37949 |     -6 open","level":"info"}
+{"message":"2022-09-14 19:37:43.685 |       ::ffff:127.0.0.1 | -:bwc-8.25.27  |  38018961-2818-441a-bd58-6c1e0f2a3210  |   CLOSED |    5441 ms |    GET |   200 | /bws/api/v1/balance/?tokenAddress=0x26B69343Ab58f9A1A1BcB7FeE7FA6a5A1bB3409E&tokenId=2&tokenType=1&r=37949 |     -7 open","level":"info"}
+{"message":"addresses checked already","level":"debug"}
+{"message":"2022-09-14 19:39:19.455 |       ::ffff:127.0.0.1 | -:bwc-8.25.27  |  38018961-2818-441a-bd58-6c1e0f2a3210  |      END |     138 ms |    GET |   200 | /bws/api/v3/wallets/?includeExtendedInfo=1&serverMessageArray=1&r=96318 |     -7 open","level":"info"}
+{"message":"2022-09-14 19:39:19.455 |       ::ffff:127.0.0.1 | -:bwc-8.25.27  |  38018961-2818-441a-bd58-6c1e0f2a3210  |   CLOSED |     138 ms |    GET |   200 | /bws/api/v3/wallets/?includeExtendedInfo=1&serverMessageArray=1&r=96318 |     -8 open","level":"info"}
+{"message":"addresses checked already","level":"debug"}
+{"message":"2022-09-14 19:39:19.702 |       ::ffff:127.0.0.1 | -:bwc-8.25.27  |  38018961-2818-441a-bd58-6c1e0f2a3210  |      END |     180 ms |    GET |   200 | /bws/api/v1/balance/?tokenAddress=0x50d80b2a3eaf85b6413c4c1ad38134a6d1bb1ba6&tokenId=10000&tokenType=2&r=63445 |     -8 open","level":"info"}
+{"message":"2022-09-14 19:39:19.702 |       ::ffff:127.0.0.1 | -:bwc-8.25.27  |  38018961-2818-441a-bd58-6c1e0f2a3210  |   CLOSED |     180 ms |    GET |   200 | /bws/api/v1/balance/?tokenAddress=0x50d80b2a3eaf85b6413c4c1ad38134a6d1bb1ba6&tokenId=10000&tokenType=2&r=63445 |     -9 open","level":"info"}
+{"message":"addresses checked already","level":"debug"}
+{"message":"2022-09-14 19:41:48.223 |       ::ffff:127.0.0.1 | -:bwc-8.25.27  |  38018961-2818-441a-bd58-6c1e0f2a3210  |      END |     179 ms |    GET |   200 | /bws/api/v3/wallets/?includeExtendedInfo=1&serverMessageArray=1&r=35450 |     -9 open","level":"info"}
+{"message":"2022-09-14 19:41:48.223 |       ::ffff:127.0.0.1 | -:bwc-8.25.27  |  38018961-2818-441a-bd58-6c1e0f2a3210  |   CLOSED |     179 ms |    GET |   200 | /bws/api/v3/wallets/?includeExtendedInfo=1&serverMessageArray=1&r=35450 |    -10 open","level":"info"}
+{"message":"addresses checked already","level":"debug"}
+{"message":"Releasing expired lock : 38018961-2818-441a-bd58-6c1e0f2a3210","level":"info"}
+[v8.js.378:url:] CHECKING GAS LIMIT http://127.0.0.1:8200/api/ETH/mainnet/gas
+{"message":"2022-09-14 19:41:48.549 |       ::ffff:127.0.0.1 | -:bwc-8.25.27  |  38018961-2818-441a-bd58-6c1e0f2a3210  |      END |     280 ms |    GET |   200 | /bws/api/v1/balance/?tokenAddress=0x50d80b2a3eaf85b6413c4c1ad38134a6d1bb1ba6&tokenId=10000&tokenType=2&r=80099 |     -9 open","level":"info"}
+{"message":"2022-09-14 19:41:48.549 |       ::ffff:127.0.0.1 | -:bwc-8.25.27  |  38018961-2818-441a-bd58-6c1e0f2a3210  |   CLOSED |     280 ms |    GET |   200 | /bws/api/v1/balance/?tokenAddress=0x50d80b2a3eaf85b6413c4c1ad38134a6d1bb1ba6&tokenId=10000&tokenType=2&r=80099 |    -10 open","level":"info"}
+{"name":"StatusCodeError","statusCode":500,"message":"<38018961-2818-441a-bd58-6c1e0f2a3210>Error estimating gas limit 500 - undefined","options":{"body":{"coin":"eth","network":"livenet","from":"0x58CfA3CD076f8c79E411fDB87E473Dd8216713F0","to":"0x50d80b2a3eaf85b6413c4c1ad38134a6d1bb1ba6","value":0,"gasPrice":1000000000},"json":true,"uri":"http://127.0.0.1:8200/api/ETH/mainnet/gas","method":"POST","simple":true,"resolveWithFullResponse":false,"transform2xxOnly":false},"response":{"statusCode":500,"headers":{"x-powered-by":"Express","access-control-allow-origin":"*","cache-control":"s-maxage=1, max-age=1","date":"Thu, 15 Sep 2022 02:41:48 GMT","connection":"close","content-length":"0"},"request":{"uri":{"protocol":"http:","slashes":true,"auth":null,"host":"127.0.0.1:8200","port":"8200","hostname":"127.0.0.1","hash":null,"search":null,"query":null,"pathname":"/api/ETH/mainnet/gas","path":"/api/ETH/mainnet/gas","href":"http://127.0.0.1:8200/api/ETH/mainnet/gas"},"method":"POST","headers":{"accept":"application/json","content-type":"application/json","content-length":168}}},"level":"warn","stack":"StatusCodeError: 500 - undefined\n    at new StatusCodeError (/mnt/ethereum/ccc/bitcore/packages/bitcore-wallet-service/node_modules/request-promise-core/lib/errors.js:32:15)\n    at Request.plumbing.callback (/mnt/ethereum/ccc/bitcore/packages/bitcore-wallet-service/node_modules/request-promise-core/lib/plumbing.js:104:33)\n    at Request.RP$callback [as _callback] (/mnt/ethereum/ccc/bitcore/packages/bitcore-wallet-service/node_modules/request-promise-core/lib/plumbing.js:46:31)\n    at Request.self.callback (/mnt/ethereum/ccc/bitcore/packages/bitcore-wallet-service/node_modules/request/request.js:185:22)\n    at Request.emit (events.js:193:13)\n    at Request.<anonymous> (/mnt/ethereum/ccc/bitcore/packages/bitcore-wallet-service/node_modules/request/request.js:1154:10)\n    at Request.emit (events.js:193:13)\n    at IncomingMessage.<anonymous> (/mnt/ethereum/ccc/bitcore/packages/bitcore-wallet-service/node_modules/request/request.js:1076:12)\n    at Object.onceWrapper (events.js:281:20)\n    at IncomingMessage.emit (events.js:198:15)\n    at endReadableNT (_stream_readable.js:1139:12)\n    at processTicksAndRejections (internal/process/task_queues.js:81:17)"}
+[v8.js.364:url:] CHECKING ADDRESS NONCE http://127.0.0.1:8200/api/ETH/mainnet/address/0x58CfA3CD076f8c79E411fDB87E473Dd8216713F0/txs/count
+{"message":"addresses checked already","level":"debug"}
+{"message":"addresses checked already","level":"debug"}
+{"level":"debug","message":"Error building Bitcore transaction Cannot read property 'length' of undefined","stack":"TypeError: Cannot read property 'length' of undefined\n    at ABICoder.formatParam (/mnt/ethereum/ccc/bitcore/packages/crypto-wallet-core/node_modules/web3-eth-abi/lib/index.js:247:19)\n    at /mnt/ethereum/ccc/bitcore/packages/crypto-wallet-core/node_modules/web3-eth-abi/lib/index.js:99:22\n    at Array.map (<anonymous>)\n    at ABICoder.encodeParameters (/mnt/ethereum/ccc/bitcore/packages/crypto-wallet-core/node_modules/web3-eth-abi/lib/index.js:93:21)\n    at /mnt/ethereum/ccc/bitcore/packages/crypto-wallet-core/node_modules/web3-eth-contract/lib/index.js:462:20\n    at Array.map (<anonymous>)\n    at Object._encodeMethodABI (/mnt/ethereum/ccc/bitcore/packages/crypto-wallet-core/node_modules/web3-eth-contract/lib/index.js:461:8)\n    at VERC1155TxProvider.encodeData (/mnt/ethereum/ccc/bitcore/packages/crypto-wallet-core/src/transactions/verc1155/index.ts:46:8)\n    at VERC1155TxProvider.create (/mnt/ethereum/ccc/bitcore/packages/crypto-wallet-core/src/transactions/verc1155/index.ts:27:23)\n    at EthChain.getBitcoreTx (/mnt/ethereum/ccc/bitcore/packages/bitcore-wallet-service/src/lib/chain/eth/index.ts:331:58)\n    at EthChain.checkTx (/mnt/ethereum/ccc/bitcore/packages/bitcore-wallet-service/src/lib/chain/eth/index.ts:458:23)\n    at /mnt/ethereum/ccc/bitcore/packages/bitcore-wallet-service/src/lib/chain/eth/index.ts:572:32\n    at /mnt/ethereum/ccc/bitcore/packages/bitcore-wallet-service/src/lib/chain/eth/index.ts:129:18\n    at /mnt/ethereum/ccc/bitcore/packages/bitcore-wallet-service/src/lib/storage.ts:719:16\n    at /mnt/ethereum/ccc/bitcore/packages/bitcore-wallet-service/node_modules/mongodb/lib/utils.js:731:5\n    at handleCallback (/mnt/ethereum/ccc/bitcore/packages/bitcore-wallet-service/node_modules/mongodb/lib/utils.js:128:55)\n    at cursor.close (/mnt/ethereum/ccc/bitcore/packages/bitcore-wallet-service/node_modules/mongodb/lib/cursor.js:839:66)\n    at /mnt/ethereum/ccc/bitcore/packages/bitcore-wallet-service/node_modules/mongodb/lib/utils.js:731:5\n    at _endSession (/mnt/ethereum/ccc/bitcore/packages/bitcore-wallet-service/node_modules/mongodb/lib/cursor.js:924:9)\n    at Cursor._endSession (/mnt/ethereum/ccc/bitcore/packages/bitcore-wallet-service/node_modules/mongodb/lib/core/cursor.js:394:7)\n    at cb (/mnt/ethereum/ccc/bitcore/packages/bitcore-wallet-service/node_modules/mongodb/lib/cursor.js:922:12)\n    at maybePromise (/mnt/ethereum/ccc/bitcore/packages/bitcore-wallet-service/node_modules/mongodb/lib/utils.js:719:3)\n    at Cursor.close (/mnt/ethereum/ccc/bitcore/packages/bitcore-wallet-service/node_modules/mongodb/lib/cursor.js:915:12)\n    at cursor._next (/mnt/ethereum/ccc/bitcore/packages/bitcore-wallet-service/node_modules/mongodb/lib/cursor.js:839:27)\n    at handleCallback (/mnt/ethereum/ccc/bitcore/packages/bitcore-wallet-service/node_modules/mongodb/lib/core/cursor.js:31:5)\n    at _setCursorNotifiedImpl (/mnt/ethereum/ccc/bitcore/packages/bitcore-wallet-service/node_modules/mongodb/lib/core/cursor.js:689:38)\n    at _setCursorNotifiedImpl (/mnt/ethereum/ccc/bitcore/packages/bitcore-wallet-service/node_modules/mongodb/lib/core/cursor.js:702:10)\n    at setCursorNotified (/mnt/ethereum/ccc/bitcore/packages/bitcore-wallet-service/node_modules/mongodb/lib/core/cursor.js:689:3)"}
+{"message":"/v3/txproposals/ :500:TypeError: Cannot read property 'length' of undefined","level":"error"}
+{"message":"2022-09-14 19:41:48.621 |       ::ffff:127.0.0.1 | -:bwc-8.25.27  |  38018961-2818-441a-bd58-6c1e0f2a3210  |      END |     785 ms |   POST |   500 | /bws/api/v3/txproposals/ |    -11 open","level":"info"}
+{"message":"2022-09-14 19:41:48.621 |       ::ffff:127.0.0.1 | -:bwc-8.25.27  |  38018961-2818-441a-bd58-6c1e0f2a3210  |   CLOSED |     785 ms |   POST |   500 | /bws/api/v3/txproposals/ |    -12 open","level":"info"}
+{"message":"bws.config.js not found, using default configuration values","level":"info"}
+{"message":"Listening on port: 3232","level":"info"}
+{"message":"Serving static files from /tmp/static","level":"debug"}
+{"message":"Connection established to db: mongodb://127.0.0.1:27017/bws","level":"info"}
+{"message":"Creating DB indexes","level":"info"}
+{"message":"Using message broker server at http://localhost:3380","level":"info"}
+{"message":"BWS running ","level":"info"}
+{"message":"addresses checked already","level":"debug"}
+{"message":"/v3/wallets/?includeExtendedInfo=1&serverMessageArray=1&r=53955 :500:500 - \"<!DOCTYPE html>\\n<html lang=\\\"en\\\">\\n<head>\\n<meta charset=\\\"utf-8\\\">\\n<title>Error</title>\\n</head>\\n<body>\\n<pre>Error: connect ECONNREFUSED 127.0.0.1:3000<br> &nbsp; &nbsp;at TCPConnectWrap.afterConnect [as oncomplete] (net.js:1088:14)</pre>\\n</body>\\n</html>\\n\"","level":"error"}
+{"message":"2022-09-14 23:02:26.666 |       ::ffff:127.0.0.1 | -:bwc-8.25.27  |  31bfe326-bc99-4fa3-b512-2f532484f631  |      END |      60 ms |    GET |   500 | /bws/api/v3/wallets/?includeExtendedInfo=1&serverMessageArray=1&r=53955 |      0 open","level":"info"}
+{"message":"2022-09-14 23:02:26.666 |       ::ffff:127.0.0.1 | -:bwc-8.25.27  |  31bfe326-bc99-4fa3-b512-2f532484f631  |   CLOSED |      61 ms |    GET |   500 | /bws/api/v3/wallets/?includeExtendedInfo=1&serverMessageArray=1&r=53955 |     -1 open","level":"info"}
+{"message":"addresses checked already","level":"debug"}
+{"message":"2022-09-14 23:02:37.440 |       ::ffff:127.0.0.1 | -:bwc-8.25.27  |  31bfe326-bc99-4fa3-b512-2f532484f631  |      END |     230 ms |    GET |   200 | /bws/api/v3/wallets/?includeExtendedInfo=1&serverMessageArray=1&r=12440 |     -1 open","level":"info"}
+{"message":"2022-09-14 23:02:37.440 |       ::ffff:127.0.0.1 | -:bwc-8.25.27  |  31bfe326-bc99-4fa3-b512-2f532484f631  |   CLOSED |     230 ms |    GET |   200 | /bws/api/v3/wallets/?includeExtendedInfo=1&serverMessageArray=1&r=12440 |     -2 open","level":"info"}
+{"message":"Releasing expired lock : 31bfe326-bc99-4fa3-b512-2f532484f631","level":"info"}
+[v8.js.378:url:] CHECKING GAS LIMIT http://127.0.0.1:8200/api/ETH/mainnet/gas
+{"name":"StatusCodeError","statusCode":500,"message":"<31bfe326-bc99-4fa3-b512-2f532484f631>Error estimating gas limit 500 - undefined","options":{"body":{"coin":"eth","network":"livenet","from":"0xbCDEc190eE9CfbAB5973E1aB17971CE1774F581F","to":"0x26B69343Ab58f9A1A1BcB7FeE7FA6a5A1bB3409E","value":0,"gasPrice":1000000000},"json":true,"uri":"http://127.0.0.1:8200/api/ETH/mainnet/gas","method":"POST","simple":true,"resolveWithFullResponse":false,"transform2xxOnly":false},"response":{"statusCode":500,"headers":{"x-powered-by":"Express","access-control-allow-origin":"*","cache-control":"s-maxage=1, max-age=1","date":"Thu, 15 Sep 2022 06:02:38 GMT","connection":"close","content-length":"0"},"request":{"uri":{"protocol":"http:","slashes":true,"auth":null,"host":"127.0.0.1:8200","port":"8200","hostname":"127.0.0.1","hash":null,"search":null,"query":null,"pathname":"/api/ETH/mainnet/gas","path":"/api/ETH/mainnet/gas","href":"http://127.0.0.1:8200/api/ETH/mainnet/gas"},"method":"POST","headers":{"accept":"application/json","content-type":"application/json","content-length":168}}},"level":"warn","stack":"StatusCodeError: 500 - undefined\n    at new StatusCodeError (/mnt/ethereum/ccc/bitcore/packages/bitcore-wallet-service/node_modules/request-promise-core/lib/errors.js:32:15)\n    at Request.plumbing.callback (/mnt/ethereum/ccc/bitcore/packages/bitcore-wallet-service/node_modules/request-promise-core/lib/plumbing.js:104:33)\n    at Request.RP$callback [as _callback] (/mnt/ethereum/ccc/bitcore/packages/bitcore-wallet-service/node_modules/request-promise-core/lib/plumbing.js:46:31)\n    at Request.self.callback (/mnt/ethereum/ccc/bitcore/packages/bitcore-wallet-service/node_modules/request/request.js:185:22)\n    at Request.emit (events.js:193:13)\n    at Request.<anonymous> (/mnt/ethereum/ccc/bitcore/packages/bitcore-wallet-service/node_modules/request/request.js:1154:10)\n    at Request.emit (events.js:193:13)\n    at IncomingMessage.<anonymous> (/mnt/ethereum/ccc/bitcore/packages/bitcore-wallet-service/node_modules/request/request.js:1076:12)\n    at Object.onceWrapper (events.js:281:20)\n    at IncomingMessage.emit (events.js:198:15)\n    at endReadableNT (_stream_readable.js:1139:12)\n    at processTicksAndRejections (internal/process/task_queues.js:81:17)"}
+[v8.js.364:url:] CHECKING ADDRESS NONCE http://127.0.0.1:8200/api/ETH/mainnet/address/0xbCDEc190eE9CfbAB5973E1aB17971CE1774F581F/txs/count
+{"message":"addresses checked already","level":"debug"}
+{"message":"Client Err: 400 /v3/txproposals/ {\"code\":\"INSUFFICIENT_FUNDS\",\"message\":\"Insufficient funds\",\"name\":\"INSUFFICIENT_FUNDS\"}","level":"info"}
+{"message":"2022-09-14 23:02:37.738 |       ::ffff:127.0.0.1 | -:bwc-8.25.27  |  31bfe326-bc99-4fa3-b512-2f532484f631  |      END |   33104 ms |   POST |   400 | /bws/api/v3/txproposals/ |     -2 open","level":"info"}
+{"message":"2022-09-14 23:02:37.738 |       ::ffff:127.0.0.1 | -:bwc-8.25.27  |  31bfe326-bc99-4fa3-b512-2f532484f631  |   CLOSED |   33104 ms |   POST |   400 | /bws/api/v3/txproposals/ |     -3 open","level":"info"}
