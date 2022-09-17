@@ -39,17 +39,14 @@ export class VERC1155TxProvider extends ETHTxProvider {
     const { recipients, tokenAddress, from, token } = params;
     const [{ address, amount }] = params.recipients;
     const { id, data } = token;
-    var mdata = [];
-    /*
-    if(!data){
-      mdata = new Uint8Arry([]);
+    var mdata =  new Uint8Array();
+    if(data){
+      mdata =  Buffer.from(data);
     }
-      mdata = new Uint8Array(Buffer.from(data));
-    }*/
     const tokenIdStr = Number(id).toLocaleString('en', { useGrouping: false });
     const amountStr = Number(amount).toLocaleString('en', { useGrouping: false });
     const xdata = this.getERC1155Contract(tokenAddress)
-      .methods.safeTransferFrom(from, address, tokenIdStr, amount, mdata)
+      .methods.safeTransferFrom(from, address, tokenIdStr, amountStr, mdata)
       .encodeABI();
     return xdata;
   }

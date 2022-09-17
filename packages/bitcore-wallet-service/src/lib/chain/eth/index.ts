@@ -242,9 +242,8 @@ export class EthChain implements IChain {
   }
 
   getBitcoreTx(txp, opts = { signed: true }) {
-    const { data, outputs, payProUrl, tokenAddress, multisigContractAddress, isTokenSwap, tokenId } = txp;
+    const { data, outputs, payProUrl, tokenAddress, multisigContractAddress, isTokenSwap} = txp;
     const isERC20 = tokenAddress && !payProUrl && !isTokenSwap;
-    const isERC721 = tokenAddress && tokenId;
     const isETHMULTISIG = multisigContractAddress;
     var chain;
     const unsignedTxs = [];
@@ -262,7 +261,7 @@ export class EthChain implements IChain {
     }
     if (!txp.relay || !txp.relay.cmd) {
       if(!txp.token) {
-        chain = isETHMULTISIG ? 'ETHMULTISIG' : isERC721 ? 'ERC721' : isERC20 ? 'ERC20' : 'ETH';
+        chain = isETHMULTISIG ? 'ETHMULTISIG' : isERC20 ? 'ERC20' : 'ETH';
         for (let index = 0; index < recipients.length; index++) {
           const rawTx = Transactions.create({
             ...txp,

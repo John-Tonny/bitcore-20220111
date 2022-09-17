@@ -569,6 +569,9 @@ export class API extends EventEmitter {
     var qs = [];
     qs.push('includeExtendedInfo=1');
     qs.push('serverMessageArray=1');
+    if(opts.includeAsset){
+      qs.push('includeAsset=1')
+    }
 
     this.request.get('/v3/wallets/?' + qs.join('&'), (err, ret) => {
       if (err) return cb(err);

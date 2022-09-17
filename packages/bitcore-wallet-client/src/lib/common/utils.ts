@@ -484,8 +484,7 @@ export class Utils {
         payProUrl,
         tokenAddress,
         multisigContractAddress,
-        isTokenSwap,
-        tokenId
+        isTokenSwap
       } = txp;
       const recipients = outputs.map(output => {
         return {
@@ -502,20 +501,17 @@ export class Utils {
       const unsignedTxs = [];
       // If it is a token swap its an already created ERC20 transaction so we skip it and go directly to ETH transaction create
       const isERC20 = tokenAddress && !payProUrl && !isTokenSwap;
-      const isERC721 = tokenAddress && tokenId;
       const isETHMULTISIG = multisigContractAddress;
       var chain;
       if (!txp.relay || !txp.relay.cmd) {
         if(!txp.token) {
           chain = isETHMULTISIG
               ? 'ETHMULTISIG'
-              : isERC721
-                  ? 'ERC721'
-                  : isERC20
-                      ? 'ERC20'
-                      : txp.chain
-                          ? txp.chain.toUpperCase()
-                          : this.getChain(coin);
+                : isERC20
+                  ? 'ERC20'
+                  : txp.chain
+                      ? txp.chain.toUpperCase()
+                      : this.getChain(coin);
           for (let index = 0; index < recipients.length; index++) {
             const rawTx = Transactions.create({
               ...txp,

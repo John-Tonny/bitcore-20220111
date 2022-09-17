@@ -736,19 +736,22 @@ export class WalletService {
               status.serverMessage = deprecatedServerMessage(wallet, this.appName, this.appVersion);
             }
             try {
-              const zpub = this.xPubTozPub(wallet);
-              sjs.utils
-                .fetchBackendAccount(config.blockbookUrl, zpub, null, true)
-                .then(ret => {
-                  _.each(ret.tokensAsset, tokenAsset => {
-                    tokenAsset.symbol = new Buffer(tokenAsset.symbol, 'base64').toString();
-                  });
-                  status.tokensAsset = ret.tokensAsset;
-                  next();
-                })
-                .catch(err => {
-                  next();
-                });
+              if(opts.includeAsset) {
+                const zpub = this.xPubTozPub(wallet);
+                sjs.utils
+                    .fetchBackendAccount(config.blockbookUrl, zpub, null, true)
+                    .then(ret => {
+                      _.each(ret.tokensAsset, tokenAsset => {
+                        tokenAsset.symbol = new Buffer(tokenAsset.symbol, 'base64').toString();
+                      });
+                      status.tokensAsset = ret.tokensAsset;
+                      next();
+                    })
+                    .catch(err => {
+                      next();
+                    });
+              }
+              next();
             } catch (e) {
               next();
             }

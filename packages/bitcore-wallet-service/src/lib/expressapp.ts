@@ -402,11 +402,13 @@ export class ExpressApp {
           includeServerMessages: false,
           tokenAddress: req.query.tokenAddress,
           multisigContractAddress: req.query.multisigContractAddress,
-          network: req.query.network
+          network: req.query.network,
+          includeAsset: false
         };
         if (req.query.includeExtendedInfo == '1') opts.includeExtendedInfo = true;
         if (req.query.twoStep == '1') opts.twoStep = true;
         if (req.query.serverMessageArray == '1') opts.includeServerMessages = true;
+        if(req.query.includeAsset == '1') opts.includeAsset = true;
         server.getStatus(opts, (err, status) => {
           if (err) return returnError(err, res, req);
           res.json(status);
