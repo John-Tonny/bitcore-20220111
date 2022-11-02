@@ -104,6 +104,7 @@ export class Key {
       useMulti?: boolean;
       language?: string;
       coin?: string;
+      useElectrum?: boolean;
     } = { seedType: 'new' }
   ) {
     this.coin = opts.coin || 'vcl';
@@ -113,7 +114,7 @@ export class Key {
 
     // bug backwards compatibility flags
     this.use0forBCH = opts.useLegacyCoinType;
-    this.useforElectrum = false;
+    this.useforElectrum = opts.useElectrum || false;
     this.useSegwit = false;
     this.useMulti = false;
     this.use44forMultisig = opts.useLegacyPurpose;
@@ -136,7 +137,7 @@ export class Key {
         $.checkArgument(x, 'Need to provide opts.seedData');
         $.checkArgument(_.isString(x), 'sourceData need to be a string');
         this.useMulti = opts.useMulti || false;
-        var mm = new Mnemonic(x, '', this.useMulti);
+        var mm = new Mnemonic(x, '', this.useMulti, this.useforElectrum);
         this.setFromMnemonic(mm, opts);
         this.useforElectrum = mm.useElectrum;
         break;

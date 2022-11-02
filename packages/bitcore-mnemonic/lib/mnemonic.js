@@ -38,7 +38,7 @@ const SEED_SEGWIT_PREFIX = '100';
  * @constructor
  */
 // john
-var Mnemonic = function(data, wordlist, useMulti) {
+var Mnemonic = function(data, wordlist, useMulti, useElectrum) {
   if (!(this instanceof Mnemonic)) {
     return new Mnemonic(data, wordlist);
   }
@@ -77,17 +77,23 @@ var Mnemonic = function(data, wordlist, useMulti) {
 
   // john
   this.useMulti = useMulti || false;
-  this.useElectrum = true;
-  this.useSegwit = false;
-  // validate phrase and ent
-  if (phrase && !Mnemonic.isValid(phrase, wordlist)) {
-    var status = Mnemonic.isElectrumValid(phrase, wordlist);
+  // john 20220930
+  var status = Mnemonic.isElectrumValid(phrase, wordlist);
+  if(useElectrum && status[0]) {
+    this.useElectrum = true;
     this.useSegwit = status[1];
-    if (phrase && !status[0]) {
+  }else{
+    this.useElectrum = true;
+    this.useSegwit = false;
+    // validate phrase and ent
+    if (phrase && !Mnemonic.isValid(phrase, wordlist)) {
+      this.useSegwit = status[1];
+      if (phrase && !status[0]) {
         throw new errors.InvalidMnemonic(phrase);
+      }  
+    }else {
+      this.useElectrum = false;
     }
-  }else {
-    this.useElectrum = false;
   }
   if (ent % 32 !== 0 || ent < 128 || ent > 256) {
     throw new bitcore.errors.InvalidArgument('ENT', 'Values must be ENT > 128 and ENT < 256 and ENT % 32 == 0');

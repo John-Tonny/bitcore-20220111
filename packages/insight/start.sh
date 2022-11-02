@@ -1,13 +1,7 @@
 #!/bin/bash
 
-if [ "x${BITCORE_PATH}" == "x" ]; then
-  BITCORE_PATH=/root/bitcore
-fi
-
-if [ "x${NODE_PATH}" == "x" ]; then
-  NODE_VERSION=`node -v`
-  NODE_PATH=$HOME/.nvm/versions/node/$NODE_VERSION/bin
-fi
+BITCORE_PATH=/mnt/ethereum/ccc/bitcore
+NODE_PATH=/home/john/.nvm/versions/node/v11.15.0/bin
 
 MODULE_PATH=$BITCORE_PATH/packages
 LOG_PATH=$BITCORE_PATH/logs

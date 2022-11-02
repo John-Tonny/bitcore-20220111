@@ -1,22 +1,20 @@
 #!/bin/bash
 
-if [ "x${BITCORE_PATH}" == "x" ]; then
-  BITCORE_PATH=/root/bitcore
+if [ "x${NODE_SPACE_SIZE}" == "x" ]; then
+  NODE_SPACE_SIZE=3072
 fi
 
-if [ "x${NODE_PATH}" == "x" ]; then
-  NODE_VERSION=`node -v`
-  NODE_PATH=$HOME/.nvm/versions/node/$NODE_VERSION/bin
+BITCORE_PATH=/mnt/ethereum/ccc/bitcore
+NODE_PATH=/home/john/.nvm/versions/node/v11.15.0/bin
+
+MODULE_PATH=${BITCORE_PATH}/packages
+LOG_PATH=${BITCORE_PATH}/logs
+
+if [ ! -d ${LOG_PATH}  ]; then
+  mkdir ${LOG_PATH}
 fi
 
-MODULE_PATH=$BITCORE_PATH/packages
-LOG_PATH=$BITCORE_PATH/logs
-
-if [ ! -d $LOG_PATH  ]; then
-  mkdir $LOG_PATH
-fi
-
-cd $MODULE_PATH/bitcore-node
+cd ${MODULE_PATH}/bitcore-node
 
 # run_program (pidfile, logfile)
 run_program ()
@@ -30,7 +28,7 @@ run_program ()
     return 0
   fi
 
-  nohup $NODE_PATH/node --max_old_space_size=3072  $MODULE_PATH/bitcore-node/build/src/server.js  >> $logfile 2>&1 &
+  nohup $NODE_PATH/node --max_old_space_size=${NODE_SPACE_SIZE}  $MODULE_PATH/bitcore-node/build/src/server.js  >> $logfile 2>&1 &
   PID=$!
   if [ $? -eq 0 ]
   then
